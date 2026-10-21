@@ -12,6 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -158,7 +159,7 @@ public class HomeActivity extends Activity {
                         o.put("title", String.valueOf(r.loadLabel(pm)));
                         Drawable art = a.loadBanner(pm);
                         if (art == null) art = a.applicationInfo.loadBanner(pm);
-                        o.put("icon", art != null ? png(art, 640, 360) : "");
+                        o.put("icon", art != null ? png(art, 540, 252) : "");
                         o.put("banner", art != null);
                         o.put("color", "");
                         out.put(o);
@@ -208,21 +209,35 @@ public class HomeActivity extends Activity {
         }
     }
 
+    /** The banner's color along one column (its middle pixel), opaque; black where it's see-through. */
+    private static int edge(Bitmap b, int x) {
+        int p = b.getPixel(Math.max(0, Math.min(b.getWidth() - 1, x)), b.getHeight() / 2);
+        return Color.alpha(p) < 128 ? Color.BLACK : (p | 0xFF000000);
+    }
+
     /**
-     * A banner as a data: URL the page can show, at its own proportions (some apps' banners aren't 16:9: drawn into a
-     * fixed box they came out stretched) and at most w × h.
+     * A banner as a data: URL the page can show. The shelf's tiles are wider than a banner (15:7, web/home.js), so the
+     * banner is drawn whole in the middle, at its own proportions, and the sides are filled with its own edge colors:
+     * no stretching, nothing cut off.
      */
     private static String png(Drawable d, int w, int h) {
         int iw = d.getIntrinsicWidth(), ih = d.getIntrinsicHeight();
-        if (iw > 0 && ih > 0) {
-            float scale = Math.min(1f, Math.min((float) w / iw, (float) h / ih));
-            w = Math.max(1, Math.round(iw * scale));
-            h = Math.max(1, Math.round(ih * scale));
-        }
+        if (iw <= 0 || ih <= 0) { iw = 16; ih = 9; }
+        int bh = h, bw = Math.round((float) iw * h / ih);
+        if (bw > w) { bw = w; bh = Math.round((float) ih * w / iw); }
+        Bitmap art = Bitmap.createBitmap(bw, bh, Bitmap.Config.ARGB_8888);
+        d.setBounds(0, 0, bw, bh);
+        d.draw(new Canvas(art));
         Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
-        d.setBounds(0, 0, w, h);
-        d.draw(c);
+        int x = (w - bw) / 2, y = (h - bh) / 2;
+        Paint fill = new Paint();
+        fill.setColor(edge(art, 1));
+        c.drawRect(0, 0, x + 1, h, fill);
+        fill.setColor(edge(art, bw - 2));
+        c.drawRect(x + bw - 1, 0, w, h, fill);
+        c.drawBitmap(art, x, y, null);
+        art.recycle();
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.PNG, 100, bytes);
         b.recycle();
