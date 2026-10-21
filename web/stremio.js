@@ -1,6 +1,8 @@
 /*
  * Stremio as the source of the Top Shelf: what you're watching (your Stremio library) and what's popular (Cinemeta).
- *  - Continue: the library items with a saved position, newest first. Needs the account's authKey (CONFIG.stremioAuthKey).
+ *  - Continue: the same rule as Stremio's own Continue Watching (stremio-core's is_in_continue_watching): a movie or
+ *    show with a saved position, in the library or only watched ("temp", which the library marks removed), most
+ *    recently touched first. Needs the account's authKey (CONFIG.stremioAuthKey).
  *  - Movies and Shows: Cinemeta's "top" catalogs, the same ones Stremio's Board shows. No key needed.
  *  - Art: metahub, Stremio's image service, by IMDb id (background, logo, poster).
  * In a desktop browser a small sample stands in until the real lists arrive, so the screen can be previewed.
@@ -72,7 +74,7 @@ var Stremio = (function () {
       id: it._id, type: it.type, title: it.name, year: '', genres: [], rating: '', description: '',
       progress: s.duration ? Math.min(1, s.timeOffset / s.duration) : 0,
       season: ep ? +ep[1] : 0, episode: ep ? +ep[2] : 0, left: left,
-      video: v, at: Date.parse(s.lastWatched || it._mtime) || 0
+      video: v, at: Math.max(Date.parse(s.lastWatched) || 0, Date.parse(it._mtime) || 0)
     };
   }
 
@@ -92,7 +94,7 @@ var Stremio = (function () {
       if (!items) return;
       libraryLoaded = true;
       lists['continue'] = items.filter(function (it) {
-        return !it.removed && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series');
+        return (!it.removed || it.temp) && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series');
       }).map(fromLibrary).sort(function (a, b) { return b.at - a.at; }).slice(0, SIZE).map(withDetails);
       changed();
       lists['continue'].forEach(function (p) { if (!p.description) loadDetails(p); else localize(p); });
