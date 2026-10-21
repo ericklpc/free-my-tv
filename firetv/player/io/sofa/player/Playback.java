@@ -2,6 +2,7 @@ package io.sofa.player;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -28,12 +29,15 @@ import androidx.media3.common.Player;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
 import androidx.media3.common.VideoSize;
+import androidx.media3.common.audio.AudioProcessor;
 import androidx.media3.common.text.Cue;
 import androidx.media3.common.text.CueGroup;
 import androidx.media3.datasource.DefaultHttpDataSource;
 import androidx.media3.exoplayer.DefaultLoadControl;
 import androidx.media3.exoplayer.DefaultRenderersFactory;
 import androidx.media3.exoplayer.ExoPlayer;
+import androidx.media3.exoplayer.audio.AudioSink;
+import androidx.media3.exoplayer.audio.DefaultAudioSink;
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 
 import org.json.JSONArray;
@@ -157,8 +161,12 @@ public final class Playback implements Player.Listener {
         DefaultHttpDataSource.Factory http = new DefaultHttpDataSource.Factory().setUserAgent("SofaPlayer/1.0")
                 .setAllowCrossProtocolRedirects(true).setConnectTimeoutMs(8000).setReadTimeoutMs(8000);
         // ON: the stick's own decoders first, ffmpeg only for what it lacks (DTS, TrueHD).
-        DefaultRenderersFactory renderers = new DefaultRenderersFactory(activity)
-                .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON).setEnableDecoderFallback(true);
+        // The audio goes through Loudness, so every title plays at about the same volume.
+        DefaultRenderersFactory renderers = new DefaultRenderersFactory(activity) {
+            @Override protected AudioSink buildAudioSink(Context context, boolean floatOutput, boolean playbackParams) {
+                return new DefaultAudioSink.Builder(context).setAudioProcessors(new AudioProcessor[] {new Loudness()}).build();
+            }
+        }.setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON).setEnableDecoderFallback(true);
         player = new ExoPlayer.Builder(activity, renderers).setLoadControl(load)
                 .setMediaSourceFactory(new DefaultMediaSourceFactory(activity).setDataSourceFactory(http)).build();
         player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
