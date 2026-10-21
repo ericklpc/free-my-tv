@@ -2,7 +2,10 @@ package io.sofa.firetv;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -69,12 +72,26 @@ public class HomeActivity extends Activity {
         });
         web.addJavascriptInterface(new Bridge(), "AndroidTV");
         setContentView(web);
+        IntentFilter changes = new IntentFilter();
+        changes.addAction(Intent.ACTION_PACKAGE_ADDED);
+        changes.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        changes.addAction(Intent.ACTION_PACKAGE_CHANGED);
+        changes.addAction(Intent.ACTION_PACKAGE_REPLACED);
+        changes.addDataScheme("package");
+        registerReceiver(appsChanged, changes);
         web.loadUrl("file:///android_asset/web/index.html");
         web.requestFocus();
         HomeWatcher.start(this);
     }
 
     private boolean started;
+
+    /** The apps list as apps() last made it; dropped when an app is installed, updated or removed. */
+    private volatile String appsCache;
+
+    private final BroadcastReceiver appsChanged = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) { appsCache = null; }
+    };
 
     @Override protected void onResume() {
         super.onResume();
@@ -91,6 +108,11 @@ public class HomeActivity extends Activity {
         } });
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+    }
+
+    @Override protected void onDestroy() {
+        try { unregisterReceiver(appsChanged); } catch (Exception ignored) {}
+        super.onDestroy();
     }
 
     @Override protected void onPause() {
@@ -118,6 +140,9 @@ public class HomeActivity extends Activity {
     /** What web/tv.js calls. Runs on a WebView thread: anything touching the UI goes through runOnUiThread. */
     final class Bridge {
         @JavascriptInterface public String apps() {
+            // The page asks again every time Sofá comes back: drawing every banner each time made coming back slow.
+            String cached = appsCache;
+            if (cached != null) return cached;
             PackageManager pm = getPackageManager();
             JSONArray out = new JSONArray();
             Set<String> seen = new HashSet<String>();
@@ -133,14 +158,14 @@ public class HomeActivity extends Activity {
                         o.put("title", String.valueOf(r.loadLabel(pm)));
                         Drawable art = a.loadBanner(pm);
                         if (art == null) art = a.applicationInfo.loadBanner(pm);
-                        o.put("icon", art != null ? png(art, 320, 180) : "");
+                        o.put("icon", art != null ? png(art, 640, 360) : "");
                         o.put("banner", art != null);
                         o.put("color", "");
                         out.put(o);
                     } catch (Exception ignored) {}
                 }
             }
-            return out.toString();
+            return appsCache = out.toString();
         }
 
         /** Opens an app; with a link (stremio:///detail/...), straight to it inside that app. */
@@ -183,8 +208,17 @@ public class HomeActivity extends Activity {
         }
     }
 
-    /** A banner as a data: URL the page can show (Fire OS apps' banners are 320 × 180). */
+    /**
+     * A banner as a data: URL the page can show, at its own proportions (some apps' banners aren't 16:9: drawn into a
+     * fixed box they came out stretched) and at most w × h.
+     */
     private static String png(Drawable d, int w, int h) {
+        int iw = d.getIntrinsicWidth(), ih = d.getIntrinsicHeight();
+        if (iw > 0 && ih > 0) {
+            float scale = Math.min(1f, Math.min((float) w / iw, (float) h / ih));
+            w = Math.max(1, Math.round(iw * scale));
+            h = Math.max(1, Math.round(ih * scale));
+        }
         Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(b);
         d.setBounds(0, 0, w, h);

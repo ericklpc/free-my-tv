@@ -12,6 +12,7 @@ var TV = (function () {
   var samsung = !webos && typeof window.tizen !== 'undefined' && !!window.tizen.application;
   var android = !webos && !samsung && typeof window.AndroidTV !== 'undefined';   // firetv/: Fire TV and other Android TVs
   var calls = [];   // a bridge is collected if nothing holds it before its reply arrives
+  var androidRaw = null, androidApps = [];   // the last list from firetv/, as it came and parsed
 
   /** One Luna call; done(result) with null on failure. */
   function luna(uri, params, done) {
@@ -179,9 +180,14 @@ var TV = (function () {
     apps: function (done) {
       if (samsung) { samsungApps(done); return; }
       if (android) {
-        var list = [];
-        try { list = JSON.parse(window.AndroidTV.apps()); } catch (e) {}
-        done(list);
+        // The same list as last time comes back as the same array, so the page can skip redrawing the shelf.
+        var raw = '';
+        try { raw = window.AndroidTV.apps(); } catch (e) {}
+        if (raw !== androidRaw) {
+          androidRaw = raw;
+          try { androidApps = JSON.parse(raw); } catch (e) { androidApps = []; }
+        }
+        done(androidApps);
         return;
       }
       if (!webos) {

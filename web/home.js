@@ -925,8 +925,11 @@
     updateFocus();
   }
 
+  var appsChanged = true;
+
   function loadApps(done) {
     TV.apps(function (list) {
+      appsChanged = list !== apps;
       apps = list;
       Data.setApps(apps);
       pickShelf();
@@ -984,7 +987,7 @@
     raf(function () { raf(function () { TV.shown(); }); });
   }
 
-  function reopened() { restartShelf(); reset(); painted(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
+  function reopened() { restartShelf(); reset(); painted(); loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } Data.refresh(); Stremio.refresh(true); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
@@ -994,7 +997,7 @@
     if (document.hidden) { hideSaver(); restartShelf(); updateFocus(); return; }
     idleAt = Date.now();
     restartShelf();
-    loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); Stremio.refresh(true); });
+    loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } updateFocus(); Data.refresh(); Stremio.refresh(true); });
   });
 
   I18N.set(Prefs.language());
