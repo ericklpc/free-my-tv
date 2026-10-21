@@ -263,7 +263,6 @@
   function turn(d) {
     if (cards.length < 2) return;
     st.card = (st.card + d + cards.length) % cards.length;
-    if (window.console) console.log('[shelf] turn ' + d + ' -> ' + st.card + ' after ' + (Date.now() - movedAt) + 'ms, hidden=' + document.hidden);
     movedAt = Date.now();
   }
 
@@ -952,7 +951,6 @@
 
   /** Back on screen: the Top Shelf starts over from its first title, with a full turn on the clock. */
   function restartShelf() {
-    if (window.console) console.log('[shelf] start over');
     st.card = 0;
     movedAt = Date.now();
   }
@@ -964,11 +962,10 @@
     var gap = Date.now() - tickedAt;
     tickedAt = Date.now();
     if (gap > 3000) {
-      if (window.console) console.log('[shelf] timers were stopped ' + gap + 'ms: start over');
       restartShelf(); updateFocus(); return;
     }
     // Not while the button has the focus: OK must open the title on screen, not the one that just slid in.
-    if (saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
+    if (document.hidden || saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
     turn(1);
     updateFocus();
   }, 1000);
