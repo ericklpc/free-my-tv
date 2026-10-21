@@ -411,6 +411,13 @@ public final class Playback implements Player.Listener {
             Playback.this.request(id, method, url, headers, body);
         }
         @JavascriptInterface public void warm(String url) { Playback.this.warm(url); }
+        /** The link the app was opened with (sofa://detail/…), once; later ones come through Sofa.deepLink. */
+        @JavascriptInterface public String launch() {
+            android.content.Intent i = activity.getIntent();
+            String uri = i == null ? null : i.getDataString();
+            if (uri != null) i.setData(null);
+            return uri;
+        }
         @JavascriptInterface public void play() { run(new Runnable() { @Override public void run() { player.play(); } }); }
         @JavascriptInterface public void pause() { run(new Runnable() { @Override public void run() { player.pause(); } }); }
         @JavascriptInterface public void seekTo(final long ms) { run(new Runnable() { @Override public void run() { player.seekTo(ms); } }); }

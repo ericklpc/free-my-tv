@@ -569,7 +569,7 @@
     var id = it._id;
     if (TITLES[id] && TITLES[id].desc) { done(); return; }
     get(CINEMETA + '/meta/' + it.type + '/' + id + '.json', function (o) {
-      var m = o && o.meta || {name: it.name, poster: it.poster};
+      var m = o && o.meta || {id: id, name: it.name, poster: it.poster};
       delete TITLES[id];
       fromCinemeta(m, it.type);
       if (!CFG.tmdbKey) { done(); return; }
@@ -1827,4 +1827,17 @@
   focusTitle(heroItem().id);
   hud();
   if (!CFG.tmdbKey) setTimeout(function () { toast('Sem chave do TMDB: as artes são gradientes. Com ela, backdrops e logos de verdade.'); }, 600);
+
+  // Opened on a title (the Sofá home's shelf, a link): sofa://detail/{type}/{id}[/{videoId}], the same shape as
+  // Stremio's stremio:///detail/… links, which work too.
+  window.Sofa = {deepLink: function (uri) {
+    var m = /^(?:sofa|stremio):\/\/\/?detail\/(movie|series)\/([^\/?#]+)(?:\/([^?#]+))?/.exec(uri || '');
+    if (!m || state.screen === 'player') return;             // never in the middle of a film
+    var type = m[1], id = decodeURIComponent(m[2]), ep = /:(\d+):(\d+)$/.exec(decodeURIComponent(m[3] || ''));
+    var item = ep ? {s: +ep[1], e: +ep[2]} : continueOf(id) || {};
+    function go() { if (sheet.open) closeSheet(); if (S.open) closeSide(); openDetail(id, item); }
+    if (TITLES[id] && TITLES[id].desc) go(); else libraryTitle({_id: id, type: type, name: ''}, go);
+  }};
+  var launch = window.Player && window.Player.launch && window.Player.launch();
+  if (launch) window.Sofa.deepLink(launch);
 })();

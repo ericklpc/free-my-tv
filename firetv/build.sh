@@ -40,6 +40,8 @@ m = open('AndroidManifest.xml', encoding='utf-8').read()
 m = m.replace('package=\"io.sofa.firetv\"', 'package=\"io.sofa.player\"').replace('android:label=\"Sofá\"', 'android:label=\"Sofá Player\"')
 m = m.replace('android:name=\".HomeActivity\"', 'android:name=\"io.sofa.firetv.HomeActivity\"')
 m = re.sub(r'\s*<!-- A home screen.*?</intent-filter>', '', m, flags=re.S)
+# Opened on a title: sofa://detail/{type}/{id}[/{videoId}] (the Sofá home's shelf uses it).
+m = m.replace('</activity>', '    <intent-filter>\\n                <action android:name=\"android.intent.action.VIEW\" />\\n                <category android:name=\"android.intent.category.DEFAULT\" />\\n                <data android:scheme=\"sofa\" />\\n            </intent-filter>\\n        </activity>', 1)
 m = re.sub(r'\s*<!-- Home button.*?</receiver>', '', m, flags=re.S)
 m = re.sub(r'\s*<uses-permission android:name=\"android.permission.(PACKAGE_USAGE_STATS|RECEIVE_BOOT_COMPLETED|FOREGROUND_SERVICE|SYSTEM_ALERT_WINDOW)\" />', '', m)
 open('out/AndroidManifest.xml', 'w', encoding='utf-8').write(m)
