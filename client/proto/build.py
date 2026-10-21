@@ -79,12 +79,16 @@ def tizen(out, profile):
         spec = importlib.util.spec_from_file_location('tizen_build', os.path.join(ROOT, 'tizen', 'build.py'))
         tb = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(tb)
+        # Tizen Studio 6 signs with tizen-core's `tz`; older ones with `tizen package`.
+        tz = os.path.join(os.environ.get('TIZEN_STUDIO', os.path.expanduser('~/tizen-studio')), 'tools', 'tizen-core', 'tz')
         cli = tb.tizen_cli()
-        if not cli:
+        if not os.path.exists(tz) and not cli:
             sys.exit('Signing needs Samsung\'s Tizen tools (set TIZEN_STUDIO).')
         tmp = tempfile.mkdtemp()
         try:
-            run = subprocess.run([cli, 'package', '-t', 'wgt', '-s', profile, '-o', tmp, '--', wgt], capture_output=True, text=True)
+            cmd = [tz, 'pack', '-t', 'wgt', '-s', profile, '-b', wgt, '-o', tmp] if os.path.exists(tz) else \
+                [cli, 'package', '-t', 'wgt', '-s', profile, '-o', tmp, '--', wgt]
+            run = subprocess.run(cmd, capture_output=True, text=True)
             made = [n for n in os.listdir(tmp) if n.endswith('.wgt')]
             if run.returncode != 0 or not made:
                 sys.exit('`tizen package` didn\'t sign it:\n' + (run.stdout + run.stderr).strip())
