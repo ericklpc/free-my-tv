@@ -66,7 +66,10 @@ if [ $PROTO = 1 ]; then
 fi
 "$JAVAC" -nowarn -Xlint:-options -source 8 -target 8 -classpath "$CP" -encoding UTF-8 -d out/classes \
   $(find $SRC -name '*.java')
-"$BT/d8" --release --min-api 22 --lib "$AJ" --output out $(find out/classes -name '*.class') $JARS
+D8="$BT/d8"
+# The player's Media3 needs a newer d8 than build-tools 34's: deps.py brings R8's own.
+[ $PROTO = 1 ] && D8="${JAVA_HOME:+$JAVA_HOME/bin/}java -cp .deps/tools/r8.jar com.android.tools.r8.D8"
+$D8 --release --min-api 22 --lib "$AJ" --output out $(find out/classes -name '*.class') $JARS
 (cd out && zip -qj base.apk classes*.dex)
 if [ $PROTO = 1 ] && [ -d .deps/lib ]; then (cd .deps && zip -qr ../out/base.apk lib); fi
 "$BT/zipalign" -f -p 4 out/base.apk out/aligned.apk
