@@ -153,7 +153,8 @@ def features(d):
     f += ['w:%d' % c['id'] for c in crew if c.get('department') == 'Writing'][:3]
     f += ['p:%d' % c['id'] for c in crew if c.get('job') == 'Director of Photography'][:1]
     f += ['c:%d' % c['id'] for c in (d.get('credits') or {}).get('cast', [])[:4]]
-    f += ['o:' + c['iso_3166_1'] for c in d.get('production_countries', [])[:2]]
+    # Where it's from, not who co-produced it (Call Me by Your Name is Italian, though France and Brazil put money in).
+    f += ['o:' + c for c in (d.get('origin_country') or [c['iso_3166_1'] for c in d.get('production_countries', [])[:1]])[:1]]
     if d.get('original_language'):
         f.append('l:' + d['original_language'])
     y = (d.get('release_date') or '0000')[:4]
@@ -307,7 +308,7 @@ def reasons(d, taste, best, idf):
     return sorted(((taste.get(x, 0) * idf.get(x, 1), x) for x in f if taste.get(x, 0) > 0 and x in best), reverse=True)
 
 
-def why(d, taste, best, idf):
+def why(d, taste, best, idf, said=None):
     """One line, in Portuguese: who made it, or what it shares with films he rated high, and the critics' grade."""
     n = names(d)
     kw = dict(((('k:%d' % k['id']), k['name'].lower()) for k in (d.get('keywords') or {}).get('keywords', [])))
@@ -320,17 +321,20 @@ def why(d, taste, best, idf):
         elif k == 'w':
             line = 'Roteiro de %s, de %s (%s)' % (n.get(f, '?'), film, stars(rating))
         elif k == 'p':
-            line = 'Fotografia de %s, a de %s' % (n.get(f, '?'), film)
+            line = 'Fotografia de %s, a de %s (%s)' % (n.get(f, '?'), film, stars(rating))
         elif k == 'c':
             line = 'Com %s, de %s (%s)' % (n.get(f, '?'), film, stars(rating))
         elif k == 'k' and kw.get(f) in KW_PT:
             line = '%s, como em %s (%s)' % (KW_PT[kw[f]].capitalize(), film, stars(rating))
         elif k == 'o' and f[2:] in COUNTRY_PT and f[2:] != 'US':
             line = 'Cinema %s, como %s (%s)' % (COUNTRY_PT[f[2:]], film, stars(rating))
-        if not line or film in used:
+        # A reason already given for two other picks stops telling him anything.
+        if not line or film in used or (said is not None and said.get(f, 0) >= 2):
             continue
         out.append(line)
         used.add(film)
+        if said is not None:
+            said[f] = said.get(f, 0) + 1
         if len(out) == 2:
             break
     if not out:
@@ -382,7 +386,7 @@ def pick(args):
             if good and len(groups[g]) < quota[g] and reason_count.get(main, 0) < 2:
                 groups[g].append(d)
                 reason_count[main] = reason_count.get(main, 0) + 1
-    picks = []
+    picks, said = [], {}
     for g in ('new', 'mix', 'classic'):
         for d in groups[g]:
             picks.append({'id': d['external_ids']['imdb_id'], 'tmdb': d['id'], 'group': g, 'title': d.get('title'),
@@ -390,7 +394,7 @@ def pick(args):
                           'runtime': d.get('runtime') or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
                           'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
                           'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
-                          'why': why(d, taste, best, idf), 'score': round(score(d, taste, wish, idf), 3)})
+                          'why': why(d, taste, best, idf, said), 'score': round(score(d, taste, wish, idf), 3)})
     os.makedirs(OUT, exist_ok=True)
     out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks}
     with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
