@@ -328,6 +328,8 @@ def why(d, taste, best, idf, said=None, skip=None, bare=True):
             continue
         film, rating = best[f]
         k, line = f[0], ''
+        if k in 'dwpc' and not re.search('[A-Za-z]', n.get(f, '')):     # 홍경표: TMDB has no Latin name here
+            continue
         if k == 'd':
             line = 'De %s, que fez %s (%s)' % (n.get(f, '?'), film, stars(rating))
         elif k == 'w':
@@ -394,11 +396,6 @@ def discover(**params):
     return ids
 
 
-def directed(person):
-    o = tmdb('/person/%s/movie_credits' % person) or {}
-    return [m['id'] for m in o.get('crew', []) if m.get('job') == 'Director']
-
-
 # What a film shares with the 5★ film its row starts from, most telling first.
 LINK = (('d', 'Também de %s'), ('w', 'Também com roteiro de %s'), ('c', 'Também com %s'), ('p', 'Também com fotografia de %s'),
         ('k', 'Também sobre %s'), ('o', 'Também cinema %s'))
@@ -425,7 +422,7 @@ def link(d, seed):
             elif kind == 'o':
                 name = COUNTRY_PT.get(f[2:]) if f[2:] != 'US' else None
             else:
-                name = n.get(f)
+                name = n.get(f) if re.search('[A-Za-z]', n.get(f, '')) else None
             if name:
                 out.append((LINK_THEME.get(name, text % name) if kind == 'k' else text % name, f))
     return strength, out
@@ -437,67 +434,109 @@ def proper(d):
     return (d.get('runtime') or 0) >= 70 and not g & {10402, 10770} and not d.get('adult')
 
 
-def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
-    """Seeds from his taste (5★ films, directors, themes, countries), a few of each, rotating with the week."""
-    seeds = []
-    fives = [r for r in rated if r[1] >= 5 and r[0] in info]
-    # More 5★ films than rows: some have few good neighbours in the debrid, and the first three that fill a row stay.
-    for tid, rating, name, year in week_rnd.sample(fives, min(8, len(fives))):
-        d = info[tid]
-        ids = [m['id'] for k in ('recommendations', 'similar') for m in (d.get(k) or {}).get('results', [])]
-        seeds.append(('Porque você deu 5★ em %s' % name, 'because', ids, d))
+def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken):
+    """Seeds from his taste (5★ films, directors, themes, countries), rotating with the week. Each kind tries more
+    seeds than it needs, in its own order, and keeps the first that fill a row."""
     ranked = sorted(((v, f) for f, v in taste.items() if v > 0 and f in best), reverse=True)
     people = {}
     for d in info.values():
         people.update(names(d))
-    directors = [f for _, f in ranked if f[0] == 'd'][:8]
-    for f in week_rnd.sample(directors, min(2, len(directors))):
-        seeds.append(('Mais de %s' % people.get(f, ''), 'director', directed(f[2:]), f))
-    themes = []
-    for _, f in ranked:
-        if f[0] == 'k':
-            o = tmdb('/keyword/%s' % f[2:]) or {}
-            if o.get('name', '').lower() in KW_PT:
-                themes.append((f, KW_PT[o['name'].lower()]))
-        if len(themes) == 8:
-            break
-    for f, label in week_rnd.sample(themes, min(2, len(themes))):
-        seeds.append((label[0].upper() + label[1:], 'theme', discover(with_keywords=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 150}), f))
-    countries = [f for _, f in ranked if f[0] == 'o' and f[2:] in COUNTRY_PT][:4]
-    for f in countries[:1] + week_rnd.sample(countries[1:], min(1, len(countries[1:]))):
-        seeds.append(('Cinema ' + COUNTRY_PT[f[2:]], 'country', discover(with_origin_country=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 200}), f))
+    def shuffled(items, salt):
+        items = list(items)
+        random.Random(week * 100 + salt).shuffle(items)
+        return items
+
+    def because():
+        for tid, rating, name, year in shuffled([r for r in rated if r[1] >= 5 and r[0] in info], 1)[:10]:
+            d = info[tid]
+            ids = [m['id'] for k in ('recommendations', 'similar') for m in (d.get(k) or {}).get('results', [])]
+            # And what its director and writers made (Trier and Vogt for The Worst Person in the World).
+            crew = (d.get('credits') or {}).get('crew', [])
+            makers = [c['id'] for c in crew if c.get('job') == 'Director'] + [c['id'] for c in crew if c.get('department') == 'Writing'][:2]
+            for p in dict.fromkeys(makers):
+                ids += made(p)[:30]
+            yield 'Porque você deu 5★ em %s' % name, ids, d
+
+    def directors():
+        for f in shuffled([f for _, f in ranked if f[0] == 'd'][:10], 2):
+            yield 'Mais de %s' % people.get(f, ''), made(f[2:], ('Director',)), f
+
+    def themes():
+        found = []
+        for _, f in ranked:
+            if f[0] == 'k':
+                o = tmdb('/keyword/%s' % f[2:]) or {}
+                if o.get('name', '').lower() in KW_PT:
+                    found.append((f, KW_PT[o['name'].lower()]))
+            if len(found) == 10:
+                break
+        for f, label in shuffled(found, 3):
+            yield label[0].upper() + label[1:], discover(with_keywords=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 150}), f
+
+    def countries():
+        top = [f for _, f in ranked if f[0] == 'o' and f[2:] in COUNTRY_PT][:5]
+        for f in top[:1] + shuffled(top[1:], 4):
+            yield 'Cinema ' + COUNTRY_PT[f[2:]], discover(with_origin_country=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 200}), f
+
     rows = []
-    because = 0
-    for title, kind, ids, seed in seeds:
-        if kind == 'because' and because == 3:
-            continue
-        # A film shows once on the home: not in the picks, not in an earlier row.
-        ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
-        docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)]
-        if kind == 'because':
-            # Only what really comes from that film: the same director, writer, cast, theme or country.
-            # One person in common, or two other ties (Argentina and the 70s, not just one theme).
-            links = dict((d['id'], link(d, seed)) for d in docs)
-            docs = [d for d in docs if links[d['id']][0] >= 2 and links[d['id']][1]]
-            docs.sort(key=lambda d: (-min(links[d['id']][0], 4), -score(d, taste, wish, idf)))
-        else:
-            docs.sort(key=lambda d: -score(d, taste, wish, idf))
-        docs = docs[:16]
-        ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
+    for kind, gen, want in (('because', because, 3), ('director', directors, 3), ('theme', themes, 2), ('country', countries, 2)):
+        got = 0
+        for title, ids, seed in gen():
+            if got == want:
+                break
+            row = make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken)
+            if row:
+                rows.append(row)
+                got += 1
+    # Netflix-like: the kinds take turns down the home.
+    order = {'because': 0, 'director': 1, 'theme': 2, 'country': 3}
+    turn = {}
+    for r in rows:
+        turn[id(r)] = sum(1 for x in rows[:rows.index(r)] if x['kind'] == r['kind'])
+    return sorted(rows, key=lambda r: (turn[id(r)], order[r['kind']]))
+
+
+def made(person, jobs=('Director', 'Screenplay', 'Writer')):
+    o = tmdb('/person/%s/movie_credits' % person) or {}
+    return [m['id'] for m in o.get('crew', []) if m.get('job') in jobs]
+
+
+def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
+    # A film shows once on the home: not in the picks, not in an earlier row.
+    ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
+    docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)]
+    if kind == 'director':
+        # His own films, not anthologies where he made one segment (Paris, Te Amo).
+        def directors(d):
+            return [c['id'] for c in (d.get('credits') or {}).get('crew', []) if c.get('job') == 'Director']
+        docs = [d for d in docs if int(seed[2:]) in directors(d) and len(directors(d)) <= 2]
+    if kind == 'because':
+        # Only what really comes from that film: one person in common, or two other ties (Argentina and the 70s,
+        # not just one theme).
+        links = dict((d['id'], link(d, seed)) for d in docs)
+        docs = [d for d in docs if links[d['id']][0] >= 2 and links[d['id']][1]]
+        docs.sort(key=lambda d: (-min(links[d['id']][0], 4), -score(d, taste, wish, idf)))
         def line(d):
-            if kind == 'because':
-                # The tie to the seed, then one of his own reasons when there is one (they end in the stars).
-                first, f = links[d['id']][1][0]
-                rest = why(d, taste, best, idf, skip=f, bare=False).split(' · ')[0]
-                return first + (' · ' + rest if rest.endswith(')') and seed.get('title', '') not in rest else '')
-            return why(d, taste, best, idf, skip=seed, bare=False)
-        items = [entry(d, line(d)) for d, good in zip(docs, ok) if good][:10]
-        if len(items) >= 6:                                 # fewer barely fill the screen
-            rows.append({'title': title, 'kind': kind, 'items': items})
-            because += kind == 'because'
-            taken.update(x['tmdb'] for x in items)
-        print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
-    return rows
+            # The tie to the seed, then one of his own reasons when there is one (they end in the stars).
+            first, f = links[d['id']][1][0]
+            rest = why(d, taste, best, idf, skip=f, bare=False).split(' · ')[0]
+            return first + (' · ' + rest if rest.endswith(')') and seed.get('title', '') not in rest else '')
+        lines = dict((d['id'], line(d)) for d in docs)
+    else:
+        lines = dict((d['id'], why(d, taste, best, idf, skip=seed, bare=False)) for d in docs)
+        if kind == 'theme':
+            # A wide theme ("violência policial") needs a second tie to him, or Rambo gets in.
+            docs = [d for d in docs if lines[d['id']]]
+        # Films with a reason of his own first.
+        docs.sort(key=lambda d: (not lines[d['id']], -score(d, taste, wish, idf)))
+    docs = docs[:16]
+    ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
+    items = [entry(d, lines[d['id']]) for d, good in zip(docs, ok) if good][:10]
+    print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
+    if len(items) < 6:                                      # fewer barely fill the screen
+        return None
+    taken.update(x['tmdb'] for x in items)
+    return {'title': title, 'kind': kind, 'items': items}
 
 
 def pick(args):
@@ -539,7 +578,7 @@ def pick(args):
                           'why': why(d, taste, best, idf, said), 'score': round(score(d, taste, wish, idf), 3)})
     os.makedirs(OUT, exist_ok=True)
     week = datetime.date.today().isocalendar()[1]
-    rows = personal_rows(rated, info, taste, best, idf, seen, wish, random.Random(week), set(p['tmdb'] for p in picks))
+    rows = personal_rows(rated, info, taste, best, idf, seen, wish, week, set(p['tmdb'] for p in picks))
     out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows}
     with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
