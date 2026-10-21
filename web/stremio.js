@@ -21,7 +21,27 @@ var Stremio = (function () {
   var listeners = [];
   var loadedAt = 0, libraryLoaded = false;
 
-  function changed() { for (var i = 0; i < listeners.length; i++) listeners[i](); }
+  // The last lists, kept on the TV: a cold start shows them at once, and the fresh ones replace them when they arrive.
+  var CACHE = 'sofa.stremio.lists', saving = 0;
+
+  function save() {
+    clearTimeout(saving);
+    saving = setTimeout(function () {
+      try { window.localStorage.setItem(CACHE, JSON.stringify(lists)); } catch (e) {}
+    }, 3000);
+  }
+
+  function restore() {
+    try {
+      var o = JSON.parse(window.localStorage.getItem(CACHE) || 'null');
+      if (o && o.movie) for (var k in lists) lists[k] = o[k] || [];
+    } catch (e) {}
+  }
+
+  function changed() {
+    for (var i = 0; i < listeners.length; i++) listeners[i]();
+    if (TV.name !== 'browser') save();
+  }
 
   function request(method, url, body, done) {
     var x = new XMLHttpRequest(), over = false;
@@ -198,6 +218,7 @@ var Stremio = (function () {
   }
 
   if (TV.name === 'browser') sample();   // on a TV, only real data: an empty row beats made-up progress
+  else restore();                        // ...but the real data from last time is fine
 
   return {
     /** "continue", "movie" or "series". */

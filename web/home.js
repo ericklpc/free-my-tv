@@ -9,6 +9,7 @@
  */
 (function () {
   'use strict';
+  var startedAt = (window.performance && performance.timing && performance.timing.navigationStart) || Date.now();
 
   function $(id) { return document.getElementById(id); }
 
@@ -1042,10 +1043,18 @@
   renderTop();
   loadApps(function () {
     renderAll();
-    painted();
-    Data.refresh();
-    Stremio.refresh();
+    // On screen first (with the lists from last time); then what's new.
+    painted(function () {
+      if (window.console) console.log('[start] painted ' + (Date.now() - startedAt) + ' ms after the page began');
+      Data.refresh();
+      Stremio.refresh();
+    });
   });
+
+  /** firetv/: the apps changed (installed, removed) or the list from last time was rebuilt. */
+  function appsUpdated() {
+    loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); updateFocus(); } });
+  }
   setInterval(function () {
     renderClock();
     checkNight();
@@ -1057,5 +1066,5 @@
 
   // For the browser preview and tests.
   window.FreeMyTV = {state: st, move: move, activate: activate, back: back, showSaver: showSaver, hideSaver: hideSaver, toast: toast,
-    reopened: reopened};
+    reopened: reopened, appsUpdated: appsUpdated};
 })();
