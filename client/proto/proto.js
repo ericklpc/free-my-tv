@@ -742,6 +742,7 @@
     var t = P.t, imdb = /^tt\d+$/.test(P.id) ? P.id : t.imdb;
     if (!imdb || !(P.dur > 0)) return;
     var at = new Date().toISOString(), old = LIB[imdb];
+    if (!old && P.pos < 120) return;                       // a peek or a test isn't "watching": not in Continue yet
     var it = old ? JSON.parse(JSON.stringify(old)) : {_id: imdb, name: t.title, type: t.type, poster: t.art && t.art.poster || '',
       posterShape: 'poster', removed: true, temp: true, _ctime: at,
       state: {lastWatched: at, timeWatched: 0, timeOffset: 0, overallTimeWatched: 0, timesWatched: 0, flaggedWatched: 0,
