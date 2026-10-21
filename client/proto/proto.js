@@ -246,6 +246,19 @@
 
   var H = {zone: 'hero', page: 0, btn: 0, row: 0, idx: [], rows: [], heroTimer: 0, artLayer: 0};
   var HOME = SAMPLE.home;
+  // The week's picks (client/curation): they replace the sample ones, with their own why lines.
+  (function () {
+    var w = CFG.picks, row = null;
+    for (var i = 0; i < HOME.rows.length; i++) if (HOME.rows[i].kind === 'picks') row = HOME.rows[i];
+    if (!w || !w.picks || !w.picks.length || !row) return;
+    row.items = w.picks.map(function (p) {
+      if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: 'movie', title: p.title, year: p.year, genres: p.genres || [],
+        rating: p.rating || '', runtime: p.runtime || 0, cert: '', colors: colorsFor(p.id), desc: p.desc || '',
+        art: {backdrop: p.backdrop ? IMG + 'w1280' + p.backdrop : '', poster: p.poster ? IMG + 'w342' + p.poster : ''}};
+      return {id: p.id, why: p.why};
+    });
+    row.subtitle = 'Curadoria de ' + w.week.split('-').reverse().slice(0, 2).join('/') + ' · só o que já está no seu TorBox';
+  })();
 
   function heroItem() { return HOME.hero[H.page]; }
   function continueOf(id) {
@@ -546,7 +559,18 @@
   var TRAKT = 'https://api.trakt.tv', trakt = null;
   try { trakt = JSON.parse(localStorage.getItem('sofa.trakt') || 'null'); } catch (e) {}
   function traktSave() { try { localStorage.setItem('sofa.trakt', JSON.stringify(trakt)); } catch (e) {} }
+  // On the TV, through the native side: Trakt's CORS refuses a page loaded from file://.
+  var calls = {}, callId = 0;
+  window.Native = window.Native || {};
   function traktCall(method, path, body, done, auth) {
+    if (window.Player && window.Player.request) {
+      var h = {'Content-Type': 'application/json', 'trakt-api-version': '2', 'trakt-api-key': CFG.traktId};
+      if (auth && trakt) h.Authorization = 'Bearer ' + trakt.access;
+      var id = ++callId;
+      calls[id] = done || function () {};
+      window.Player.request(id, method, TRAKT + path, JSON.stringify(h), body ? JSON.stringify(body) : '');
+      return;
+    }
     var x = new XMLHttpRequest();
     x.open(method, TRAKT + path, true);
     x.setRequestHeader('Content-Type', 'application/json');
@@ -1236,8 +1260,16 @@
     if (REAL) window.Player.stop();
   }
 
+  // Answers to Player.request (Trakt).
+  window.Native = window.Native || {};
+  window.Native.http = function (id, status, text) {
+    var done = calls[id], o = null;
+    delete calls[id];
+    try { o = text ? JSON.parse(text) : null; } catch (e) {}
+    if (done) done(status, o);
+  };
   // What the native player says (Playback.java → Native.player).
-  window.Native = {player: function (ev) {
+  window.Native.player = function (ev) {
     if (state.screen !== 'player' || !REAL) return;
     if (ev.type === 'firstFrame') {
       clearTimeout(P.spin);
@@ -1266,7 +1298,7 @@
       M.warm = ev.ms;
     }
     hud();
-  }};
+  };
 
   // Subtitles: pt-BR first (the file's own track when it says Brazil, it's in sync), then OpenSubtitles' pt-BR,
   // then any Portuguese that isn't marked European, then English. Media3 alone treats pt-PT as pt.

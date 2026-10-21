@@ -36,6 +36,9 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -190,6 +193,49 @@ public final class Playback implements Player.Listener {
     // MARK: - Resolving a link before OK: follows the redirects (the debrid makes the file link on the first hit)
     // and keeps the final address for 10 minutes.
 
+    /**
+     * An HTTPS call for the page, to Trakt only: its API refuses the page's origin (file://, "null") in CORS. The
+     * answer goes back through Native.http(id, status, body).
+     */
+    private void request(final int id, final String method, final String url, final String headers, final String body) {
+        new Thread(new Runnable() {
+            @Override public void run() {
+                int code = 0;
+                String text = "";
+                try {
+                    URL u = new URL(url);
+                    if (!"https".equals(u.getProtocol()) || !"api.trakt.tv".equals(u.getHost())) throw new SecurityException(u.getHost());
+                    HttpURLConnection c = (HttpURLConnection) u.openConnection();
+                    c.setRequestMethod(method);
+                    c.setConnectTimeout(10000);
+                    c.setReadTimeout(15000);
+                    JSONObject h = new JSONObject(headers == null || headers.length() == 0 ? "{}" : headers);
+                    for (java.util.Iterator<String> k = h.keys(); k.hasNext(); ) { String n = k.next(); c.setRequestProperty(n, h.optString(n)); }
+                    if (body != null && body.length() > 0) {
+                        c.setDoOutput(true);
+                        OutputStream out = c.getOutputStream();
+                        out.write(body.getBytes("UTF-8"));
+                        out.close();
+                    }
+                    code = c.getResponseCode();
+                    InputStream in = code < 400 ? c.getInputStream() : c.getErrorStream();
+                    if (in != null) {
+                        ByteArrayOutputStream all = new ByteArrayOutputStream();
+                        byte[] buf = new byte[8192];
+                        for (int n; (n = in.read(buf)) > 0; ) all.write(buf, 0, n);
+                        in.close();
+                        text = all.toString("UTF-8");
+                    }
+                    c.disconnect();
+                } catch (Exception e) {
+                    Log.w(TAG, "request: " + e);
+                }
+                final String js = "window.Native && Native.http && Native.http(" + id + "," + code + "," + JSONObject.quote(text) + ")";
+                main.post(new Runnable() { @Override public void run() { web.evaluateJavascript(js, null); } });
+            }
+        }).start();
+    }
+
     private void warm(final String url) {
         new Thread(new Runnable() {
             @Override public void run() {
@@ -343,6 +389,9 @@ public final class Playback implements Player.Listener {
             main.post(new Runnable() { @Override public void run() {
                 try { Playback.this.open(new JSONObject(json), false); } catch (Exception e) { Log.w(TAG, "preload", e); }
             } });
+        }
+        @JavascriptInterface public void request(int id, String method, String url, String headers, String body) {
+            Playback.this.request(id, method, url, headers, body);
         }
         @JavascriptInterface public void warm(String url) { Playback.this.warm(url); }
         @JavascriptInterface public void play() { run(new Runnable() { @Override public void run() { player.play(); } }); }
