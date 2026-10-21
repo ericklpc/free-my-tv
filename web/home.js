@@ -999,7 +999,10 @@
     if (document.hidden) { hideSaver(); restartShelf(); updateFocus(); return; }
     idleAt = Date.now();
     restartShelf();
-    loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } updateFocus(); Data.refresh(); Stremio.refresh(true); });
+    updateFocus();
+    painted(function () {
+      loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } updateFocus(); Data.refresh(); Stremio.refresh(true); });
+    });
   });
 
   I18N.set(Prefs.language());
