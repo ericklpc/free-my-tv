@@ -73,8 +73,12 @@ public class HomeWatcher extends Service {
         } catch (Exception ignored) {}
         checked = now;
         if (front == null) return;
+        if (front.equals(getPackageName())) {
+            opened = 0;   // Sofá is up: the next Home counts, however soon it comes
+            return;
+        }
         if (!AMAZON_HOME.equals(front)) {
-            if (!front.equals(getPackageName())) stayOnAmazon = false;
+            stayOnAmazon = false;
             return;
         }
         if (stayOnAmazon || now - opened < GUARD) return;
