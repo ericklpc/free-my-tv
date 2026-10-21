@@ -51,6 +51,11 @@ public class HomeActivity extends Activity {
         s.setAllowFileAccessFromFileURLs(true);
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setMediaPlaybackRequiresUserGesture(false);
+        // The page is a 1920 × 1080 stage (<meta name="viewport" content="width=1920">). Fire TV runs at 2x density:
+        // without these the WebView shows only the top-left quarter of it.
+        s.setUseWideViewPort(true);
+        s.setLoadWithOverviewMode(true);
+        s.setTextZoom(100);
         web.addJavascriptInterface(new Bridge(), "AndroidTV");
         setContentView(web);
         web.loadUrl("file:///android_asset/web/index.html");
