@@ -308,7 +308,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   box-shadow: 0 4px 22px rgba(0, 0, 0, 0.14);
   -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
   transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-  will-change: transform;   /* its own layer: zooming it doesn't repaint the shelf */
+  will-change: transform;   /* its own layer: zooming it doesn't repaint the shelf (measured on the Fire TV 4K) */
 }
 .tile img { position: absolute; left: 50%; top: 50%; max-width: 76%; max-height: 62%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); }
 .tile .word {
@@ -544,11 +544,11 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   opacity: 0;
   -webkit-transition: opacity 0.8s;
   transition: opacity 0.8s;
-  will-change: opacity;   /* the crossfade happens in the GPU, without repainting the 1920 × 1080 picture */
+  will-change: opacity;   /* the crossfade in the GPU: fewer dropped frames on the Fire TV 4K */
 }
 #art .shot.on { opacity: 1; }
 #art .shade {
-  will-change: transform;   /* drawn once, kept as a layer */
+  will-change: transform;
   position: absolute;
   left: 0;
   top: 0;
@@ -657,8 +657,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #dots .dot:not(.on) i { width: 0 !important; -webkit-transition: none !important; transition: none !important; }
 .drawer-open #dots { opacity: 0; }
 
-/* Android TV banners (firetv/): the app's own 16:9 art, edge to edge. The tile is wider than 16:9, so the art fills its
-   width and loses a little at the top and bottom instead of being stretched. */
+/* Android TV banners (firetv/): the app's own art, whole and undistorted, on a tile painted in the banner's own edge color
+   (firetv/ sends it as the app's color), so any space left around it reads as part of the banner. */
 img.banner { left: 0 !important; top: 0 !important; width: 100%; height: 100%; max-width: none !important; max-height: none !important;
-  object-fit: cover; object-position: center;
+  object-fit: contain; object-position: center;
   -webkit-transform: none !important; transform: none !important; }

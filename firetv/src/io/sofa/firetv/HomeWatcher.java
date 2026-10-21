@@ -51,8 +51,9 @@ public class HomeWatcher extends Service {
     private static HomeWatcher running;
 
     /** Sofá is on screen: the cover can go. */
-    static void arrived() {
+    static void arrived(final String why) {
         final HomeWatcher w = running;
+        Log.i("HomeWatcher", "arrived: " + why + (w == null ? " (no watcher)" : ""));
         if (w != null) w.handler.post(new Runnable() { @Override public void run() { w.uncover(); } });
     }
 
@@ -187,17 +188,22 @@ public class HomeWatcher extends Service {
         try {
             ((WindowManager) getSystemService(WINDOW_SERVICE)).addView(v, lp);
             cover = v;
+            Log.i("HomeWatcher", "cover");
             handler.postDelayed(uncoverLate, COVER_MAX);
         } catch (Exception noPermission) {}
     }
 
-    private final Runnable uncoverLate = new Runnable() { @Override public void run() { uncover(); } };
+    private final Runnable uncoverLate = new Runnable() { @Override public void run() {
+        Log.i("HomeWatcher", "cover timed out");
+        uncover();
+    } };
 
     private void uncover() {
         handler.removeCallbacks(uncoverLate);
         final View v = cover;
         if (v == null) return;
         cover = null;
+        Log.i("HomeWatcher", "uncover");
         v.animate().alpha(0f).setStartDelay(100).setDuration(300).withEndAction(new Runnable() {
             @Override public void run() {
                 try { ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(v); } catch (Exception ignored) {}

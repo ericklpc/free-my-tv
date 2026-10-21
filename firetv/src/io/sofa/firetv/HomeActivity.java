@@ -104,6 +104,7 @@ public class HomeActivity extends Activity {
 
     @Override protected void onResume() {
         super.onResume();
+        Log.i("HomeWatcher", "Sofá resumed");
         web.onResume();
         // Back from Stremio or another app: to the shelf, with fresh lists (what you just watched moves up).
         if (started) js("window.FreeMyTV && FreeMyTV.reopened && FreeMyTV.reopened()");
@@ -112,7 +113,7 @@ public class HomeActivity extends Activity {
         // cover goes. The page also says so itself (Bridge.shown); whichever comes first.
         if (Build.VERSION.SDK_INT >= 23) web.post(new Runnable() { @Override public void run() {
             web.postVisualStateCallback(0, new WebView.VisualStateCallback() {
-                @Override public void onComplete(long id) { HomeWatcher.arrived(); }
+                @Override public void onComplete(long id) { HomeWatcher.arrived("drawn"); }
             });
         } });
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
@@ -183,9 +184,10 @@ public class HomeActivity extends Activity {
                         o.put("title", String.valueOf(r.loadLabel(pm)));
                         Drawable art = a.loadBanner(pm);
                         if (art == null) art = a.applicationInfo.loadBanner(pm);
-                        o.put("icon", art != null ? png(art, 640, 360) : "");
-                        o.put("banner", art != null);
-                        o.put("color", "");
+                        Bitmap banner = art != null ? draw(art, 640, 360) : null;
+                        o.put("color", banner != null ? edgeColor(banner) : "");
+                        o.put("banner", banner != null);
+                        o.put("icon", banner != null ? png(banner) : "");   // png() recycles it
                         out.put(o);
                     } catch (Exception ignored) {}
                 }
@@ -214,7 +216,7 @@ public class HomeActivity extends Activity {
 
         /** The page has drawn itself (web/home.js, after opening or coming back): the loading cover can go. */
         @JavascriptInterface public void shown() {
-            HomeWatcher.arrived();
+            HomeWatcher.arrived("page");
         }
 
         /** Back on the first screen: to whatever was before (Fire OS's own home, which HomeWatcher then leaves alone). */
@@ -233,11 +235,30 @@ public class HomeActivity extends Activity {
         }
     }
 
-    /**
-     * A banner as a data: URL the page can show, at its own proportions (some apps' banners aren't 16:9: drawn into a
-     * fixed box they came out stretched) and at most w × h.
-     */
-    private static String png(Drawable d, int w, int h) {
+    /** The color around a banner's edges (the average of its border), as #RRGGBB; black when it's see-through. */
+    private static String edgeColor(Bitmap b) {
+        long r = 0, g = 0, bl = 0, n = 0;
+        int w = b.getWidth(), h = b.getHeight();
+        for (int i = 0; i < w; i += 4) {
+            for (int y : new int[] {1, h - 2}) {
+                int p = b.getPixel(i, Math.max(0, y));
+                if (Color.alpha(p) < 200) continue;
+                r += Color.red(p); g += Color.green(p); bl += Color.blue(p); n++;
+            }
+        }
+        for (int i = 0; i < h; i += 4) {
+            for (int x : new int[] {1, w - 2}) {
+                int p = b.getPixel(Math.max(0, x), i);
+                if (Color.alpha(p) < 200) continue;
+                r += Color.red(p); g += Color.green(p); bl += Color.blue(p); n++;
+            }
+        }
+        if (n == 0) return "#000000";
+        return String.format("#%02X%02X%02X", r / n, g / n, bl / n);
+    }
+
+    /** A banner, at its own proportions and at most w × h. */
+    private static Bitmap draw(Drawable d, int w, int h) {
         int iw = d.getIntrinsicWidth(), ih = d.getIntrinsicHeight();
         if (iw > 0 && ih > 0) {
             float scale = Math.min(1f, Math.min((float) w / iw, (float) h / ih));
@@ -245,9 +266,13 @@ public class HomeActivity extends Activity {
             h = Math.max(1, Math.round(ih * scale));
         }
         Bitmap b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
         d.setBounds(0, 0, w, h);
-        d.draw(c);
+        d.draw(new Canvas(b));
+        return b;
+    }
+
+    /** A picture as a data: URL the page can show. */
+    private static String png(Bitmap b) {
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.PNG, 100, bytes);
         b.recycle();

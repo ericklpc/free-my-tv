@@ -101,6 +101,7 @@
     var bottom = k ? k[3][1] : app.color ? darken(app.color, 0.62) : '#161618';
     box.style.background = '-webkit-linear-gradient(top, ' + top + ', ' + bottom + ')';
     box.style.background = 'linear-gradient(' + top + ', ' + bottom + ')';
+    if (app.banner && app.color) box.style.background = app.color;
     var word = el('div', 'word', box, app.title);
     if (wordSize) word.style.fontSize = wordSize + 'px';
     if (app.icon) {
@@ -982,12 +983,13 @@
   });
 
   /** Tells the TV once the page has really painted what's on screen now (two frames later). */
-  function painted() {
+  function painted(then) {
     var raf = window.requestAnimationFrame || function (f) { setTimeout(f, 16); };
-    raf(function () { raf(function () { TV.shown(); }); });
+    raf(function () { raf(function () { TV.shown(); if (then) then(); }); });
   }
 
-  function reopened() { restartShelf(); reset(); painted(); loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } Data.refresh(); Stremio.refresh(true); }); }
+  // The screen first, as it was left (now on the first title); the apps and lists catch up right after.
+  function reopened() { restartShelf(); reset(); painted(function () { loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } Data.refresh(); Stremio.refresh(true); }); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
@@ -997,7 +999,10 @@
     if (document.hidden) { hideSaver(); restartShelf(); updateFocus(); return; }
     idleAt = Date.now();
     restartShelf();
-    loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } updateFocus(); Data.refresh(); Stremio.refresh(true); });
+    updateFocus();
+    painted(function () {
+      loadApps(function () { if (appsChanged) { renderShelf(); renderDrawer(); } updateFocus(); Data.refresh(); Stremio.refresh(true); });
+    });
   });
 
   I18N.set(Prefs.language());
