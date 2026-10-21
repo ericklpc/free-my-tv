@@ -15,3 +15,6 @@ __pycache__/
 
 # Browser preview (its config.js carries your keys)
 preview/
+
+# Fire TV debloat logs (firetv/debloat.sh): what was turned off on your TV
+firetv/debloat-*

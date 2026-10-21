@@ -34,3 +34,19 @@ Sofá's icon), let Sofá draw over other apps:
 Then open Sofá once (it also starts by itself when the TV restarts). To undo either: the same line with `ignore`.
 
 Debugging the page: `chrome://inspect` on the computer, with the Fire TV connected over adb.
+
+## Making the Fire TV faster
+
+`debloat.sh` turns off Amazon's ads, telemetry and the Amazon apps Sofá doesn't use, so there's more memory and CPU
+for Sofá and the player. It never touches Amazon's home, Settings, the Appstore, Prime Video, the keyboard, WebView,
+Sofá, the player or apps that saved a Wi-Fi network, and it logs every change so `--restore` undoes it all.
+
+    ./firetv/debloat.sh <IP>                    # what it would do; changes nothing
+    ./firetv/debloat.sh <IP> --apply            # tiers 1 (ads, telemetry) and 2 (unused Amazon apps)
+    ./firetv/debloat.sh <IP> --apply 3          # also Alexa, home recommendations and system updates
+    ./firetv/debloat.sh <IP> --animations 0.5   # faster animations (1 = stock)
+    ./firetv/debloat.sh <IP> --restore          # undo everything
+
+Then restart the TV. On the TV itself, also turn off Settings → Preferences → Featured Content → video and audio
+autoplay (Amazon's home stops playing trailers behind Sofá), and in Preferences → Privacy, the usage data and
+interest-based ads. A factory reset or a big Fire OS update can bring the apps back; run it again.
