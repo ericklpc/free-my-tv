@@ -143,8 +143,9 @@ public class HomeActivity extends Activity {
             }
         }
 
-        /** Back on the first screen: to whatever was before (Fire OS's own home, while Sofá is an app). */
+        /** Back on the first screen: to whatever was before (Fire OS's own home, which HomeService then leaves alone). */
         @JavascriptInterface public void leave() {
+            HomeService.stayOnAmazon = true;
             runOnUiThread(new Runnable() { @Override public void run() { moveTaskToBack(true); } });
         }
 
