@@ -1064,7 +1064,8 @@
     P.dur = (t.type === 'series' ? 50 : t.runtime) * 60;
     P.pos = from && from.posMs ? from.posMs / 1000 : from && from.progress ? from.progress * P.dur : 0;   // resume without asking (HIG: playing video)
     P.savedAt = 0;
-    if (t.type === 'series' && !P.pos) P.pos = 30;                  // so skip intro shows up soon in the demo
+    if (t.type === 'series' && !P.pos && !REAL) P.pos = 30;        // so skip intro shows up soon in the demo
+    loadSegments(id, P.s, P.e);
     P.paused = false; P.started = false; P.zone = 'bar'; P.pill = 0; P.tabs = false; P.nextCount = 0;
     show('player');
     $('#player .frame').className = 'frame';
@@ -1280,19 +1281,69 @@
         hud();
       }, 1400);
     }
-    var skip = $('#player .skip');
-    var inIntro = !REAL && P.s && P.pos >= 40 && P.pos < 100 && SET.intro !== 2;
-    if (inIntro && SET.intro === 1) { P.pos = 100; inIntro = false; toast('Abertura pulada'); }
-    if (inIntro && skip.className.indexOf('on') < 0) { skip.className = 'skip on'; skip.innerHTML = '<span class="btn lift">Pular abertura</span>'; }
-    if (!inIntro && skip.className.indexOf('on') >= 0) skip.className = 'skip';
+    var skip = $('#player .skip'), seg = segmentAt(P.pos);
+    if (seg && SET.intro === 1 && !seg.done) { seg.done = true; seekBy(seg.to - P.pos); toast(seg.label.replace('Pular', 'Pulei')); seg = null; }
+    if (seg && (skip.className.indexOf('on') < 0 || P.seg !== seg)) { skip.className = 'skip on'; skip.innerHTML = '<span class="btn lift">' + seg.label + '</span>'; }
+    if (!seg && skip.className.indexOf('on') >= 0) skip.className = 'skip';
+    P.seg = seg;
     var left = P.dur - P.pos, next = $('#player .next');
     var notice = [20, 35, 10][SET.notice] || 20;
-    if (P.s && left <= notice && hasNext()) {
+    // With the credits' start known, Up Next shows when they start and plays 15 s later (like the TV app).
+    var credits = P.segs && P.segs.credits, atCredits = credits && P.pos >= credits && left > 5;
+    if (atCredits) left = Math.min(left, credits + 15 + 5 - P.pos);
+    if (P.s && (left <= notice || atCredits) && hasNext()) {
       if (next.className.indexOf('on') < 0) showNext();
       $('.count', next).textContent = SET.binge === 0 ? 'Começa em ' + Math.max(0, Math.ceil(left - 5)) + ' s · mesma fonte' : 'OK pra assistir';
       if (left <= 5 && SET.binge === 0) nextEpisode();
     } else if (!REAL && !P.s && left <= 0) { stopPlayer(); return; }
     renderOsd();
+  }
+
+  // Intros, recaps and credits from TheIntroDB (free, by TMDB id); the simulation has a made-up intro.
+  var SEGS = {};
+  function loadSegments(id, s, e) {
+    P.segs = null;
+    if (!s) return;
+    if (!REAL) { P.segs = {skip: [{from: 40, to: 100, label: 'Pular abertura'}], credits: 0}; return; }
+    var key = id + ':' + s + ':' + e;
+    if (SEGS[key]) { P.segs = SEGS[key]; return; }
+    tmdbOf(id, function (tmdb) {
+      if (!tmdb) return;
+      get('https://api.theintrodb.org/v4/media?tmdb_id=' + tmdb + '&season=' + s + '&episode=' + e, function (o) {
+        if (!o) return;
+        var out = {skip: [], credits: 0};
+        function add(list, label) {
+          for (var i = 0; list && i < list.length; i++) {
+            var a = list[i].start_ms, b = list[i].end_ms;
+            if (a != null && b && b > a) out.skip.push({from: a / 1000, to: b / 1000, label: label});
+          }
+        }
+        add(o.recap, 'Pular recapitulação'); add(o.intro, 'Pular abertura');
+        if (o.credits && o.credits[0] && o.credits[0].start_ms) out.credits = o.credits[0].start_ms / 1000;
+        SEGS[key] = out;
+        console.log('[player] TheIntroDB ' + key + ': ' + out.skip.map(function (x) { return x.label + ' ' + Math.round(x.from) + '–' + Math.round(x.to) + ' s'; }).join(', ') +
+          (out.credits ? ' · créditos em ' + Math.round(out.credits) + ' s' : ''));
+        if (P.id === id && P.s === s && P.e === e) P.segs = out;
+      });
+    });
+  }
+  function segmentAt(pos) {
+    if (!P.segs || SET.intro === 2) return null;
+    for (var i = 0; i < P.segs.skip.length; i++) {
+      var x = P.segs.skip[i];
+      if (pos >= x.from && pos < x.to - 2) return x;
+    }
+    return null;
+  }
+  function tmdbOf(id, done) {
+    var t = TITLES[id];
+    if (t.tmdb) { done(t.tmdb); return; }
+    if (!CFG.tmdbKey || !/^tt\d+$/.test(id)) { done(0); return; }
+    get('https://api.themoviedb.org/3/find/' + id + '?external_source=imdb_id&api_key=' + encodeURIComponent(CFG.tmdbKey), function (f) {
+      var hit = f && ((f.tv_results || [])[0] || (f.movie_results || [])[0]);
+      if (hit) t.tmdb = hit.id;
+      done(t.tmdb || 0);
+    });
   }
 
   function hasNext() { return P.e < P.t.seasons[P.s - 1] || P.s < P.t.seasons.length; }
@@ -1311,6 +1362,7 @@
     var s = P.s, e = P.e + 1;
     if (e > P.t.seasons[s - 1]) { s++; e = 1; }
     P.s = s; P.e = e; P.pos = 0; P.failedOnce = false;
+    loadSegments(P.id, s, e);
     $('#player .next').className = 'next';
     setFocus(null);
     episodeLabel();
@@ -1430,7 +1482,7 @@
     }
     if (!osdOn()) {
       if (k === 'ok' && /\bon\b/.test(next.className)) { nextEpisode(); return; }
-      if (k === 'ok' && /\bon\b/.test(skip.className)) { seekBy(100 - P.pos); skip.className = 'skip'; renderOsd(); paintPlayer(); return; }
+      if (k === 'ok' && /\bon\b/.test(skip.className) && P.seg) { P.seg.done = true; seekBy(P.seg.to - P.pos); skip.className = 'skip'; renderOsd(); paintPlayer(); return; }
       if (k === 'ok') togglePause();
       else if (k === 'left' || k === 'right') { seekBy((k === 'left' ? -1 : 1) * [10, 15, 30][SET.seek]); }
       else if (k === 'down') { openTabs(); return; }
