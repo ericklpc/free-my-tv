@@ -2,7 +2,9 @@ package io.sofa.firetv;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
@@ -15,6 +17,7 @@ import android.os.Handler;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -99,11 +102,20 @@ public class HomeWatcher extends Service {
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int id) {
+        // In the foreground on every version: Fire OS runs short of memory and, overnight, kills background services.
+        Notification.Builder n;
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             nm.createNotificationChannel(new NotificationChannel("home", "Botão Home", NotificationManager.IMPORTANCE_MIN));
-            startForeground(1, new Notification.Builder(this, "home").setSmallIcon(R.drawable.icon).build());
+            n = new Notification.Builder(this, "home");
+        } else {
+            n = new Notification.Builder(this).setPriority(Notification.PRIORITY_MIN);
         }
+        startForeground(1, n.setSmallIcon(R.drawable.icon).setContentTitle("Sofá").build());
+        // And if it's killed anyway, back within a quarter of an hour.
+        AlarmManager alarms = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarms.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                AlarmManager.INTERVAL_FIFTEEN_MINUTES, PendingIntent.getBroadcast(this, 0, new Intent(this, Boot.class), 0));
         return START_STICKY;
     }
 
@@ -203,7 +215,7 @@ public class HomeWatcher extends Service {
 
     @Override public IBinder onBind(Intent intent) { return null; }
 
-    /** Back on after the TV restarts. */
+    /** Back on after the TV restarts (and every quarter of an hour, in case Fire OS stopped it). */
     public static class Boot extends BroadcastReceiver {
         @Override public void onReceive(Context c, Intent i) { start(c); }
     }
