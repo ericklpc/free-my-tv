@@ -405,16 +405,18 @@ LINK = (('d', 'Também de %s'), ('w', 'Também com roteiro de %s'), ('c', 'Tamb�
 
 
 LINK_PT = {'cinema queer': 'temática LGBT+'}
+# Themes that read better another way than "Também sobre …".
+LINK_THEME = {'temática LGBT+': 'Também com temática LGBT+', 'sátira': 'Também uma sátira', 'humor ácido': 'Também com humor ácido'}
 
 
 def link(d, seed):
-    """How strongly d comes from seed (a person counts 2, a theme or the country 1, the decade or a genre ½), and
+    """How strongly d comes from seed (a person counts 2, a theme or the country 1, the decade ½; a genre is too wide), and
     the lines that say it, each with its feature."""
     shared, n = set(features(d)) & set(features(seed)), names(seed)
     kw = dict((('k:%d' % k['id']), k['name'].lower()) for k in (seed.get('keywords') or {}).get('keywords', []))
     out, strength = [], 0
     for f in shared:
-        strength += 2 if f[0] in 'dwcp' else 1 if f[0] in 'ko' else 0.5 if f[0] in 'yg' else 0
+        strength += 2 if f[0] in 'dwcp' else 1 if f[0] in 'ko' else 0.5 if f[0] == 'y' else 0
     for kind, text in LINK:
         for f in sorted(x for x in shared if x[0] == kind):
             if kind == 'k':
@@ -425,7 +427,7 @@ def link(d, seed):
             else:
                 name = n.get(f)
             if name:
-                out.append((text % name, f))
+                out.append((LINK_THEME.get(name, text % name) if kind == 'k' else text % name, f))
     return strength, out
 
 
@@ -439,7 +441,8 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
     """Seeds from his taste (5★ films, directors, themes, countries), a few of each, rotating with the week."""
     seeds = []
     fives = [r for r in rated if r[1] >= 5 and r[0] in info]
-    for tid, rating, name, year in week_rnd.sample(fives, min(3, len(fives))):
+    # More 5★ films than rows: some have few good neighbours in the debrid, and the first three that fill a row stay.
+    for tid, rating, name, year in week_rnd.sample(fives, min(8, len(fives))):
         d = info[tid]
         ids = [m['id'] for k in ('recommendations', 'similar') for m in (d.get(k) or {}).get('results', [])]
         seeds.append(('Porque você deu 5★ em %s' % name, 'because', ids, d))
@@ -464,7 +467,10 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
     for f in countries[:1] + week_rnd.sample(countries[1:], min(1, len(countries[1:]))):
         seeds.append(('Cinema ' + COUNTRY_PT[f[2:]], 'country', discover(with_origin_country=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 200}), f))
     rows = []
+    because = 0
     for title, kind, ids, seed in seeds:
+        if kind == 'because' and because == 3:
+            continue
         # A film shows once on the home: not in the picks, not in an earlier row.
         ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
         docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)]
@@ -486,8 +492,9 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
                 return first + (' · ' + rest if rest.endswith(')') and seed.get('title', '') not in rest else '')
             return why(d, taste, best, idf, skip=seed, bare=False)
         items = [entry(d, line(d)) for d, good in zip(docs, ok) if good][:10]
-        if len(items) >= 5:
+        if len(items) >= 6:                                 # fewer barely fill the screen
             rows.append({'title': title, 'kind': kind, 'items': items})
+            because += kind == 'because'
             taken.update(x['tmdb'] for x in items)
         print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
     return rows
