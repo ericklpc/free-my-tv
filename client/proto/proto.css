@@ -10,7 +10,8 @@
   font-weight: 100 900;
 }
 
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
 body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
 
 #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000;
@@ -255,6 +256,7 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 
 /* MARK: - Over the native player: the page turns see-through where the video is, and draws the subtitles */
 
+/* The body's black is the canvas's (html has none of its own): turning it off makes the whole page see-through. */
 body.native, body.native #stage, body.native #player { background: transparent; }
 body.native #player .frame { display: none; }
 #player .subs { position: absolute; left: 160px; right: 160px; bottom: 90px; text-align: center; font-size: 44px; line-height: 58px; font-weight: 600;
