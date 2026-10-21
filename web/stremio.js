@@ -3,7 +3,7 @@
  *  - Continue: the library items with a saved position, newest first. Needs the account's authKey (CONFIG.stremioAuthKey).
  *  - Movies and Shows: Cinemeta's "top" catalogs, the same ones Stremio's Board shows. No key needed.
  *  - Art: metahub, Stremio's image service, by IMDb id (background, logo, poster).
- * Offline, or in a desktop browser without access, a small sample stands in so the screen can be previewed.
+ * In a desktop browser a small sample stands in until the real lists arrive, so the screen can be previewed.
  * Plain ES5, like the rest of web/.
  */
 var Stremio = (function () {
@@ -120,7 +120,7 @@ var Stremio = (function () {
     });
   }
 
-  sample();
+  if (TV.name === 'browser') sample();   // on a TV, only real data: an empty row beats made-up progress
 
   return {
     /** "continue", "movie" or "series". */

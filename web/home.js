@@ -239,6 +239,8 @@
   }
 
   function renderCards() {
+    // Nothing to continue (no account yet, or nothing started): open on Movies instead of an empty row.
+    if (st.tab === 0 && !Stremio.list('continue').length && Stremio.list('movie').length) st.tab = 1;
     var list = Stremio.list(TAB_KIND[st.tab]);
     var strip = $('cards').firstChild;
     setClass(body, 'no-picks', !list.length);
