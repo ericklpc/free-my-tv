@@ -648,5 +648,8 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   -webkit-transition: width 0.35s, background-color 0.35s;
   transition: width 0.35s, background-color 0.35s;
 }
-#dots .dot.on { width: 40px; background: #FFF; }
+#dots .dot { position: relative; overflow: hidden; }
+#dots .dot i { position: absolute; left: 0; top: 0; width: 0; height: 100%; background: #FFF; }
+#dots .dot.on { width: 40px; background: rgba(255, 255, 255, 0.4); }
+#dots .dot:not(.on) i { width: 0 !important; -webkit-transition: none !important; transition: none !important; }
 .drawer-open #dots { opacity: 0; }

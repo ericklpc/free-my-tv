@@ -248,7 +248,7 @@
     cards = list;
     var dots = $('dots');
     dots.innerHTML = '';
-    for (var c = 0; c < list.length; c++) el('span', 'dot', dots);
+    for (var c = 0; c < list.length; c++) el('i', '', el('span', 'dot', dots));
     st.card = Math.min(st.card, Math.max(0, list.length - 1));
     if (!list.length && st.zone === Z.CARDS) st.zone = Z.SHELF;
     shown = null;
@@ -263,12 +263,28 @@
     movedAt = Date.now();
   }
 
-  var shown = null, artFront = 0;
+  var shown = null, artFront = 0, counting = -1, countedAt = 0;
+
+  /** The current dot fills up until the auto play moves on (restarts when ← → or a new list resets the clock). */
+  function countdown() {
+    var dot = $('dots').children[st.card];
+    if (!dot || (counting === st.card && countedAt === movedAt)) return;
+    counting = st.card;
+    countedAt = movedAt;
+    var fill = dot.firstChild;
+    fill.style.webkitTransition = fill.style.transition = 'none';
+    fill.style.width = '0';
+    void fill.offsetWidth;
+    var left = Math.max(0, AUTO_PLAY - (Date.now() - movedAt));
+    fill.style.webkitTransition = fill.style.transition = 'width ' + left + 'ms linear';
+    fill.style.width = '100%';
+  }
 
   function showInfo() {
     var p = cards.length ? cards[st.card] : null;
     var dots = $('dots').children;
     for (var d = 0; d < dots.length; d++) setClass(dots[d], 'on', d === st.card);
+    countdown();
     setClass($('play'), 'focus', st.zone === Z.CARDS);
     if (p === shown) return;
     shown = p;
