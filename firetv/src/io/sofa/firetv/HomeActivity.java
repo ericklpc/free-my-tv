@@ -70,6 +70,7 @@ public class HomeActivity extends Activity {
         web.onResume();
         // Back from Stremio or another app: to the shelf, with fresh lists (what you just watched moves up).
         if (started) js("window.FreeMyTV && FreeMyTV.reopened && FreeMyTV.reopened()");
+        HomeWatcher.arrived();
         started = true;
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);

@@ -26,6 +26,11 @@ It needs usage access, which only adb can give, once:
 
     adb shell appops set io.sofa.firetv GET_USAGE_STATS allow
 
-Then open Sofá once (it also starts by itself when the TV restarts). To undo: the same line with `ignore`.
+Android holds an app opened right after Home for about 5 s. To cover Amazon's home meanwhile (a black screen with
+Sofá's icon), let Sofá draw over other apps:
+
+    adb shell appops set io.sofa.firetv SYSTEM_ALERT_WINDOW allow
+
+Then open Sofá once (it also starts by itself when the TV restarts). To undo either: the same line with `ignore`.
 
 Debugging the page: `chrome://inspect` on the computer, with the Fire TV connected over adb.
