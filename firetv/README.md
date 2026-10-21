@@ -16,19 +16,16 @@ title (`stremio:///detail/...`).
 
 ## The Home button
 
-Fire OS doesn't let you pick another home screen. Sofá works around it with `HomeService`, an accessibility service
-that only sees which app comes to the front: when Amazon's home shows up, it opens Sofá over it. Back on Sofá's first
-screen still takes you to Amazon's home on purpose (it stays there until you open another app).
+Fire OS doesn't let you pick another home screen, and Fire OS 6 won't run accessibility services from apps installed
+outside its store (so Projectivy's and Home on Fire's Home override don't work there either). Sofá works around it with
+`HomeWatcher`: a few times a second it checks which app came to the front, and when it's Amazon's home, it opens Sofá
+over it (Amazon's home shows for a moment first). Back on Sofá's first screen still takes you to Amazon's home on
+purpose (it stays there until you open another app).
 
-Turn it on once, from the computer (it adds Sofá to the services already on, and keeps them):
+It needs usage access, which only adb can give, once:
 
-    cur=$(adb shell settings get secure enabled_accessibility_services | tr -d '\r')
-    svc=io.sofa.firetv/io.sofa.firetv.HomeService
-    case "$cur" in null|"") new=$svc ;; *"$svc"*) new=$cur ;; *) new="$cur:$svc" ;; esac
-    adb shell settings put secure enabled_accessibility_services "$new"
-    adb shell settings put secure accessibility_enabled 1
+    adb shell appops set io.sofa.firetv GET_USAGE_STATS allow
 
-To undo, put back the old value (or `adb shell settings delete secure enabled_accessibility_services` if it was
-`null`). Fire OS may switch the service off after an update; run the lines again.
+Then open Sofá once (it also starts by itself when the TV restarts). To undo: the same line with `ignore`.
 
 Debugging the page: `chrome://inspect` on the computer, with the Fire TV connected over adb.

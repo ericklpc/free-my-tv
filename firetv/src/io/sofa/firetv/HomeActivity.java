@@ -60,6 +60,7 @@ public class HomeActivity extends Activity {
         setContentView(web);
         web.loadUrl("file:///android_asset/web/index.html");
         web.requestFocus();
+        HomeWatcher.start(this);
     }
 
     private boolean started;
@@ -143,9 +144,9 @@ public class HomeActivity extends Activity {
             }
         }
 
-        /** Back on the first screen: to whatever was before (Fire OS's own home, which HomeService then leaves alone). */
+        /** Back on the first screen: to whatever was before (Fire OS's own home, which HomeWatcher then leaves alone). */
         @JavascriptInterface public void leave() {
-            HomeService.stayOnAmazon = true;
+            HomeWatcher.stayOnAmazon = true;
             runOnUiThread(new Runnable() { @Override public void run() { moveTaskToBack(true); } });
         }
 
