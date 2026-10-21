@@ -79,8 +79,9 @@ var Stremio = (function () {
   function loadCatalog(type) {
     request('GET', CINEMETA + '/catalog/' + type + '/top.json', null, function (err, o) {
       if (err || !o || !o.metas) return;
-      lists[type] = o.metas.slice(0, SIZE).map(function (m) { return fromMeta(m, type); });
+      lists[type] = o.metas.slice(0, SIZE).map(function (m) { return withDetails(fromMeta(m, type)); });
       changed();
+      lists[type].slice(0, SHOWN).forEach(localize);
     });
   }
 
@@ -93,20 +94,53 @@ var Stremio = (function () {
         return !it.removed && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series');
       }).map(fromLibrary).sort(function (a, b) { return b.at - a.at; }).slice(0, SIZE).map(withDetails);
       changed();
-      lists['continue'].forEach(function (p) { if (!p.description) loadDetails(p); });
+      lists['continue'].forEach(function (p) { if (!p.description) loadDetails(p); else localize(p); });
     });
   }
 
   // The library only knows names: the year, genres, rating and synopsis come from Cinemeta, once per title.
   var details = {};
 
+  // With a TMDB key, the title and the synopsis in the screen's language (Cinemeta has English only).
+  var TMDB = (window.CONFIG && CONFIG.tmdbKey || '').trim(), local = {}, SHOWN = 8;
+
   function withDetails(p) {
-    var d = details[p.id];
-    if (!d) return p;
+    var d = details[p.id], l = local[p.id];
+    if (!d && !l) return p;
     var out = {};
     for (var k in p) out[k] = p[k];
-    out.year = d.year; out.genres = d.genres; out.rating = d.rating; out.description = d.description;
+    if (d) { out.year = d.year; out.genres = d.genres; out.rating = d.rating; out.description = d.description; }
+    if (l && l.title) out.title = l.title;
+    if (l && l.description) out.description = l.description;
     return out;
+  }
+
+  /** Every list again through withDetails: a new object for each changed title, so the screen sees the change. */
+  function update() {
+    for (var kind in lists) lists[kind] = lists[kind].map(function (x) { return details[x.id] || local[x.id] ? withDetails(x) : x; });
+    changed();
+  }
+
+  function localize(p) {
+    if (!TMDB || I18N.lang === 'en' || local[p.id]) return;
+    local[p.id] = {};
+    var bearer = TMDB.indexOf('eyJ') === 0;
+    var url = 'https://api.themoviedb.org/3/find/' + p.id + '?external_source=imdb_id&language=' + I18N.locale()
+      + (bearer ? '' : '&api_key=' + encodeURIComponent(TMDB));
+    var x = new XMLHttpRequest();
+    x.open('GET', url, true);
+    x.timeout = 12000;
+    if (bearer) x.setRequestHeader('Authorization', 'Bearer ' + TMDB);
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4 || x.status !== 200) return;
+      try {
+        var o = JSON.parse(x.responseText), r = (o.movie_results || [])[0] || (o.tv_results || [])[0];
+        if (!r) return;
+        local[p.id] = {title: r.title || r.name || '', description: r.overview || ''};
+        update();
+      } catch (e) {}
+    };
+    x.send(null);
   }
 
   function loadDetails(p) {
@@ -114,9 +148,8 @@ var Stremio = (function () {
     request('GET', CINEMETA + '/meta/' + p.type + '/' + p.id + '.json', null, function (err, o) {
       if (err || !o || !o.meta) return;
       details[p.id] = fromMeta(o.meta, p.type);
-      // A new object for the changed title, so the screen sees it changed.
-      lists['continue'] = lists['continue'].map(function (x) { return x.id === p.id ? withDetails(x) : x; });
-      changed();
+      update();
+      localize(p);
     });
   }
 
