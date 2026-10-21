@@ -19,7 +19,6 @@ cd "$(dirname "$0")"
 
 TIER1="
 com.amazon.dp.logger                    # telemetry
-com.amazon.device.crashmanager          # crash reports to Amazon
 com.amazon.wirelessmetrics.service      # Wi-Fi metrics
 com.amazon.device.telemetry.emitter     # telemetry
 com.amazon.perfcollection               # performance reports
@@ -122,13 +121,12 @@ for pkg in $(list "$TIER"); do
   # disable-user keeps the app (Fire OS 6 refuses it for some); uninstall --user 0 keeps the APK in /system
   out="$(tv pm disable-user --user 0 "$pkg")"
   if echo "$out" | grep -q 'disabled-user'; then
-    echo "disabled $pkg" >> "$LOG"; echo "  off  $pkg"
+    echo "disabled $pkg" >> "$LOG"; echo "  off  $pkg"; n=$((n+1))
   else
     out="$(tv pm uninstall -k --user 0 "$pkg")"
-    if [ "$out" = Success ]; then echo "removed $pkg" >> "$LOG"; echo "  off  $pkg (removed for this user)"
-    else echo "  FAIL $pkg: $out"; fi
+    if [ "$out" = Success ]; then echo "removed $pkg" >> "$LOG"; echo "  off  $pkg (removed for this user)"; n=$((n+1))
+    else echo "  FAIL $pkg: $out (Fire OS won't let it go; it stays on)"; fi
   fi
-  n=$((n+1))
 done
 
 if [ "$MODE" = --apply ]; then
