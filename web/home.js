@@ -65,7 +65,7 @@
     ['stremio', /stremio/i, /stremio/i, ['#8A5CF6', '#4B2BB3']],
     ['netflix', /^netflix$/, /netflix/i, ['#0A0A0A', '#000000']],
     ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
-    ['prime', /^amazon$/, /prime video|amazon/i, ['#2AA8FF', '#0A68D4']],
+    ['prime', /^amazon$|^com\.amazon\.(avod|amazonvideo)/, /prime video/i, ['#2AA8FF', '#0A68D4']],   // not Amazon Music
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
     ['max', /hbo|wbd/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],
     ['appletv', /appletv|apple\.tv/, /apple tv/i, ['#1C1C1E', '#000000']],
@@ -227,7 +227,7 @@
 
   // MARK: - Top Shelf: one Stremio title at a time, full screen, with page dots and auto play (as on Apple TV)
 
-  var SHELF_MAX = 8, AUTO_PLAY = 9000, movedAt = 0;
+  var SHELF_MAX = 8, AUTO_PLAY = 9000, movedAt = 0, autoTab = false, openedAt = 0;
 
   /** Loads an image and calls back only when it's there (offline, the dark background stays). */
   function whenLoaded(url, done) {
@@ -238,7 +238,10 @@
 
   function renderCards() {
     // Nothing to continue (no account yet, or nothing started): open on Movies instead of an empty row.
-    if (st.tab === 0 && !Stremio.list('continue').length && Stremio.list('movie').length) st.tab = 1;
+    // Only once the library has answered (it can arrive after the catalogs), and back to Continue if it fills up later.
+    var nothing = !Stremio.list('continue').length && (!Stremio.hasAccount() || Stremio.libraryLoaded());
+    if (st.tab === 0 && nothing && Stremio.list('movie').length) { st.tab = 1; autoTab = true; }
+    else if (autoTab && st.tab === 1 && Stremio.list('continue').length) { st.tab = 0; autoTab = false; st.card = 0; }
     var list = Stremio.list(TAB_KIND[st.tab]).slice(0, SHELF_MAX);
     setClass(body, 'no-picks', !list.length);
     var same = list.length === cards.length;
@@ -329,6 +332,8 @@
   }
 
   function openTitle(p) {
+    if (Date.now() - openedAt < 1500) return;   // one press, one launch (Fire TV can deliver OK twice)
+    openedAt = Date.now();
     var app = stremioApp();
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
     TV.launch(app.id, {uri: Stremio.link(p)}, function (ok) {
@@ -732,6 +737,7 @@
   function selectTab(i) {
     if (i === st.tab) return;
     st.tab = i;
+    autoTab = false;
     st.card = 0;
     renderCards();
   }
@@ -945,7 +951,8 @@
 
   /** Auto play: the Top Shelf moves on by itself, unless something covers it. */
   setInterval(function () {
-    if (saverOn || sheetOpen() || st.zone === Z.DRAWER || Date.now() - movedAt < AUTO_PLAY) return;
+    // Not while the button has the focus: OK must open the title on screen, not the one that just slid in.
+    if (saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
     turn(1);
     updateFocus();
   }, 1000);

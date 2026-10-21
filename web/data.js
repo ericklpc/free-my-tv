@@ -194,7 +194,7 @@ var Data = (function () {
   /** Service name on TMDB (part of it, lowercase) → our key, how to find its app on the TV (id, name), its name. */
   var SERVICES = [
     ['netflix', 'netflix', /^netflix$/, /netflix/i, 'Netflix'],
-    ['prime video', 'prime', /^amazon$/, /prime video|amazon/i, 'Prime Video'],
+    ['prime video', 'prime', /^amazon$|^com\.amazon\.(avod|amazonvideo)/, /prime video/i, 'Prime Video'],
     ['disney', 'disney', /disney/, /disney/i, 'Disney+'],
     ['hulu', 'hulu', /^hulu/, /hulu/i, 'Hulu'],
     ['paramount', 'paramount', /paramount|cbs/, /paramount/i, 'Paramount+'],

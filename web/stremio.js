@@ -17,7 +17,7 @@ var Stremio = (function () {
 
   var lists = {continue: [], movie: [], series: []};
   var listeners = [];
-  var loadedAt = 0;
+  var loadedAt = 0, libraryLoaded = false;
 
   function changed() { for (var i = 0; i < listeners.length; i++) listeners[i](); }
 
@@ -90,6 +90,7 @@ var Stremio = (function () {
     request('POST', API + 'datastoreGet', {authKey: AUTH, collection: 'libraryItem', all: true}, function (err, o) {
       var items = !err && o && o.result;
       if (!items) return;
+      libraryLoaded = true;
       lists['continue'] = items.filter(function (it) {
         return !it.removed && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series');
       }).map(fromLibrary).sort(function (a, b) { return b.at - a.at; }).slice(0, SIZE).map(withDetails);
@@ -200,6 +201,7 @@ var Stremio = (function () {
     /** "continue", "movie" or "series". */
     list: function (kind) { return lists[kind] || []; },
     hasAccount: function () { return !!AUTH; },
+    libraryLoaded: function () { return libraryLoaded; },
     onChange: function (f) { listeners.push(f); },
 
     /** Fresh lists: the library every 2 minutes (or right away when `now`, e.g. back from watching), the catalogs too. */
