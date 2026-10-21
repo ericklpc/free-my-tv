@@ -2,18 +2,22 @@ package io.sofa.firetv;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
+import android.app.AlarmManager;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.app.usage.UsageEvents;
 import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.IBinder;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -41,6 +45,7 @@ public class HomeWatcher extends Service {
     private final Handler handler = new Handler();
     private UsageStatsManager usage;
     private long checked, opened;
+    private String lastFront;
     private View cover;
 
     private static HomeWatcher running;
@@ -61,15 +66,56 @@ public class HomeWatcher extends Service {
         running = this;
         usage = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         checked = System.currentTimeMillis();
+        lastFront = latestFront(checked - 24 * 3600 * 1000L, checked);
+        registerReceiver(wake, new IntentFilter(Intent.ACTION_SCREEN_ON));
         handler.post(tick);
     }
 
+    /**
+     * Turning the TV on wakes the stick where it was, usually Amazon's home, without anything new coming to the
+     * front: so on waking, Sofá opens if that's where it is (even if you had left Sofá with Back before).
+     */
+    private final BroadcastReceiver wake = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            stayOnAmazon = false;
+            handler.postDelayed(new Runnable() { @Override public void run() {
+                long now = System.currentTimeMillis();
+                String front = latestFront(now - 24 * 3600 * 1000L, now);
+                if (front != null) lastFront = front;
+                Log.i("HomeWatcher", "screen on, front " + lastFront);
+                if (AMAZON_HOME.equals(lastFront)) open(now);
+            } }, 1500);
+        }
+    };
+
+    /** The last app that came to the front between from and to, or null. */
+    private String latestFront(long from, long to) {
+        String front = null;
+        try {
+            UsageEvents events = usage.queryEvents(from, to);
+            UsageEvents.Event e = new UsageEvents.Event();
+            while (events.getNextEvent(e)) {
+                if (e.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) front = e.getPackageName();
+            }
+        } catch (Exception ignored) {}
+        return front;
+    }
+
     @Override public int onStartCommand(Intent intent, int flags, int id) {
+        // In the foreground on every version: Fire OS runs short of memory and, overnight, kills background services.
+        Notification.Builder n;
         if (Build.VERSION.SDK_INT >= 26) {
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             nm.createNotificationChannel(new NotificationChannel("home", "Botão Home", NotificationManager.IMPORTANCE_MIN));
-            startForeground(1, new Notification.Builder(this, "home").setSmallIcon(R.drawable.icon).build());
+            n = new Notification.Builder(this, "home");
+        } else {
+            n = new Notification.Builder(this).setPriority(Notification.PRIORITY_MIN);
         }
+        startForeground(1, n.setSmallIcon(R.drawable.icon).setContentTitle("Sofá").build());
+        // And if it's killed anyway, back within a quarter of an hour.
+        AlarmManager alarms = (AlarmManager) getSystemService(ALARM_SERVICE);
+        alarms.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+                AlarmManager.INTERVAL_FIFTEEN_MINUTES, PendingIntent.getBroadcast(this, 0, new Intent(this, Boot.class), 0));
         return START_STICKY;
     }
 
@@ -96,6 +142,7 @@ public class HomeWatcher extends Service {
             }
         } catch (Exception ignored) {}
         if (front == null) return;
+        lastFront = front;
         Log.i("HomeWatcher", front + (stayOnAmazon ? " (stay)" : "") + (now - opened < GUARD ? " (guard)" : ""));
         if (front.equals(getPackageName())) {
             opened = 0;   // Sofá is up: the next Home counts, however soon it comes (the page lifts the cover)
@@ -106,6 +153,10 @@ public class HomeWatcher extends Service {
             return;
         }
         if (stayOnAmazon || now - opened < GUARD) return;
+        open(now);
+    }
+
+    private void open(long now) {
         opened = now;
         cover();
         startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -156,6 +207,7 @@ public class HomeWatcher extends Service {
 
     @Override public void onDestroy() {
         if (running == this) running = null;
+        try { unregisterReceiver(wake); } catch (Exception ignored) {}
         uncover();
         handler.removeCallbacks(tick);
         super.onDestroy();
@@ -163,7 +215,7 @@ public class HomeWatcher extends Service {
 
     @Override public IBinder onBind(Intent intent) { return null; }
 
-    /** Back on after the TV restarts. */
+    /** Back on after the TV restarts (and every quarter of an hour, in case Fire OS stopped it). */
     public static class Boot extends BroadcastReceiver {
         @Override public void onReceive(Context c, Intent i) { start(c); }
     }
