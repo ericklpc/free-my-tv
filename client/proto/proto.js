@@ -1644,6 +1644,7 @@
         hud();
       }, 1400);
     }
+    if (P.scrub) return;
     var skip = $('#player .skip'), seg = segmentAt(P.pos);
     if (seg && SET.intro === 1 && !seg.done) { seg.done = true; seekBy(seg.to - P.pos); toast(seg.label.replace('Pular', 'Pulei')); seg = null; }
     if (seg && (skip.className.indexOf('on') < 0 || P.seg !== seg)) { skip.className = 'skip on'; skip.innerHTML = '<span class="btn lift">' + seg.label + '</span>'; }
@@ -1893,29 +1894,42 @@
     if (REAL) { P.seek = {to: P.pos, at: now()}; window.Player.seekTo(Math.round(P.pos * 1000)); }
   }
 
-  // Holding left or right scrubs: the first press jumps (10 s by default), then the bar runs on, faster the longer
-  // the key is held (30 s of film a second, up to 10 min a second after 6 s), and the player seeks once, when the
-  // key is let go (or nothing has come for half a second, for remotes that don't send it).
+  // Left and right scrub, as on the streaming apps: the film pauses, the bar moves on its own (10 s a press; held,
+  // faster the longer: 60 s of film a second, up to 10 min a second after 4 s) and the player seeks once, 0.8 s
+  // after the last press, then plays on. OK seeks right away, Back puts it back where it was. Nothing waits for a
+  // keyup: some remotes send one for every repeat.
   function canScrub() {
     return state.screen === 'player' && P.started && !P.tabs && !sheet.open && !S.open && (!osdOn() || P.zone === 'bar');
   }
   function scrub(dir) {
-    var t = now();
-    if (!P.scrub || P.scrub.dir !== dir) { endScrub(true); P.scrub = {to: P.pos, dir: dir, since: t, last: t}; }
-    var held = (t - P.scrub.since) / 1000, rate = held < 1 ? 30 : held < 2 ? 60 : held < 4 ? 120 : held < 6 ? 300 : 600;
-    P.scrub.to = Math.max(0, Math.min(P.dur - 1, P.scrub.to + dir * rate * Math.max(0.05, Math.min(0.25, (t - P.scrub.last) / 1000))));
-    P.scrub.last = t;
-    clearTimeout(P.scrub.timer);
-    P.scrub.timer = setTimeout(function () { endScrub(); }, 500);
+    var t = now(), sc = P.scrub;
+    if (!sc) {
+      sc = P.scrub = {to: P.pos, from: P.pos, paused: P.paused, chain: t, last: 0};
+      if (REAL && !P.paused) window.Player.pause();
+      P.paused = true;
+    }
+    var gap = t - sc.last;
+    if (gap > 400 || sc.dir !== dir) { sc.chain = t; sc.to += dir * [10, 15, 30][SET.seek]; }
+    else {
+      var held = (t - sc.chain) / 1000, rate = held < 1 ? 60 : held < 2 ? 120 : held < 4 ? 300 : 600;
+      sc.to += dir * rate * gap / 1000;
+    }
+    sc.to = Math.max(0, Math.min(P.dur - 1, sc.to));
+    sc.dir = dir; sc.last = t;
+    clearTimeout(sc.timer);
+    sc.timer = setTimeout(function () { endScrub(); }, 800);
     P.zone = 'bar'; osd(true); renderOsd(); paintPlayer();
   }
-  function endScrub(quiet) {
+  // Seeks and plays on (unless it was paused before); cancel leaves it where it was.
+  function endScrub(cancel) {
     var sc = P.scrub;
     if (!sc) return;
     clearTimeout(sc.timer);
     P.scrub = null;
-    seekBy(sc.to - P.pos);
-    if (!quiet && state.screen === 'player') { osd(true); renderOsd(); paintPlayer(); }
+    if (!cancel) seekBy(sc.to - P.pos);
+    P.paused = sc.paused;
+    if (REAL && !sc.paused) window.Player.play();
+    if (state.screen === 'player') { osd(true); renderOsd(); paintPlayer(); }
   }
 
   function openPlayerSources() {
@@ -2005,22 +2019,17 @@
   var CODES = {37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 8: 'back', 27: 'back', 461: 'back', 10009: 'back',
                77: 'menu', 93: 'menu', 457: 'menu', 403: 'menu', 179: 'playpause', 80: 'playpause', 415: 'playpause', 19: 'playpause', 10252: 'playpause',
                228: 'ff', 417: 'ff', 70: 'ff', 227: 'rw', 412: 'rw', 82: 'rw'};
-  var held = {k: '', at: 0};
   document.addEventListener('keydown', function (e) {
     var k = CODES[e.keyCode];
     if (!k) return;
     e.preventDefault();
-    // A key held down repeats; some remotes don't mark the repeats, so a press right after the last one counts too.
-    var again = held.k === k && (e.repeat || now() - held.at < 250);
-    held.k = k; held.at = now();
-    if ((k === 'left' || k === 'right') && canScrub() && (again || P.scrub)) { M.clicks++; scrub(k === 'left' ? -1 : 1); return; }
-    if (P.scrub) endScrub();
+    if ((k === 'left' || k === 'right') && canScrub()) { M.clicks++; scrub(k === 'left' ? -1 : 1); return; }
+    if (P.scrub) {
+      if (k === 'ok' || k === 'playpause') { endScrub(); return; }
+      if (k === 'back') { endScrub(true); return; }
+      endScrub();
+    }
     key(k);
-  });
-  document.addEventListener('keyup', function (e) {
-    var k = CODES[e.keyCode];
-    if (held.k === k) held.k = '';
-    if ((k === 'left' || k === 'right') && P.scrub) endScrub();
   });
 
   // The Fire TV app (firetv/) calls these: Back, and the keys the WebView doesn't pass on (Menu, media keys).
