@@ -146,7 +146,8 @@
 
   // Real mode: the Fire TV app with the native player (window.Player) and Erick's AIOStreams link in the build.
   // Otherwise the streams are the sample ones and playback is simulated.
-  var AIO = (CFG.aioUrl || '').replace(/\/manifest\.json$/, '').replace(/\/$/, '');
+  // The manifest link or the configure page's: both work.
+  var AIO = (CFG.aioUrl || '').trim().replace(/\/$/, '').replace(/\/(manifest\.json|configure)$/, '');
   var REAL = !!(window.Player && AIO);
 
   // The id AIOStreams knows: IMDb, or tmdb:<n>; episodes add :season:episode.
@@ -225,6 +226,7 @@
 
   var state = {screen: 'home'};
   function show(name) {
+    if (name === 'home') unpreload();
     state.screen = name;
     $('#home').className = 'screen' + (name === 'home' ? '' : ' hidden');
     $('#detail').className = 'screen' + (name === 'detail' ? '' : ' hidden');
@@ -822,6 +824,7 @@
         r.rank.out.length + (r.rank.out.length === 1 ? ' fonte, nenhuma toca aqui: ' : ' fontes, nenhuma toca aqui: ') + r.rank.out[0].why;
       return;
     }
+    preload();
     var bs = [Ranking.resLabel(Math.min(s.res, CAPS.maxHeight))];
     if (s.hdr.indexOf('HDR10') >= 0) bs.push('HDR10');
     bs.push(s.audio[0].replace(/ \d\.\d$/, ''));
@@ -1087,6 +1090,9 @@
   // MARK: - The native player (Fire TV): Media3 under the page, the page draws everything on top
 
   function openNative(fromSec) {
+    var st = P.stream;
+    if (st.subsWait) { withSubs(st, function () { if (state.screen === 'player' && P.stream === st) openNative(fromSec); }); return; }
+    preloadKey = ''; P.subPicked = false;
     document.body.className = 'native';
     $('#player .subs').textContent = '';
     $('#player .subs').className = 'subs size' + SET.subSize + ' bg' + SET.subBg;
@@ -1099,7 +1105,7 @@
   // by the file's hash and name (same release, in sync); we keep the first pt-BR, pt and en.
   function loadSubs(st, id, s, e) {
     if (st.subs) return;
-    st.subs = [];
+    st.subs = []; st.subsWait = [];
     var type = s ? 'series' : 'movie', extra = [];
     if (st.videoHash) extra.push('videoHash=' + st.videoHash);
     if (st.videoSize) extra.push('videoSize=' + st.videoSize);
@@ -1110,7 +1116,40 @@
         for (var i = 0; i < all.length; i++) if (all[i].lang === want[w][0]) { out.push({url: all[i].url, lang: want[w][1], label: want[w][2] + ' · OpenSubtitles'}); break; }
       }
       st.subs = out;
+      var w = st.subsWait; st.subsWait = null;
+      for (var j = 0; j < w.length; j++) w[j]();
     });
+  }
+  // Opening waits up to 1.5 s for the subtitles, so pt-BR is there from the first line.
+  function withSubs(st, done) {
+    if (!st.subsWait) { done(); return; }
+    var once = false, go = function () { if (!once) { once = true; done(); } };
+    st.subsWait.push(go);
+    setTimeout(go, 1500);
+  }
+
+  // The title's page prepares its stream paused behind the page, so OK only presses play (TTFF under a second).
+  var preloadKey = '';
+  function preload() {
+    if (!REAL || !window.Player.preload || state.screen !== 'detail') return;
+    var id = D.id, t = TITLES[id], from = continueOf(id) || D.item || {}, s = from.s || 0, e = from.e || 0;
+    if (t.type === 'series' && !s) { var d = defaultEp(id); s = d.s; e = d.e; }
+    var r = R[videoId(id, s, e)], st = r && r.ready && r.rank.play[0];
+    if (!st) return;
+    var startMs = from.posMs || (from.progress ? from.progress * (t.runtime || 50) * 60000 : 0);
+    var key = st.url + '@' + Math.round(startMs / 5000);
+    if (key === preloadKey) return;
+    preloadKey = key;
+    withSubs(st, function () {
+      if (preloadKey !== key || state.screen !== 'detail') return;
+      console.log('[player] preload ' + videoId(id, s, e) + ' · ' + Ranking.label(st));
+      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || []}));
+    });
+  }
+  function unpreload() {
+    if (!preloadKey) return;
+    preloadKey = '';
+    if (REAL) window.Player.stop();
   }
 
   // What the native player says (Playback.java → Native.player).
@@ -1118,6 +1157,8 @@
     if (state.screen !== 'player' || !REAL) return;
     if (ev.type === 'firstFrame') {
       clearTimeout(P.spin);
+      if (!P.rec.ttff) console.log('[player] TTFF ' + (now() - P.rec.at) + ' ms do OK (player ' + ev.ms + ' ms) · ' +
+        (P.rec.warm ? 'pré-resolvido' : 'resolvido no OK') + ' · ' + Ranking.label(P.stream));
       $('#player .spinner').className = 'spinner';
       if (!P.rec.ttff) firstFrame();
       else P.started = true;
@@ -1133,6 +1174,7 @@
       if (P.s && hasNext()) nextEpisode(); else stopPlayer();
     } else if (ev.type === 'tracks') {
       P.tracks = ev;
+      if (!P.subPicked) pickSubtitle(ev.text || []);
     } else if (ev.type === 'cues') {
       $('#player .subs').innerHTML = ev.text ? '<span>' + esc(ev.text).replace(/\n/g, '<br>') + '</span>' : '';
     } else if (ev.type === 'warm') {
@@ -1140,6 +1182,34 @@
     }
     hud();
   }};
+
+  // Subtitles: pt-BR first (the file's own track when it says Brazil, it's in sync), then OpenSubtitles' pt-BR,
+  // then any Portuguese that isn't marked European, then English. Media3 alone treats pt-PT as pt.
+  function subScore(x) {
+    var lang = (x.lang || '').toLowerCase(), label = x.label || '', ext = /^ext/.test(x.id || '') || /OpenSubtitles/.test(label);
+    var br = /^(pt-br|pob)$/.test(lang) || /Bras|Brazil|\bBR\b/i.test(label);
+    var eu = /^pt-pt$/.test(lang) || /Portugal|European|\bPT-PT\b|Europeu/i.test(label);
+    var pt = /^(pt|por)(-|$)/.test(lang);
+    if (br) return ext ? 90 : 100;
+    if (pt && !eu) return ext ? 60 : 70;
+    if (/^(en|eng)(-|$)/.test(lang)) return SET.subLang === 2 ? 110 : 30;
+    if (pt) return 20;
+    return 0;
+  }
+  function pickSubtitle(list) {
+    P.subPicked = true;
+    if (SET.subLang === 3) { window.Player.select(2, -1, 0); return; }   // off in Settings
+    var best = null, bs = 0, sel = null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].supported === false) continue;
+      var sc = subScore(list[i]);
+      if (sc > bs) { bs = sc; best = list[i]; }
+      if (list[i].selected) sel = list[i];
+    }
+    if (!best) return;
+    console.log('[player] legenda: ' + (best.label || best.lang) + (sel && sel !== best ? ' (o player tinha escolhido ' + (sel.label || sel.lang) + ')' : ''));
+    if (best !== sel) window.Player.select(2, best.group, best.index);
+  }
 
   // The stream broke: the next one takes over at the same position, without the person doing anything.
   function fallback(why) {

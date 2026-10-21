@@ -64,6 +64,8 @@ public final class Playback implements Player.Listener {
     private SurfaceView surface;
     private ExoPlayer player;
     private long openedAt, bufferingSince;
+    private boolean rendered;
+    private String preloaded;   // the stream prepared paused on the title's page, so OK only has to press play
     private int modeBefore = -1;
     private Tracks tracks = Tracks.EMPTY;
 
@@ -89,8 +91,21 @@ public final class Playback implements Player.Listener {
 
     // MARK: - Opening and closing
 
-    private void open(JSONObject o) {
+    private void open(JSONObject o, boolean play) {
         String url = o.optString("url");
+        long start = Math.max(0, o.optLong("startMs"));
+        if (play && url.equals(preloaded) && player != null && player.getPlaybackState() != Player.STATE_IDLE) {
+            preloaded = null;
+            openedAt = SystemClock.elapsedRealtime();
+            show();
+            if (Math.abs(player.getCurrentPosition() - start) > 3000) player.seekTo(start);
+            player.setPlayWhenReady(true);
+            onTracksChanged(player.getCurrentTracks());   // the page ignored them while it was on the title's page
+            if (rendered) onRenderedFirstFrame();          // decoded behind the page already: on screen right away
+            Log.i(TAG, "open: preloaded, state " + player.getPlaybackState());
+            return;
+        }
+        preloaded = play ? null : url;
         String direct = warmed.get(url);
         Long at = warmedAt.get(url);
         if (direct != null && at != null && SystemClock.elapsedRealtime() - at < 10 * 60000) url = direct;
@@ -111,11 +126,19 @@ public final class Playback implements Player.Listener {
         }
         openedAt = SystemClock.elapsedRealtime();
         bufferingSince = 0;
+        rendered = false;
+        // The surface stays behind the black page while preloading, so the first frame is decoded before OK.
+        surface.setVisibility(android.view.View.VISIBLE);
+        if (play) show();
+        player.setMediaItem(item.build(), start);
+        player.setPlayWhenReady(play);
+        player.prepare();
+        Log.i(TAG, play ? "open" : "preload");
+    }
+
+    private void show() {
         web.setBackgroundColor(Color.TRANSPARENT);
         surface.setVisibility(android.view.View.VISIBLE);
-        player.setMediaItem(item.build(), Math.max(0, o.optLong("startMs")));
-        player.setPlayWhenReady(true);
-        player.prepare();
     }
 
     private void create() {
@@ -138,6 +161,7 @@ public final class Playback implements Player.Listener {
     }
 
     private void stop() {
+        preloaded = null;
         if (player != null) { player.stop(); player.clearMediaItems(); }
         if (surface != null) surface.setVisibility(android.view.View.GONE);
         web.setBackgroundColor(Color.BLACK);
@@ -222,7 +246,11 @@ public final class Playback implements Player.Listener {
     }
 
     @Override public void onRenderedFirstFrame() {
-        emit(event("firstFrame").put2("ms", SystemClock.elapsedRealtime() - openedAt));
+        rendered = true;
+        if (preloaded != null) return;
+        long ms = SystemClock.elapsedRealtime() - openedAt;
+        Log.i(TAG, "first frame " + ms + " ms after open");
+        emit(event("firstFrame").put2("ms", ms));
     }
 
     @Override public void onPlayerError(PlaybackException e) {
@@ -248,7 +276,7 @@ public final class Playback implements Player.Listener {
                         .put2("supported", group.isTrackSupported(i)).put2("id", f.id);
                 if (group.getType() == C.TRACK_TYPE_AUDIO) audio.add(one);
                 else if (group.getType() == C.TRACK_TYPE_TEXT) text.add(one);
-                else if (group.getType() == C.TRACK_TYPE_VIDEO && group.isTrackSelected(i)) matchRefreshRate(f.frameRate);
+                else if (group.getType() == C.TRACK_TYPE_VIDEO && group.isTrackSelected(i) && preloaded == null) matchRefreshRate(f.frameRate);
             }
         }
         emit(event("tracks").put2("audio", audio.array).put2("text", text.array));
@@ -293,7 +321,13 @@ public final class Playback implements Player.Listener {
     final class Bridge {
         @JavascriptInterface public void open(final String json) {
             main.post(new Runnable() { @Override public void run() {
-                try { Playback.this.open(new JSONObject(json)); } catch (Exception e) { emit(event("error").put2("code", "BAD_REQUEST").put2("message", e.toString())); }
+                try { Playback.this.open(new JSONObject(json), true); } catch (Exception e) { emit(event("error").put2("code", "BAD_REQUEST").put2("message", e.toString())); }
+            } });
+        }
+        /** Like open, paused and out of sight: the title's page gets the stream ready before OK. */
+        @JavascriptInterface public void preload(final String json) {
+            main.post(new Runnable() { @Override public void run() {
+                try { Playback.this.open(new JSONObject(json), false); } catch (Exception e) { Log.w(TAG, "preload", e); }
             } });
         }
         @JavascriptInterface public void warm(String url) { Playback.this.warm(url); }

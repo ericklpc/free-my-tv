@@ -33,7 +33,7 @@ var Ranking = (function () {
   function score(s, caps) {
     var p = 0;
     p += Math.min(s.res, caps.maxHeight) / 10;            // 1080p and 2160p tie on a 1080p TV
-    if (s.res > caps.maxHeight) p -= 4;                   // and the smaller file wins the tie
+    if (s.res > caps.maxHeight) p -= 30;                  // a 4K file on a 1080p TV: twice the data, slower start, same picture
     var hw = false, soft = false;
     for (var i = 0; i < s.audio.length; i++) {
       var k = audioKind(s.audio[i]);
