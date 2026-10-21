@@ -11,9 +11,11 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Display;
+import android.view.Gravity;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
@@ -25,6 +27,7 @@ import androidx.media3.common.PlaybackException;
 import androidx.media3.common.Player;
 import androidx.media3.common.TrackSelectionOverride;
 import androidx.media3.common.Tracks;
+import androidx.media3.common.VideoSize;
 import androidx.media3.common.text.Cue;
 import androidx.media3.common.text.CueGroup;
 import androidx.media3.datasource.DefaultHttpDataSource;
@@ -164,7 +167,8 @@ public final class Playback implements Player.Listener {
         if (surface == null) {
             surface = new SurfaceView(activity);
             ViewGroup parent = (ViewGroup) web.getParent();
-            parent.addView(surface, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            parent.setBackgroundColor(Color.BLACK);   // the bars around a picture that isn't 16:9
+            parent.addView(surface, 0, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT, Gravity.CENTER));
         }
         player.setVideoSurfaceView(surface);
     }
@@ -301,6 +305,19 @@ public final class Playback implements Player.Listener {
             if (state == Player.STATE_READY) emit(event("ready").put2("dur", player.getDuration()));
             if (state == Player.STATE_ENDED) emit(event("ended"));
         }
+    }
+
+    /** The picture at its own shape, centered with black bars (a 2.39:1 film on a 16:9 screen), never stretched. */
+    @Override public void onVideoSizeChanged(VideoSize v) {
+        if (surface == null || v.width == 0 || v.height == 0) return;
+        ViewGroup parent = (ViewGroup) surface.getParent();
+        int pw = parent.getWidth(), ph = parent.getHeight();
+        if (pw == 0 || ph == 0) return;
+        float ratio = v.width * v.pixelWidthHeightRatio / v.height;
+        int w = pw, h = Math.round(pw / ratio);
+        if (h > ph) { h = ph; w = Math.round(ph * ratio); }
+        surface.setLayoutParams(new FrameLayout.LayoutParams(w, h, Gravity.CENTER));
+        Log.i(TAG, "video " + v.width + "x" + v.height + " → " + w + "x" + h);
     }
 
     @Override public void onRenderedFirstFrame() {

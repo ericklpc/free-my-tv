@@ -455,7 +455,7 @@
         for (var j = 0; j < cats.length; j++) {
           var c = cats[j], needs = (c.extra || []).some(function (e) { return e.isRequired; }) || (c.extraRequired || []).length;
           if (needs || (c.type !== 'movie' && c.type !== 'series')) continue;
-          HOME.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: catalogName(c.name || c.id, m.name), subtitle: m.name,
+          HOME.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: catalogName(c.name || c.id, m.name),
             source: {addon: base + '/catalog/' + c.type + '/' + encodeURIComponent(c.id) + '.json', type: c.type}, items: []});
           addRow(HOME.rows.length - 1);
           loadRow(HOME.rows.length - 1);
@@ -643,8 +643,14 @@
     var map = {'Recommended Movies': 'Filmes recomendados', 'Recommended TV': 'Séries recomendadas', 'Movie Watchlist': 'Filmes na watchlist',
       'TV Watchlist': 'Séries na watchlist', 'Continue Watching Movies': 'Filmes pela metade', 'Continue Watching TV': 'Séries pela metade',
       'Start Watching': 'Pra começar', 'Popular This Week': 'Populares da semana', 'Top 250': 'Top 250'};
-    var out = map[n] || n.replace(/ Movies$/, ': filmes').replace(/ (TV|Shows|Series)$/, ': séries');
-    return out + (trakt ? ' · Trakt' : lb ? ' · Letterboxd' : '');
+    if (map[n]) return map[n];
+    // "Netflix (BR) • Movies" → "Filmes na Netflix": no country tags, bullets or emoji, like the other rows.
+    var clean = n.replace(/\([A-Z]{2}\)/g, '').replace(/[^\w\s&+'’:.-]/g, ' ').replace(/\s+/g, ' ').trim();
+    var kind = / (Movies|Films)$/i.test(clean) ? 'Filmes' : / (TV|Shows|Series)$/i.test(clean) ? 'Séries' : '';
+    var what = clean.replace(/ (Movies|Films|TV|Shows|Series)$/i, '').replace(/[:\s-]+$/, '');
+    var services = /^(Netflix|Prime Video|Amazon Prime|Disney\+|Max|HBO Max|Apple TV\+?|Globoplay|Paramount\+|Star\+|Crunchyroll|Mubi)$/i;
+    if (kind && services.test(what)) return kind + ' na ' + what;
+    return kind ? what + ': ' + kind.toLowerCase() : what;
   }
 
   // The picks have three views: all, new releases (last three years) and classics (before 2000).
