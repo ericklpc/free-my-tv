@@ -120,7 +120,8 @@
   function saveLog() { try { localStorage.setItem('sofa.proto.log', JSON.stringify(M.log.slice(-500))); } catch (e) {} }
   function homeShown() { M.clicks = 0; M.homeAt = now(); }
   function median(a) { if (!a.length) return 0; var b = a.slice().sort(function (x, y) { return x - y; }); return b[Math.floor(b.length / 2)]; }
-  var hudOn = true;
+  var hudOn = false;
+  try { hudOn = localStorage.getItem('sofa.proto.hud') === '1'; } catch (e) {}
   function hud() {
     var h = $('#hud');
     h.className = !hudOn || sheet.open || P.tabs ? 'off' : state.screen === 'player' ? 'left' : '';
@@ -133,8 +134,8 @@
     if (M.last) lines.push('Última: <b>' + M.last.clicks + ' cliques</b> · TTFF <b>' + (M.last.ttff / 1000).toFixed(1).replace('.', ',') + ' s</b>' + (M.last.warm ? ' (pré-resolvido)' : ' (frio)'));
     if (plays.length) lines.push('Mediana: ' + median(clicks) + ' cliques · TTFF ' + (median(ttffs) / 1000).toFixed(1).replace('.', ',') + ' s · 1ª escolha ' + Math.round(100 * kept / plays.length) + '% (' + kept + '/' + plays.length + ')');
     lines.push('Cliques desde o Início: ' + M.clicks);
-    if (focusId && R[focusId]) {
-      var r = R[focusId];
+    if (focusId && picked(focusId)) {
+      var r = picked(focusId);
       lines.push('Pré-resolução: ' + esc(TITLES[focusId].title) + ' ' + (r.ready ? '<b>pronta</b> em ' + r.ms + ' ms' : '…'));
       if (r.ready && r.rank.play[0]) lines.push('  → ' + esc(Ranking.label(r.rank.play[0])) + ' (' + r.rank.play.length + ' tocáveis, ' + r.rank.out.length + ' fora)');
     }
@@ -143,21 +144,52 @@
 
   // MARK: - Pre-resolving: when a title keeps focus for a moment, ask AIOStreams and pick the stream, before OK
 
+  // Real mode: the Fire TV app with the native player (window.Player) and Erick's AIOStreams link in the build.
+  // Otherwise the streams are the sample ones and playback is simulated.
+  var AIO = (CFG.aioUrl || '').replace(/\/manifest\.json$/, '').replace(/\/$/, '');
+  var REAL = !!(window.Player && AIO);
+
+  // The id AIOStreams knows: IMDb, or tmdb:<n>; episodes add :season:episode.
+  function videoId(id, s, e) {
+    var base = id.replace(/^tmdb:tv:/, 'tmdb:');
+    return s ? base + ':' + s + ':' + e : base;
+  }
+  // The episode a show's pre-resolving aims at: where Continue is, or the first.
+  function defaultEp(id) {
+    if (TITLES[id].type !== 'series') return {};
+    var c = continueOf(id);
+    return c && c.s ? {s: c.s, e: c.e} : {s: 1, e: 1};
+  }
+
   var R = {}, focusId = '', resolveTimer = 0;
-  function resolve(id, done) {
-    var r = R[id];
+  function resolve(id, done, s, e) {
+    if (TITLES[id].type === 'series' && !s) { var d = defaultEp(id); s = d.s; e = d.e; }
+    var key = videoId(id, s, e), r = R[key];
     if (r && r.ready && now() - r.at < 10 * 60000) { if (done) done(r); return; }
     if (r && !r.ready) { if (done) r.wait.push(done); return; }
-    r = R[id] = {ready: false, wait: done ? [done] : [], at: now()};
-    var ms = Math.round(rnd(260, 680));       // AIOStreams with a warm cache answers in about this time
-    setTimeout(function () {
-      r.rank = Ranking.rank(SAMPLE.streams(id), caps());
-      r.ready = true; r.ms = ms; r.at = now();
+    r = R[key] = {ready: false, wait: done ? [done] : [], at: now()};
+    function ready(list) {
+      r.rank = Ranking.rank(list, caps());
+      r.ready = true; r.ms = now() - r.at; r.at = now();
+      // Ask the debrid for the best link now, so OK starts on a resolved address.
+      if (REAL && r.rank.play[0]) {
+        window.Player.warm(r.rank.play[0].url);
+        loadSubs(r.rank.play[0], id, s, e);
+      }
       var w = r.wait; r.wait = [];
       for (var i = 0; i < w.length; i++) w[i](r);
       hud();
       if (state.screen === 'detail' && D.id === id) renderPick();
-    }, ms);
+    }
+    if (REAL) {
+      get(AIO + '/stream/' + (TITLES[id].type === 'series' ? 'series' : 'movie') + '/' + encodeURIComponent(key) + '.json', function (o) {
+        ready((o && o.streams || []).filter(function (x) { return x.url; }).map(Ranking.parse));
+      });
+    } else setTimeout(function () { ready(SAMPLE.streams(id)); }, Math.round(rnd(260, 680)));   // AIOStreams with a warm cache
+  }
+  function picked(id) {
+    var d = defaultEp(id);
+    return R[videoId(id, d.s, d.e)];
   }
   function focusTitle(id) {
     focusId = id;
@@ -377,7 +409,7 @@
         for (var j = 0; j < cats.length; j++) {
           var c = cats[j], needs = (c.extra || []).some(function (e) { return e.isRequired; }) || (c.extraRequired || []).length;
           if (needs || (c.type !== 'movie' && c.type !== 'series')) continue;
-          HOME.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: c.name || c.id, subtitle: m.name,
+          HOME.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: catalogName(c.name || c.id, m.name), subtitle: m.name,
             source: {addon: base + '/catalog/' + c.type + '/' + encodeURIComponent(c.id) + '.json', type: c.type}, items: []});
           addRow(HOME.rows.length - 1);
           loadRow(HOME.rows.length - 1);
@@ -385,6 +417,18 @@
       }
     };
     x.send(JSON.stringify({type: 'AddonCollectionGet', authKey: key, update: true}));
+  }
+
+  // The addons name their catalogs in English: the common ones in Portuguese, the rest as they are.
+  function catalogName(n, addon) {
+    var trakt = /trakt/i.test(addon), lb = /boxd/i.test(addon);
+    var m = /^(.*)'s Watchlist$/.exec(n);
+    if (m) return lb ? 'Sua watchlist do Letterboxd' : 'Sua watchlist';
+    var map = {'Recommended Movies': 'Filmes recomendados', 'Recommended TV': 'Séries recomendadas', 'Movie Watchlist': 'Filmes na watchlist',
+      'TV Watchlist': 'Séries na watchlist', 'Continue Watching Movies': 'Filmes pela metade', 'Continue Watching TV': 'Séries pela metade',
+      'Start Watching': 'Pra começar', 'Popular This Week': 'Populares da semana', 'Top 250': 'Top 250'};
+    var out = map[n] || n.replace(/ Movies$/, ': filmes').replace(/ (TV|Shows|Series)$/, ': séries');
+    return out + (trakt ? ' · Trakt' : lb ? ' · Letterboxd' : '');
   }
 
   // The picks have three views: all, new releases (last three years) and classics (before 2000).
@@ -597,7 +641,7 @@
     var names = ADDONS.length ? ADDONS : ['MyTrakt Sync', 'Stremboxd', 'Cinemeta', 'OpenSubtitles v3', 'AIOStreams'];
     for (var i = 0; i < names.length; i++) items.push(ro(names[i], 'instalado'));
     items.push({head: 'Protótipo'});
-    items.push({a: 'Métricas na tela', val: hudOn ? 'ligadas' : 'desligadas', act: function () { hudOn = !hudOn; hud(); openSettings(true); }});
+    items.push({a: 'Métricas na tela', val: hudOn ? 'ligadas' : 'desligadas', act: function () { hudOn = !hudOn; try { localStorage.setItem('sofa.proto.hud', hudOn ? '1' : '0'); } catch (e) {} hud(); openSettings(true); }});
     items.push({a: 'Zerar o log de uso', val: M.log.length + ' registros', act: function () { M.log = []; M.last = null; saveLog(); hud(); openSettings(true); }});
     return items;
   }
@@ -656,7 +700,7 @@
 
   // What will play on this TV, chosen in advance: the badges and the line under the buttons.
   function renderPick() {
-    var r = R[D.id], badges = $('#detail .badges'), pick = $('#detail .pick');
+    var r = picked(D.id), badges = $('#detail .badges'), pick = $('#detail .pick');
     if (!r || !r.ready) { badges.innerHTML = ''; pick.textContent = 'Escolhendo a melhor fonte pra esta TV…'; return; }
     var s = r.rank.play[0];
     if (!s) { badges.innerHTML = ''; pick.textContent = 'Nenhuma fonte em cache no TorBox que esta TV toque'; return; }
@@ -854,8 +898,8 @@
     }
   }
 
-  function sourceItems(id, current, pick) {
-    var r = R[id], items = [{head: 'Tocáveis nesta TV · melhor primeiro'}];
+  function sourceItems(r, current, pick) {
+    var items = [{head: 'Tocáveis nesta TV · melhor primeiro'}];
     for (var i = 0; i < r.rank.play.length; i++) {
       var s = r.rank.play[i];
       items.push({a: Ranking.label(s), tag: i === 0 ? 'AUTO' : '', chk: s === current,
@@ -873,9 +917,9 @@
     return items;
   }
 
-  function openSources(id, current, pick) {
+  function openSources(id, current, pick, s, e) {
     M.log.push({kind: 'menu', at: now(), id: id}); saveLog();
-    resolve(id, function () { openSheet('Fontes', sourceItems(id, current, pick)); });
+    resolve(id, function (r) { openSheet('Fontes', sourceItems(r, current, pick)); }, s, e);
   }
 
   // MARK: - Player (simulated video, real flow around it)
@@ -897,11 +941,17 @@
     $('#player .tabs').className = 'tabs';
     osd(false);
     setFocus(null);
-    var spin = setTimeout(function () { $('#player .spinner').className = 'spinner on'; }, 2000);   // only after 2 s (HIG)
+    P.spin = setTimeout(function () { $('#player .spinner').className = 'spinner on'; }, 2000);   // only after 2 s (HIG)
     resolve(id, function (r) {
       P.list = r.rank.play.slice();
       P.stream = chosen || P.list[0];
-      P.rec = {kind: 'play', at: t0, id: id, clicks: clicks, warm: !!warm, manual: !!chosen, kept: !chosen, fallbacks: 0, ttff: 0};
+      P.rec = {kind: 'play', at: t0, id: id, clicks: clicks, warm: !!warm, manual: !!chosen, kept: !chosen, fallbacks: 0, ttff: 0, real: REAL};
+      if (REAL) {
+        if (!P.stream) { toast('Nenhuma fonte em cache que esta TV toque'); stopPlayer(); return; }
+        openNative(P.pos);
+        return;
+      }
+      var spin = P.spin;
       // The time to open the link and fill the buffer: Media3 on the stick with a TorBox link, from the AIOStreams
       // answer on. Bigger files take a little longer to start.
       var open = rnd(700, 1100) + P.stream.mbps * 18;
@@ -911,8 +961,74 @@
         $('#player .spinner').className = 'spinner';
         firstFrame();
       }, open);
-    });
+    }, P.s, P.e);
     episodeLabel();
+  }
+
+  // MARK: - The native player (Fire TV): Media3 under the page, the page draws everything on top
+
+  function openNative(fromSec) {
+    document.body.className = 'native';
+    $('#player .subs').textContent = '';
+    $('#player .subs').className = 'subs size' + SET.subSize + ' bg' + SET.subBg;
+    P.tracks = null; P.started = false;
+    var s = P.stream;
+    window.Player.open(JSON.stringify({url: s.url, startMs: Math.round(fromSec * 1000), subtitles: s.subs || []}));
+  }
+
+  // External subtitles for a stream, fetched while pre-resolving so they're there at OK. OpenSubtitles ranks them
+  // by the file's hash and name (same release, in sync); we keep the first pt-BR, pt and en.
+  function loadSubs(st, id, s, e) {
+    if (st.subs) return;
+    st.subs = [];
+    var type = s ? 'series' : 'movie', extra = [];
+    if (st.videoHash) extra.push('videoHash=' + st.videoHash);
+    if (st.videoSize) extra.push('videoSize=' + st.videoSize);
+    if (st.filename) extra.push('filename=' + encodeURIComponent(st.filename));
+    get('https://opensubtitles-v3.strem.io/subtitles/' + type + '/' + videoId(id, s, e) + (extra.length ? '/' + extra.join('&') : '') + '.json', function (o) {
+      var all = o && o.subtitles || [], out = [], want = [['pob', 'pt-BR', 'Português (Brasil)'], ['por', 'pt', 'Português'], ['eng', 'en', 'English']];
+      for (var w = 0; w < want.length; w++) {
+        for (var i = 0; i < all.length; i++) if (all[i].lang === want[w][0]) { out.push({url: all[i].url, lang: want[w][1], label: want[w][2] + ' · OpenSubtitles'}); break; }
+      }
+      st.subs = out;
+    });
+  }
+
+  // What the native player says (Playback.java → Native.player).
+  window.Native = {player: function (ev) {
+    if (state.screen !== 'player' || !REAL) return;
+    if (ev.type === 'firstFrame') {
+      clearTimeout(P.spin);
+      $('#player .spinner').className = 'spinner';
+      if (!P.rec.ttff) firstFrame();
+      else P.started = true;
+    } else if (ev.type === 'ready') {
+      if (ev.dur > 0) P.dur = ev.dur / 1000;
+      $('#player .spinner').className = 'spinner';
+    } else if (ev.type === 'buffering') {
+      if (P.started) $('#player .spinner').className = 'spinner on';
+    } else if (ev.type === 'error' || ev.type === 'stall') {
+      fallback(ev.type === 'error' ? 'A fonte falhou' : 'A fonte travou');
+    } else if (ev.type === 'ended') {
+      if (P.s && hasNext()) nextEpisode(); else stopPlayer();
+    } else if (ev.type === 'tracks') {
+      P.tracks = ev;
+    } else if (ev.type === 'cues') {
+      $('#player .subs').innerHTML = ev.text ? '<span>' + esc(ev.text).replace(/\n/g, '<br>') + '</span>' : '';
+    } else if (ev.type === 'warm') {
+      M.warm = ev.ms;
+    }
+    hud();
+  }};
+
+  // The stream broke: the next one takes over at the same position, without the person doing anything.
+  function fallback(why) {
+    var i = P.list.indexOf(P.stream), next = P.list[i + 1];
+    if (!next) { toast(why + ' e não há outra fonte'); stopPlayer(); return; }
+    P.stream = next; loadSubs(next, P.id, P.s, P.e);
+    if (P.rec) { P.rec.kept = false; P.rec.fallbacks++; saveLog(); }
+    toast(why + '. Troquei pra ' + Ranking.label(next));
+    openNative(P.pos);
   }
 
   function firstFrame() {
@@ -942,7 +1058,12 @@
 
   function tick() {
     if (state.screen !== 'player' || !P.started) return;
-    if (!P.paused) P.pos += 0.25;
+    if (REAL) {
+      var st = {};
+      try { st = JSON.parse(window.Player.state()); } catch (e) {}
+      if (st.pos != null) P.pos = st.pos / 1000;
+      if (st.dur > 0) P.dur = st.dur / 1000;
+    } else if (!P.paused) P.pos += 0.25;
     // A stream that breaks: Media3 reports the error (or the buffer stalls for 6 s); the next stream takes over at
     // the same position, without the person doing anything.
     if (P.stream && P.stream.fails && !P.failedOnce && P.pos > 0 && now() - P.rec.at > P.rec.ttff + 4000) {
@@ -959,7 +1080,7 @@
       }, 1400);
     }
     var skip = $('#player .skip');
-    var inIntro = P.s && P.pos >= 40 && P.pos < 100 && SET.intro !== 2;
+    var inIntro = !REAL && P.s && P.pos >= 40 && P.pos < 100 && SET.intro !== 2;
     if (inIntro && SET.intro === 1) { P.pos = 100; inIntro = false; toast('Abertura pulada'); }
     if (inIntro && skip.className.indexOf('on') < 0) { skip.className = 'skip on'; skip.innerHTML = '<span class="btn lift">Pular abertura</span>'; }
     if (!inIntro && skip.className.indexOf('on') >= 0) skip.className = 'skip';
@@ -969,7 +1090,7 @@
       if (next.className.indexOf('on') < 0) showNext();
       $('.count', next).textContent = SET.binge === 0 ? 'Começa em ' + Math.max(0, Math.ceil(left - 5)) + ' s · mesma fonte' : 'OK pra assistir';
       if (left <= 5 && SET.binge === 0) nextEpisode();
-    } else if (!P.s && left <= 0) { stopPlayer(); return; }
+    } else if (!REAL && !P.s && left <= 0) { stopPlayer(); return; }
     renderOsd();
   }
 
@@ -992,6 +1113,20 @@
     $('#player .next').className = 'next';
     setFocus(null);
     episodeLabel();
+    if (REAL) {
+      var group = P.stream.bingeGroup;
+      P.started = false;
+      resolve(P.id, function (r) {
+        P.list = r.rank.play.slice();
+        var same = null;
+        for (var i = 0; i < P.list.length && group; i++) if (P.list[i].bingeGroup === group) { same = P.list[i]; break; }
+        P.stream = same || P.list[0];
+        if (!P.stream) { toast('Sem fonte pro próximo episódio'); stopPlayer(); return; }
+        toast('T' + s + ' E' + e + (same ? ' · mesma fonte' : ''));
+        openNative(0);
+      }, s, e);
+      return;
+    }
     toast('T' + s + ' E' + e + ' · mesma fonte (' + P.stream.group + ')');
   }
 
@@ -1034,7 +1169,25 @@
     else setFocus($('#player .pills').children[P.pill]);
   }
 
+  function realTrackItems(kind) {
+    var list = kind === 2 ? [{a: 'Desligadas', act: function () { window.Player.select(2, -1, -1); $('#player .subs').textContent = ''; closeSheet(); }}] : [];
+    var tracks = P.tracks && (kind === 1 ? P.tracks.audio : P.tracks.text) || [];
+    for (var i = 0; i < tracks.length; i++) {
+      var t = tracks[i], ext = /^ext/.test(String(t.id || '')) || /OpenSubtitles/.test(t.label || '');
+      list.push({a: t.label || langName(t.lang) || 'Faixa ' + (i + 1), chk: t.selected,
+        b: kind === 1 ? (t.mime || '').replace('audio/', '').toUpperCase() + (t.channels ? ' · ' + t.channels + ' canais' : '') + (t.supported ? '' : ' · não toca')
+                      : (ext ? 'Externa' : 'Do próprio arquivo · em sincronia') + (t.lang ? ' · ' + t.lang : ''),
+        act: (function (t) { return function () { window.Player.select(kind, t.group, t.index); closeSheet(); }; })(t)});
+    }
+    if (list.length < (kind === 2 ? 2 : 1)) list.push({a: 'Ainda carregando as faixas…', off: true});
+    return list;
+  }
+  function langName(l) {
+    return {'pt-BR': 'Português (Brasil)', 'pt': 'Português', 'por': 'Português', 'pob': 'Português (Brasil)', 'en': 'English', 'eng': 'English', 'es': 'Español', 'spa': 'Español'}[l] || l;
+  }
+
   function subsItems() {
+    if (REAL) return realTrackItems(2);
     // Priority pt-BR > pt > en; inside each language, the subtitle made for this release (same file hash or
     // name, from AIOStreams and OpenSubtitles) comes first, because it's in sync.
     var g = P.stream.group, list = [
@@ -1052,6 +1205,7 @@
     return list;
   }
   function audioItems() {
+    if (REAL) return realTrackItems(1);
     var list = [], tracks = P.stream.audio.slice();
     if (P.stream.pt) tracks.push('Português · DD 5.1');
     for (var i = 0; i < tracks.length; i++) {
@@ -1067,25 +1221,25 @@
     if (P.tabs) return tabsKey(k);
     var next = $('#player .next'), skip = $('#player .skip');
     if (k === 'menu') { openPlayerSources(); return; }
-    if (k === 'playpause') { P.paused = !P.paused; osd(true); renderOsd(); paintPlayer(); return; }
-    if (k === 'ff' || k === 'rw') { P.pos = Math.max(0, Math.min(P.dur - 25, P.pos + (k === 'ff' ? 300 : -300))); osd(true); renderOsd(); paintPlayer(); return; }
+    if (k === 'playpause') { togglePause(); osd(true); renderOsd(); paintPlayer(); return; }
+    if (k === 'ff' || k === 'rw') { seekBy(k === 'ff' ? 300 : -300); osd(true); renderOsd(); paintPlayer(); return; }
     if (k === 'back') {
       if (osdOn()) { osd(false); paintPlayer(); return; }
       stopPlayer(); return;
     }
     if (!osdOn()) {
       if (k === 'ok' && /\bon\b/.test(next.className)) { nextEpisode(); return; }
-      if (k === 'ok' && /\bon\b/.test(skip.className)) { P.pos = 100; skip.className = 'skip'; renderOsd(); paintPlayer(); return; }
-      if (k === 'ok') { P.paused = !P.paused; }
-      else if (k === 'left' || k === 'right') { P.pos = Math.max(0, Math.min(P.dur, P.pos + (k === 'left' ? -1 : 1) * [10, 15, 30][SET.seek])); }
+      if (k === 'ok' && /\bon\b/.test(skip.className)) { seekBy(100 - P.pos); skip.className = 'skip'; renderOsd(); paintPlayer(); return; }
+      if (k === 'ok') togglePause();
+      else if (k === 'left' || k === 'right') { seekBy((k === 'left' ? -1 : 1) * [10, 15, 30][SET.seek]); }
       else if (k === 'down') { openTabs(); return; }
       P.zone = k === 'up' ? 'pills' : 'bar';
       osd(true); renderOsd(); paintPlayer();
       return;
     }
     if (P.zone === 'bar') {
-      if (k === 'left' || k === 'right') P.pos = Math.max(0, Math.min(P.dur, P.pos + (k === 'left' ? -1 : 1) * [10, 15, 30][SET.seek]));
-      else if (k === 'ok') P.paused = !P.paused;
+      if (k === 'left' || k === 'right') seekBy((k === 'left' ? -1 : 1) * [10, 15, 30][SET.seek]);
+      else if (k === 'ok') togglePause();
       else if (k === 'up') P.zone = 'pills';
       else if (k === 'down') { osd(false); openTabs(); return; }
     } else {
@@ -1102,6 +1256,16 @@
     osd(true); renderOsd(); paintPlayer();
   }
 
+  function togglePause() {
+    P.paused = !P.paused;
+    if (REAL) { if (P.paused) window.Player.pause(); else window.Player.play(); }
+  }
+  // Seeks: the simulation moves its clock; the real player seeks.
+  function seekBy(sec) {
+    P.pos = Math.max(0, Math.min(P.dur - 1, P.pos + sec));
+    if (REAL) window.Player.seekTo(Math.round(P.pos * 1000));
+  }
+
   function openPlayerSources() {
     osd(true);
     openSources(P.id, P.stream, function (s) {
@@ -1109,10 +1273,11 @@
       // Changing the stream in the first two minutes means the automatic choice was wrong.
       if (P.rec && now() - P.rec.at < 120000) { P.rec.kept = false; saveLog(); hud(); }
       P.stream = s; P.failedOnce = false;
+      if (REAL) { openNative(P.pos); toast('Tocando ' + Ranking.label(s)); return; }
       P.started = false;
       $('#player .spinner').className = 'spinner on';
       setTimeout(function () { $('#player .spinner').className = 'spinner'; P.started = true; toast('Tocando ' + Ranking.label(s)); }, rnd(700, 1200));
-    });
+    }, P.s, P.e);
   }
 
   // Swipe-down tabs (tvOS: Info; for shows, Episodes too).
@@ -1152,6 +1317,7 @@
   function stopPlayer() {
     clearInterval(P.tick);
     P.started = false;
+    if (REAL) { window.Player.stop(); document.body.className = ''; }
     var c = continueOf(P.id);
     if (c) { c.progress = P.pos / P.dur; c.left = Math.round((P.dur - P.pos) / 60); if (P.s) { c.s = P.s; c.e = P.e; } }
     if (state.screen === 'player') {

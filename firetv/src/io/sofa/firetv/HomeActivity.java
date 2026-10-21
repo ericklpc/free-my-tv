@@ -73,6 +73,12 @@ public class HomeActivity extends Activity {
         web.requestFocus();
         // The Home button watcher belongs to the home screen app only, not to the player prototype (io.sofa.player).
         if (isHome()) HomeWatcher.start(this);
+        // The player prototype's native player (firetv/player/, only in ./build.sh --proto): Media3 under the page.
+        try {
+            Class.forName("io.sofa.player.Playback").getMethod("attach", Activity.class, WebView.class).invoke(null, this, web);
+        } catch (ReflectiveOperationException e) {
+            if (!(e instanceof ClassNotFoundException)) Log.w("Sofa", "player", e);   // the home screen has no player
+        }
     }
 
     private boolean isHome() { return "io.sofa.firetv".equals(getPackageName()); }

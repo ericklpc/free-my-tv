@@ -165,7 +165,7 @@ var SAMPLE = (function () {
       {kind: 'wide', title: 'Séries em alta', source: {cinemeta: 'series/top'}, items: [
         {id: 'tt11280740'}, {id: 'tt2788316'}, {id: 'tt14452776'}, {id: 'tt9253284'}
       ]},
-      {kind: 'poster', title: 'Mais bem avaliados no IMDb', source: {cinemeta: 'movie/imdbRating'}, items: [
+      {kind: 'poster', title: 'Os mais bem avaliados', source: {tmdb: 'movie/top_rated'}, items: [
         {id: 'tt0046438'}, {id: 'tt0816692'}, {id: 'tt0118694'}, {id: 'tt0056801'}, {id: 'tt0079944'}
       ]},
       {kind: 'poster', title: 'Cinema de Hong Kong', items: [
@@ -174,7 +174,7 @@ var SAMPLE = (function () {
       {kind: 'wide', title: 'Porque você deu 5★ pra Paris, Texas', items: [
         {id: 'tt27503384'}, {id: 'tt0079944'}, {id: 'tt19770238'}, {id: 'tt13238346'}, {id: 'tt0046438'}
       ]},
-      {kind: 'poster', title: 'Séries mais bem avaliadas no IMDb', source: {cinemeta: 'series/imdbRating'}, items: [
+      {kind: 'poster', title: 'Séries mais bem avaliadas', source: {tmdb: 'tv/top_rated'}, items: [
         {id: 'tt11280740'}, {id: 'tt9253284'}, {id: 'tt2788316'}
       ]},
       {kind: 'wide', title: 'Em breve', source: {tmdb: 'movie/upcoming?region=BR'}, items: [

@@ -57,10 +57,18 @@ fi
 "$BT/aapt2" compile --dir res -o out/res.zip
 "$BT/aapt2" link -o out/base.apk -I "$AJ" --manifest "$MANIFEST" --java out/gen --custom-package io.sofa.firetv out/res.zip \
   --min-sdk-version 22 --target-sdk-version 28 -A out/assets -0 ttf
-"$JAVAC" -nowarn -Xlint:-options -source 8 -target 8 -classpath "$AJ" -encoding UTF-8 -d out/classes \
-  $(find src out/gen -name '*.java')
-"$BT/d8" --release --min-api 22 --lib "$AJ" --output out $(find out/classes -name '*.class')
-(cd out && zip -qj base.apk classes.dex)
+# The player prototype also gets the native player (player/: Media3 and its ffmpeg audio decoder, from deps.py).
+CP="$AJ"; SRC="src out/gen"; JARS=""
+if [ $PROTO = 1 ]; then
+  JARS="$(python3 deps.py)"
+  CP="$AJ:$(echo "$JARS" | paste -sd: -)"
+  SRC="$SRC player"
+fi
+"$JAVAC" -nowarn -Xlint:-options -source 8 -target 8 -classpath "$CP" -encoding UTF-8 -d out/classes \
+  $(find $SRC -name '*.java')
+"$BT/d8" --release --min-api 22 --lib "$AJ" --output out $(find out/classes -name '*.class') $JARS
+(cd out && zip -qj base.apk classes*.dex)
+if [ $PROTO = 1 ] && [ -d .deps/lib ]; then (cd .deps && zip -qr ../out/base.apk lib); fi
 "$BT/zipalign" -f -p 4 out/base.apk out/aligned.apk
 
 # Your own signing key, created once (updates need the same one: keep sofa.keystore).

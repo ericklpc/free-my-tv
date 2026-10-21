@@ -252,3 +252,14 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 #sheet .box.settings { left: 80px; right: auto; top: 60px; bottom: 60px; width: 1000px; max-height: none; }
 #sheet .opt .v { float: right; font-size: 24px; line-height: 36px; color: rgba(255, 255, 255, 0.55); margin-left: 20px; }
 #sheet .opt.focus .v { color: rgba(0, 0, 0, 0.6); }
+
+/* MARK: - Over the native player: the page turns see-through where the video is, and draws the subtitles */
+
+body.native, body.native #stage, body.native #player { background: transparent; }
+body.native #player .frame { display: none; }
+#player .subs { position: absolute; left: 160px; right: 160px; bottom: 90px; text-align: center; font-size: 44px; line-height: 58px; font-weight: 600;
+  text-shadow: 0 0 6px #000, 0 2px 3px #000, 0 0 2px #000; }
+#player .subs span { display: inline-block; }
+#player .subs.size1 { font-size: 54px; line-height: 70px; }
+#player .subs.size2 { font-size: 36px; line-height: 48px; }
+#player .subs.bg1 span { background: rgba(0, 0, 0, 0.7); padding: 4px 16px; border-radius: 8px; text-shadow: none; }
