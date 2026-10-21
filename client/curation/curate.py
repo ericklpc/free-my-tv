@@ -324,7 +324,8 @@ def why(d, taste, best, idf, said=None, skip=None, bare=True):
     kw = dict(((('k:%d' % k['id']), k['name'].lower()) for k in (d.get('keywords') or {}).get('keywords', [])))
     out, used, themes = [], set(), []
     for _, f in reasons(d, taste, best, idf):
-        if f == skip:                                       # a row's own reason, already in its title
+        # A row's own reason, already in its title: Kubrick as writer too, in "Mais de Stanley Kubrick".
+        if skip and (f == skip or (f[0] in 'dwpc' and skip[0] in 'dwpc' and f[2:] == skip[2:])):
             continue
         film, rating = best[f]
         k, line = f[0], ''
@@ -504,7 +505,9 @@ def made(person, jobs=('Director', 'Screenplay', 'Writer')):
 def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
     # A film shows once on the home: not in the picks, not in an earlier row.
     ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
-    docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)]
+    docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)
+            and re.search('[A-Za-z]', d.get('title') or '')]      # no 남극일기 on the home
+    said = {}                                               # in a row too, a reason at most twice
     if kind == 'director':
         # His own films, not anthologies where he made one segment (Paris, Te Amo).
         def directors(d):
@@ -519,16 +522,20 @@ def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
         def line(d):
             # The tie to the seed, then one of his own reasons when there is one (they end in the stars).
             first, f = links[d['id']][1][0]
-            rest = why(d, taste, best, idf, skip=f, bare=False).split(' · ')[0]
+            rest = why(d, taste, best, idf, said, skip=f, bare=False).split(' · ')[0]
             return first + (' · ' + rest if rest.endswith(')') and seed.get('title', '') not in rest else '')
-        lines = dict((d['id'], line(d)) for d in docs)
+        lines = dict((d['id'], line(d)) for d in docs[:16])
     else:
-        lines = dict((d['id'], why(d, taste, best, idf, skip=seed, bare=False)) for d in docs)
+        docs.sort(key=lambda d: -score(d, taste, wish, idf))
+        lines = dict((d['id'], why(d, taste, best, idf, said, skip=seed, bare=False)) for d in docs)
         if kind == 'theme':
             # A wide theme ("violência policial") needs a second tie to him, or Rambo gets in.
             docs = [d for d in docs if lines[d['id']]]
         # Films with a reason of his own first.
         docs.sort(key=lambda d: (not lines[d['id']], -score(d, taste, wish, idf)))
+        # Japan is more than anime: at most three animated films in a row about a place or a theme.
+        cartoons = [d for d in docs if 16 in [g['id'] for g in d.get('genres', [])]][3:]
+        docs = [d for d in docs if d not in cartoons]
     docs = docs[:16]
     ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
     items = [entry(d, lines[d['id']]) for d, good in zip(docs, ok) if good][:10]
