@@ -169,18 +169,28 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 #player .next .small { font-size: 21px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
 #player .next .ep { font-size: 27px; font-weight: 700; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 #player .next .count { font-size: 23px; color: rgba(255, 255, 255, 0.75); margin-top: 10px; }
-#player .tabs { position: absolute; left: 0; top: 0; width: 1920px; height: 440px; display: none;
-  background: -webkit-linear-gradient(top, rgba(20, 20, 22, 0.97) 70%, rgba(20, 20, 22, 0)); background: linear-gradient(rgba(20, 20, 22, 0.97) 70%, rgba(20, 20, 22, 0)); }
+#player .tabs { position: absolute; left: 0; top: 0; width: 1920px; height: 520px; display: none;
+  background: -webkit-linear-gradient(top, #141416 0%, #141416 78%, rgba(20, 20, 22, 0) 100%); background: linear-gradient(#141416 0%, #141416 78%, rgba(20, 20, 22, 0) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset; }
 #player .tabs.on { display: block; }
-#player .tabs .heads { padding: 50px 0 0 80px; height: 60px; }
+#player .tabs .heads { padding: 50px 0 0 80px; height: 60px; text-align: center; }
 #player .tabs .heads span { display: inline-block; font-size: 27px; font-weight: 600; padding: 0 24px; height: 52px; line-height: 52px; border-radius: 26px;
   color: rgba(255, 255, 255, 0.55); margin-right: 8px; }
 #player .tabs .heads span.on { color: #fff; background: rgba(255, 255, 255, 0.14); }
 #player .tabs .heads span.focus { color: #000; background: #fff; }
-#player .tabs .body { padding: 30px 80px 0; font-size: 26px; line-height: 36px; color: rgba(255, 255, 255, 0.85); }
-#player .tabs .body .track { white-space: nowrap; position: relative; }
-#player .tabs .body .t1 { font-size: 34px; font-weight: 700; margin-bottom: 10px; color: #fff; }
-#player .tabs .body .t2 { max-width: 1100px; }
+#player .tabs .body { padding: 36px 80px 0; font-size: 26px; line-height: 36px; color: rgba(255, 255, 255, 0.85); }
+#player .tabs .info { position: relative; height: 290px; }
+#player .tabs .thumb { position: absolute; left: 0; top: 0; width: 480px; height: 270px; border-radius: 16px; background: #222 center / cover;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); }
+#player .tabs .text { position: absolute; left: 530px; top: 0; right: 0; }
+#player .tabs .t1 { font-size: 36px; line-height: 44px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+#player .tabs .t2 { max-width: 1000px; max-height: 108px; overflow: hidden; font-size: 26px; line-height: 36px; color: rgba(255, 255, 255, 0.85); margin: 12px 0; }
+#player .tabs .t3 { font-size: 23px; color: rgba(255, 255, 255, 0.55); }
+#player .tabs .t3 .b { font-size: 18px; line-height: 26px; }
+#player .tabs .eps { white-space: nowrap; }
+#player .tabs .eps span { display: inline-block; width: 84px; height: 84px; line-height: 84px; text-align: center; margin-right: 16px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1); font-size: 30px; font-weight: 700; }
+#player .tabs .eps span.on { background: #fff; color: #000; }
 
 /* MARK: - Sidebar (tvOS 18+: Back opens it, → or a choice closes it) */
 
@@ -203,8 +213,8 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 
 #sheet { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: rgba(0, 0, 0, 0.35); }
 #sheet .box { position: absolute; right: 80px; bottom: 170px; width: 820px; max-height: 820px; overflow: hidden; border-radius: 30px;
-  background: rgba(40, 40, 42, 0.98); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); padding: 30px 0 20px; }
-#sheet h3 { position: relative; z-index: 1; padding-bottom: 16px; margin: 0 36px; background: rgba(40, 40, 42, 1); font-size: 25px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.04em; }
+  background: rgba(40, 40, 42, 0.98); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); padding: 0 0 20px; }
+#sheet h3 { position: relative; z-index: 1; padding: 30px 36px 16px; margin: 0; background: #28282a; font-size: 25px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.04em; }
 #sheet .list { position: relative; -webkit-transition: -webkit-transform 0.25s; transition: transform 0.25s; }
 #sheet .opt { position: relative; margin: 0 16px; padding: 14px 20px 14px 68px; border-radius: 16px; min-height: 40px; }
 #sheet .opt .a { font-size: 27px; font-weight: 600; line-height: 36px; }
@@ -231,3 +241,14 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 #hud b { color: #30D158; font-weight: 700; }
 #hud.off { display: none; }
 #hud.left { right: auto; left: 30px; }
+
+/* MARK: - The picks' three views, and Settings */
+
+.row .chips { position: absolute; left: 520px; top: 0; height: 46px; }
+.row .chips span { display: inline-block; height: 46px; line-height: 46px; padding: 0 22px; margin-right: 8px; border-radius: 23px; font-size: 24px;
+  font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.row .chips span.on { color: #fff; background: rgba(255, 255, 255, 0.16); }
+.row .chips span.focus { color: #000; background: #fff; -webkit-transform: scale(1.06); transform: scale(1.06); }
+#sheet .box.settings { left: 80px; right: auto; top: 60px; bottom: 60px; width: 1000px; max-height: none; }
+#sheet .opt .v { float: right; font-size: 24px; line-height: 36px; color: rgba(255, 255, 255, 0.55); margin-left: 20px; }
+#sheet .opt.focus .v { color: rgba(0, 0, 0, 0.6); }

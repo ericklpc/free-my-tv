@@ -70,6 +70,38 @@ var SAMPLE = (function () {
      genres: ['Drama', 'Romance'], director: 'Wong Kar-wai', dop: 'Christopher Doyle', rating: '8,0', cert: '14',
      colors: ['#1a6a5a', '#06161a'],
      desc: 'Dois policiais de Hong Kong, dois corações partidos, uma lanchonete e California Dreamin’ no repeat.'});
+  t({id: 'tt28607951', tmdb: 1064213, type: 'movie', title: 'Anora', year: 2024, runtime: 139,
+     genres: ['Comédia', 'Drama'], director: 'Sean Baker', dop: 'Drew Daniels', rating: '7,4', cert: '18',
+     colors: ['#7a2a5a', '#1a0816'],
+     desc: 'Uma dançarina do Brooklyn se casa por impulso com o filho de um oligarca russo, e a família dele vem desfazer o casamento.'});
+  t({id: 'tt8999762', tmdb: 549509, type: 'movie', title: 'O Brutalista', year: 2024, runtime: 215,
+     genres: ['Drama'], director: 'Brady Corbet', dop: 'Lol Crawley', rating: '7,4', cert: '16',
+     colors: ['#5a4a3a', '#14100c'],
+     desc: 'Um arquiteto húngaro sobrevivente do Holocausto recomeça nos Estados Unidos sob a proteção de um milionário.'});
+  t({id: 'tt14961016', tmdb: 1000837, type: 'movie', title: 'Ainda Estou Aqui', year: 2024, runtime: 137,
+     genres: ['Drama', 'História'], director: 'Walter Salles', dop: 'Adrian Teijido', rating: '8,0', cert: '14',
+     colors: ['#3a5a6a', '#0c1418'],
+     desc: 'Rio, 1971: Eunice Paiva reconstrói a família depois que o marido, o ex-deputado Rubens Paiva, é levado pela ditadura.'});
+  t({id: 'tt0046438', tmdb: 18148, type: 'movie', title: 'Era uma Vez em Tóquio', year: 1953, runtime: 136,
+     genres: ['Drama'], director: 'Yasujirō Ozu', dop: 'Yūharu Atsuta', rating: '8,1', cert: 'L',
+     colors: ['#6a6a5a', '#181814'],
+     desc: 'Um casal de idosos visita os filhos em Tóquio e descobre que eles mal têm tempo para os pais.'});
+  t({id: 'tt0056801', tmdb: 422, type: 'movie', title: '8½', year: 1963, runtime: 138,
+     genres: ['Drama'], director: 'Federico Fellini', dop: 'Gianni Di Venanzo', rating: '8,0', cert: '14',
+     colors: ['#5a5a5a', '#101010'],
+     desc: 'Um cineasta em crise criativa se refugia em memórias, sonhos e nas mulheres da sua vida.'});
+  t({id: 'tt0055852', tmdb: 499, type: 'movie', title: 'Cléo das 5 às 7', year: 1962, runtime: 90,
+     genres: ['Drama'], director: 'Agnès Varda', dop: 'Jean Rabier', rating: '7,8', cert: '12',
+     colors: ['#4a4a4a', '#0e0e0e'],
+     desc: 'Duas horas na vida de uma cantora que vaga por Paris à espera do resultado de um exame.'});
+  t({id: 'tt0244316', tmdb: 25538, type: 'movie', title: 'As Coisas Simples da Vida', year: 2000, runtime: 173,
+     genres: ['Drama'], director: 'Edward Yang', dop: 'Yang Wei-han', rating: '8,1', cert: '12',
+     colors: ['#2a4a5a', '#081014'],
+     desc: 'Um ano na vida de uma família de Taipé, de um casamento a um funeral, pelos olhos do pai e do filho caçula.'});
+  t({id: 'tt0100234', tmdb: 30017, type: 'movie', title: 'Close-Up', year: 1990, runtime: 98,
+     genres: ['Drama', 'Documentário'], director: 'Abbas Kiarostami', dop: 'Ali Reza Zarrindast', rating: '8,2', cert: 'L',
+     colors: ['#5a5a3a', '#16160c'],
+     desc: 'Kiarostami reconstrói, com as pessoas reais, a história de um homem que se fez passar pelo cineasta Makhmalbaf.'});
   t({id: 'tt11280740', tmdb: 95396, type: 'series', title: 'Ruptura', year: 2022, genres: ['Drama', 'Mistério'],
      rating: '8,7', cert: '16', colors: ['#1a3a5a', '#060e16'], seasons: [9, 10],
      desc: 'Funcionários da Lumon passam por uma cirurgia que separa as memórias do trabalho das da vida pessoal.'});
@@ -99,22 +131,54 @@ var SAMPLE = (function () {
         {id: 'tt14452776', s: 3, e: 1, progress: 0, next: true},
         {id: 'tt2788316', s: 1, e: 7, progress: 0.15, left: 52}
       ]},
+      // The weekly picks: a mix of new releases and classics, with three views (all, new, classics).
       {kind: 'picks', title: 'Escolhidos pra você', subtitle: 'Toda segunda, a partir das suas notas', items: [
         {id: 'tt27503384', why: 'Wenders de novo, na mesma calma de Paris, Texas.'},
+        {id: 'tt0046438', why: 'Ozu, a matriz de Dias Perfeitos e de tudo que você deu 5★ em plano fixo.'},
+        {id: 'tt14961016', why: 'Walter Salles contido como em Central do Brasil, que você deu 4,5★.'},
         {id: 'tt0109424', why: 'Doyle e Wong Kar-wai, a dupla do seu 5★ em Amor à Flor da Pele.'},
+        {id: 'tt0055852', why: 'Varda e o tempo real, perto da Nouvelle Vague da sua lista.'},
         {id: 'tt19770238', why: 'Memória e silêncio, como Vidas Passadas, que você deu 4,5★.'},
+        {id: 'tt0244316', why: 'Edward Yang: família filmada de longe, como você gosta em Kore-eda.'},
+        {id: 'tt28607951', why: 'Sean Baker: você deu 4★ pra Projeto Flórida.'},
+        {id: 'tt0100234', why: 'Kiarostami entre ficção e documentário, como Close-Up pede.'},
         {id: 'tt7160372', why: 'Fora de campo como em Anatomia de uma Queda.'},
+        {id: 'tt0056801', why: 'Fellini: você salvou A Doce Vida na watchlist.'},
+        {id: 'tt8999762', why: 'Fotografia em VistaVision, de quem notou Hoyte van Hoytema.'},
         {id: 'tt0079944', why: 'Tarkovsky: você deu 5★ pra Solaris.'}
       ]},
-      {kind: 'chart', title: 'Top 10 no Brasil', items: [
-        {id: 'tt15239678'}, {id: 'tt15398776'}, {id: 'tt2788316'}, {id: 'tt0816692'}, {id: 'tt13238346'},
-        {id: 'tt14452776'}, {id: 'tt17009710'}, {id: 'tt9253284'}
+      // Dynamic lists. `source` says where the real list comes from; `items` stand in until it arrives (or
+      // when the source can't be reached, like in a browser preview without keys).
+      {kind: 'chart', title: 'Top 10 no Brasil', source: {tmdb: 'movie/popular?region=BR'}, limit: 10, items: [
+        {id: 'tt15239678'}, {id: 'tt14961016'}, {id: 'tt15398776'}, {id: 'tt2788316'}, {id: 'tt0816692'},
+        {id: 'tt13238346'}, {id: 'tt28607951'}, {id: 'tt14452776'}, {id: 'tt17009710'}, {id: 'tt9253284'}
+      ]},
+      {kind: 'wide', title: 'Em alta esta semana', source: {tmdb: 'trending/all/week'}, items: [
+        {id: 'tt28607951'}, {id: 'tt8999762'}, {id: 'tt15239678'}, {id: 'tt11280740'}, {id: 'tt14452776'}
+      ]},
+      {kind: 'poster', title: 'Novos nos cinemas do Brasil', source: {tmdb: 'movie/now_playing?region=BR'}, items: [
+        {id: 'tt14961016'}, {id: 'tt8999762'}, {id: 'tt28607951'}, {id: 'tt15239678'}
+      ]},
+      {kind: 'wide', title: 'Populares no Stremio', source: {cinemeta: 'movie/top'}, items: [
+        {id: 'tt15398776'}, {id: 'tt0816692'}, {id: 'tt15239678'}, {id: 'tt17009710'}
+      ]},
+      {kind: 'wide', title: 'Séries em alta', source: {cinemeta: 'series/top'}, items: [
+        {id: 'tt11280740'}, {id: 'tt2788316'}, {id: 'tt14452776'}, {id: 'tt9253284'}
+      ]},
+      {kind: 'poster', title: 'Mais bem avaliados no IMDb', source: {cinemeta: 'movie/imdbRating'}, items: [
+        {id: 'tt0046438'}, {id: 'tt0816692'}, {id: 'tt0118694'}, {id: 'tt0056801'}, {id: 'tt0079944'}
       ]},
       {kind: 'poster', title: 'Cinema de Hong Kong', items: [
         {id: 'tt0118694'}, {id: 'tt0109424'}
       ]},
       {kind: 'wide', title: 'Porque você deu 5★ pra Paris, Texas', items: [
-        {id: 'tt27503384'}, {id: 'tt0079944'}, {id: 'tt19770238'}, {id: 'tt13238346'}
+        {id: 'tt27503384'}, {id: 'tt0079944'}, {id: 'tt19770238'}, {id: 'tt13238346'}, {id: 'tt0046438'}
+      ]},
+      {kind: 'poster', title: 'Séries mais bem avaliadas no IMDb', source: {cinemeta: 'series/imdbRating'}, items: [
+        {id: 'tt11280740'}, {id: 'tt9253284'}, {id: 'tt2788316'}
+      ]},
+      {kind: 'wide', title: 'Em breve', source: {tmdb: 'movie/upcoming?region=BR'}, items: [
+        {id: 'tt8999762'}, {id: 'tt14961016'}
       ]}
     ]
   };

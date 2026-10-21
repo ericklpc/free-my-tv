@@ -26,6 +26,7 @@ var Ranking = (function () {
     if (s.codec === 'AV1' && !caps.av1) return 'AV1: o stick não decodifica';
     if (s.hdr.indexOf('DV') >= 0 && s.hdr.indexOf('HDR10') < 0) return 'Só Dolby Vision (perfil ' + (s.dvProfile || 5) + '): a TV não exibe';
     if (s.mbps > caps.maxMbps) return Math.round(s.mbps) + ' Mbps: acima do que o Wi-Fi aguenta';
+    if (caps.limit && s.res > caps.limit) return 'Acima da qualidade máxima dos Ajustes';
     return '';
   }
 
@@ -39,10 +40,10 @@ var Ranking = (function () {
       if (caps.audioHw.indexOf(k) >= 0) hw = true; else soft = true;
     }
     p += hw ? 30 : soft ? -25 : -60;                      // DTS/TrueHD only: ffmpeg works, but costs CPU and TTFF
-    if (s.pt) p += 18;
+    if (s.pt) p += caps.ptAudio ? 40 : 18;
     p -= Math.abs(s.mbps - 12) * 0.8;                     // 8–16 Mbps starts fast and looks good at 1080p
     p += /REMUX/.test(s.source) ? 2 : /BluRay/.test(s.source) ? 6 : /WEB-DL/.test(s.source) ? 5 : 0;
-    if (s.hdr.indexOf('HDR10') >= 0) p += 3;
+    if (s.hdr.indexOf('HDR10') >= 0) p += caps.preferSdr ? -20 : 3;
     return p;
   }
 
