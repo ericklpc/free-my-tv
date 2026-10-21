@@ -218,7 +218,15 @@
   function focusTitle(id) {
     focusId = id;
     clearTimeout(resolveTimer);
-    resolveTimer = setTimeout(function () { resolve(id); }, 300);
+    // Where OK plays right away (the hero's Play, Continue watching), the stream is also prepared after a short stay.
+    resolveTimer = setTimeout(function () {
+      resolve(id, function () {
+        setTimeout(function () {
+          var direct = state.screen === 'home' && (H.zone === 'hero' || (HOME.rows[H.row] && HOME.rows[H.row].kind === 'continue'));
+          if (focusId === id && direct && !S.open && !sheet.open) preload(id, continueOf(id) || {});
+        }, 900);
+      });
+    }, 300);
     hud();
   }
 
@@ -726,12 +734,14 @@
 
   // MARK: - Settings: Stremio's player settings (stremio-core's profile settings) and the account's addons
 
-  var SET = {binge: 0, notice: 0, intro: 0, seek: 0, maxRes: 0, hdr: 0, audioLang: 0, subLang: 0, subLang2: 0, subSize: 0, subBg: 0};
+  var SET = {binge: 0, notice: 0, intro: 0, seek: 0, maxRes: 0, hdr: 0, audioLang: 0, subLang: 0, subLang2: 0, subSize: 0, subBg: 0, rate: 0};
   try { var saved = JSON.parse(localStorage.getItem('sofa.proto.settings') || '{}'); for (var sk in saved) SET[sk] = saved[sk]; } catch (e) {}
   var OPTS = {
     binge: ['ligado', 'desligado'], notice: ['20 s antes do fim', '35 s antes do fim', '10 s antes do fim'],
     intro: ['mostrar o botão Pular', 'pular sozinho', 'não pular'], seek: ['10 s', '15 s', '30 s'],
     maxRes: ['automática (TV 1080p)', 'até 1080p', 'até 720p'], hdr: ['HDR10 quando houver', 'preferir SDR'],
+    // Off like tvOS's Match Frame Rate: switching the TV to 24 Hz blanks the screen for a second or two at every start.
+    rate: ['desligado', 'ligado (24p sem tremor, começa mais devagar)'],
     audioLang: ['original', 'português'], subLang: ['português (Brasil)', 'português', 'inglês', 'desligadas'],
     subLang2: ['inglês', 'português', 'nenhum'], subSize: ['médio', 'grande', 'pequeno'], subBg: ['contorno', 'caixa escura']
   };
@@ -743,10 +753,10 @@
       {head: 'Conta'},
       ro('Stremio', CFG.stremioAuthKey ? 'conectado' : 'sem login neste build'),
       ro('Debrid', 'TorBox · só fontes em cache'),
-      ro('Trakt', 'continuar, retomar e scrobble no app completo'),
+      ro('Continuar assistindo', CFG.stremioAuthKey ? 'biblioteca do Stremio (posição salva lá)' : 'exemplo'),
       {head: 'Reprodução'},
       o('binge', 'Assistir em sequência'), o('notice', 'Aviso do próximo episódio'), o('intro', 'Abertura'),
-      o('seek', 'Pulo com ← →'), o('maxRes', 'Qualidade máxima'), o('hdr', 'HDR'),
+      o('seek', 'Pulo com ← →'), o('maxRes', 'Qualidade máxima'), o('hdr', 'HDR'), o('rate', 'Ajustar à taxa de quadros'),
       {head: 'Áudio'},
       o('audioLang', 'Idioma preferido'), ro('Saída', 'estéreo PCM (a TV não aceita surround)'),
       {head: 'Legendas'},
@@ -824,7 +834,7 @@
         r.rank.out.length + (r.rank.out.length === 1 ? ' fonte, nenhuma toca aqui: ' : ' fontes, nenhuma toca aqui: ') + r.rank.out[0].why;
       return;
     }
-    preload();
+    preload(D.id, continueOf(D.id) || D.item || {});
     var bs = [Ranking.resLabel(Math.min(s.res, CAPS.maxHeight))];
     if (s.hdr.indexOf('HDR10') >= 0) bs.push('HDR10');
     bs.push(s.audio[0].replace(/ \d\.\d$/, ''));
@@ -1098,7 +1108,7 @@
     $('#player .subs').className = 'subs size' + SET.subSize + ' bg' + SET.subBg;
     P.tracks = null; P.started = false;
     var s = P.stream;
-    window.Player.open(JSON.stringify({url: s.url, startMs: Math.round(fromSec * 1000), subtitles: s.subs || []}));
+    window.Player.open(JSON.stringify({url: s.url, startMs: Math.round(fromSec * 1000), subtitles: s.subs || [], matchRate: SET.rate === 1}));
   }
 
   // External subtitles for a stream, fetched while pre-resolving so they're there at OK. OpenSubtitles ranks them
@@ -1130,9 +1140,9 @@
 
   // The title's page prepares its stream paused behind the page, so OK only presses play (TTFF under a second).
   var preloadKey = '';
-  function preload() {
-    if (!REAL || !window.Player.preload || state.screen !== 'detail') return;
-    var id = D.id, t = TITLES[id], from = continueOf(id) || D.item || {}, s = from.s || 0, e = from.e || 0;
+  function preload(id, from) {
+    if (!REAL || !window.Player.preload || state.screen === 'player') return;
+    var t = TITLES[id], s = from.s || 0, e = from.e || 0;
     if (t.type === 'series' && !s) { var d = defaultEp(id); s = d.s; e = d.e; }
     var r = R[videoId(id, s, e)], st = r && r.ready && r.rank.play[0];
     if (!st) return;
@@ -1141,9 +1151,9 @@
     if (key === preloadKey) return;
     preloadKey = key;
     withSubs(st, function () {
-      if (preloadKey !== key || state.screen !== 'detail') return;
+      if (preloadKey !== key || state.screen === 'player') return;
       console.log('[player] preload ' + videoId(id, s, e) + ' · ' + Ranking.label(st));
-      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || []}));
+      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || [], matchRate: SET.rate === 1}));
     });
   }
   function unpreload() {

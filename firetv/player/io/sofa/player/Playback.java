@@ -54,7 +54,7 @@ import java.util.Map;
  */
 public final class Playback implements Player.Listener {
     private static final String TAG = "SofaPlayer";
-    private static final long STALL_MS = 6000;
+    private static final long STALL_MS = 6000, START_MS = 25000;
 
     private final Activity activity;
     private final WebView web;
@@ -64,7 +64,7 @@ public final class Playback implements Player.Listener {
     private SurfaceView surface;
     private ExoPlayer player;
     private long openedAt, bufferingSince;
-    private boolean rendered;
+    private boolean rendered, matchRate;
     private String preloaded;   // the stream prepared paused on the title's page, so OK only has to press play
     private int modeBefore = -1;
     private Tracks tracks = Tracks.EMPTY;
@@ -106,10 +106,14 @@ public final class Playback implements Player.Listener {
             return;
         }
         preloaded = play ? null : url;
+        matchRate = o.optBoolean("matchRate");
         String direct = warmed.get(url);
         Long at = warmedAt.get(url);
         if (direct != null && at != null && SystemClock.elapsedRealtime() - at < 10 * 60000) url = direct;
-        if (player == null) create();
+        // A new player for every stream: reusing one makes Media3 flush the audio decoder, and the stick's Dolby
+        // decoder fails the flush (MediaCodec 0x80001001), over and over.
+        if (player != null) { player.release(); player = null; }
+        create();
         MediaItem.Builder item = new MediaItem.Builder().setUri(Uri.parse(url));
         JSONArray subs = o.optJSONArray("subtitles");
         if (subs != null) {
@@ -154,15 +158,17 @@ public final class Playback implements Player.Listener {
         player.setTrackSelectionParameters(player.getTrackSelectionParameters().buildUpon()
                 .setPreferredTextLanguages("pt-BR", "pt", "por", "en").setMaxVideoSize(3840, 2160).build());
         player.addListener(this);
-        surface = new SurfaceView(activity);
-        ViewGroup parent = (ViewGroup) web.getParent();
-        parent.addView(surface, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        if (surface == null) {
+            surface = new SurfaceView(activity);
+            ViewGroup parent = (ViewGroup) web.getParent();
+            parent.addView(surface, 0, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
         player.setVideoSurfaceView(surface);
     }
 
     private void stop() {
         preloaded = null;
-        if (player != null) { player.stop(); player.clearMediaItems(); }
+        if (player != null) { player.release(); player = null; }
         if (surface != null) surface.setVisibility(android.view.View.GONE);
         web.setBackgroundColor(Color.BLACK);
         restoreMode();
@@ -226,8 +232,14 @@ public final class Playback implements Player.Listener {
     private final Runnable watch = new Runnable() {
         @Override public void run() {
             // A stall: buffering for 6 s after playback started. The page moves to the next stream.
-            if (player != null && bufferingSince > 0 && SystemClock.elapsedRealtime() - bufferingSince > STALL_MS) {
+            long t = SystemClock.elapsedRealtime();
+            if (player != null && bufferingSince > 0 && t - bufferingSince > STALL_MS) {
                 bufferingSince = 0;
+                emit(event("stall").put2("pos", player.getCurrentPosition()));
+            }
+            // Never got to the first frame: the link is dead or far too slow.
+            if (player != null && preloaded == null && !rendered && openedAt > 0 && t - openedAt > START_MS) {
+                openedAt = 0;
                 emit(event("stall").put2("pos", player.getCurrentPosition()));
             }
             main.postDelayed(this, 500);
@@ -236,7 +248,7 @@ public final class Playback implements Player.Listener {
 
     @Override public void onPlaybackStateChanged(int state) {
         if (state == Player.STATE_BUFFERING) {
-            if (bufferingSince == 0 && player.getCurrentPosition() > 0) bufferingSince = SystemClock.elapsedRealtime();
+            if (bufferingSince == 0 && rendered && player.getPlayWhenReady()) bufferingSince = SystemClock.elapsedRealtime();
             emit(event("buffering"));
         } else {
             bufferingSince = 0;
@@ -276,7 +288,7 @@ public final class Playback implements Player.Listener {
                         .put2("supported", group.isTrackSupported(i)).put2("id", f.id);
                 if (group.getType() == C.TRACK_TYPE_AUDIO) audio.add(one);
                 else if (group.getType() == C.TRACK_TYPE_TEXT) text.add(one);
-                else if (group.getType() == C.TRACK_TYPE_VIDEO && group.isTrackSelected(i) && preloaded == null) matchRefreshRate(f.frameRate);
+                else if (group.getType() == C.TRACK_TYPE_VIDEO && group.isTrackSelected(i) && preloaded == null && matchRate) matchRefreshRate(f.frameRate);
             }
         }
         emit(event("tracks").put2("audio", audio.array).put2("text", text.array));
