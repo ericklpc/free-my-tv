@@ -653,3 +653,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #dots .dot.on { width: 40px; background: rgba(255, 255, 255, 0.4); }
 #dots .dot:not(.on) i { width: 0 !important; -webkit-transition: none !important; transition: none !important; }
 .drawer-open #dots { opacity: 0; }
+
+/* Android TV banners (firetv/): the app's own 16:9 art, edge to edge. */
+img.banner { left: 0 !important; top: 0 !important; width: 100%; height: 100%; max-width: none !important; max-height: none !important;
+  -webkit-transform: none !important; transform: none !important; }

@@ -10,6 +10,7 @@ var TV = (function () {
 
   var webos = typeof window.PalmServiceBridge !== 'undefined';
   var samsung = !webos && typeof window.tizen !== 'undefined' && !!window.tizen.application;
+  var android = !webos && !samsung && typeof window.AndroidTV !== 'undefined';   // firetv/: Fire TV and other Android TVs
   var calls = [];   // a bridge is collected if nothing holds it before its reply arrives
 
   /** One Luna call; done(result) with null on failure. */
@@ -172,11 +173,17 @@ var TV = (function () {
   // MARK: - The TV, whichever it is
 
   return {
-    name: webos ? 'webos' : samsung ? 'tizen' : 'browser',
+    name: webos ? 'webos' : samsung ? 'tizen' : android ? 'android' : 'browser',
 
     /** Installed apps, as the TV's launcher lists them: [{id, title, icon, color}]. */
     apps: function (done) {
       if (samsung) { samsungApps(done); return; }
+      if (android) {
+        var list = [];
+        try { list = JSON.parse(window.AndroidTV.apps()); } catch (e) {}
+        done(list);
+        return;
+      }
       if (!webos) {
         done(SAMPLE.map(function (s) { return {id: s[0], title: s[1], icon: '', color: s[2]}; }));
         return;
@@ -201,6 +208,11 @@ var TV = (function () {
         else samsungLaunch(id, done);
         return;
       }
+      if (android) {
+        var ok = window.AndroidTV.launch(id, params && params.uri || '');
+        if (done) setTimeout(function () { done(ok); }, 0);
+        return;
+      }
       if (!webos) {
         if (done) setTimeout(function () { done(true); }, 0);
         return;
@@ -213,6 +225,7 @@ var TV = (function () {
     /** The antenna and HDMI inputs; `connected` when the TV says a device is on (when it tells). */
     inputs: function (done) {
       if (samsung) { samsungInputs(done); return; }
+      if (android) { done([]); return; }   // Fire TV sticks have no inputs of their own
       var list = INPUTS.map(function (x) { return {id: x.id, key: x.key, label: x.label, symbol: x.symbol, connected: true}; });
       if (!webos) {
         list[2].connected = false;
@@ -241,11 +254,13 @@ var TV = (function () {
     /** The TV's own settings; done(ok). */
     settings: function (done) {
       if (samsung) samsungSettings(done);
+      else if (android) { var ok = window.AndroidTV.settings(); if (done) done(ok); }
       else this.launch('com.palm.app.settings', null, done);
     },
 
     /** Back on the first screen: back to wherever the person came from. */
     back: function () {
+      if (android) { window.AndroidTV.leave(); return; }
       if (samsung) {
         try { window.tizen.application.getCurrentApplication().hide(); } catch (e) {}
         return;
