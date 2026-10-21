@@ -984,7 +984,8 @@
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
   window.addEventListener('appcontrol', reopened);        // Samsung: the same
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { hideSaver(); return; }
+    // Going away: back to the first title now, so that's what shows the moment Sofá is on screen again.
+    if (document.hidden) { hideSaver(); restartShelf(); updateFocus(); return; }
     idleAt = Date.now();
     restartShelf();
     loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); Stremio.refresh(true); });
