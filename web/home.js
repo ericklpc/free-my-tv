@@ -949,8 +949,19 @@
 
   hover($('play'), Z.CARDS, -1);
 
+  /** Back on screen: the Top Shelf starts over from its first title, with a full turn on the clock. */
+  function restartShelf() {
+    st.card = 0;
+    movedAt = Date.now();
+  }
+
   /** Auto play: the Top Shelf moves on by itself, unless something covers it. */
+  var tickedAt = Date.now();
   setInterval(function () {
+    // Timers stop while the page is hidden (Android pauses the WebView) and can fire in a burst after: start over.
+    var gap = Date.now() - tickedAt;
+    tickedAt = Date.now();
+    if (gap > 3000) { restartShelf(); updateFocus(); return; }
     // Not while the button has the focus: OK must open the title on screen, not the one that just slid in.
     if (saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
     turn(1);
@@ -965,7 +976,7 @@
     checkNight();
   });
 
-  function reopened() { reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
+  function reopened() { restartShelf(); reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
@@ -973,6 +984,7 @@
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { hideSaver(); return; }
     idleAt = Date.now();
+    restartShelf();
     loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); Stremio.refresh(true); });
   });
 
