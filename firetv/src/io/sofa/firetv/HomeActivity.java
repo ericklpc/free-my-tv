@@ -11,6 +11,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Base64;
@@ -81,6 +82,13 @@ public class HomeActivity extends Activity {
         // Back from Stremio or another app: to the shelf, with fresh lists (what you just watched moves up).
         if (started) js("window.FreeMyTV && FreeMyTV.reopened && FreeMyTV.reopened()");
         started = true;
+        // Once what that leaves on the page is really on screen (first title, not the one from before), the loading
+        // cover goes. The page also says so itself (Bridge.shown); whichever comes first.
+        if (Build.VERSION.SDK_INT >= 23) web.post(new Runnable() { @Override public void run() {
+            web.postVisualStateCallback(0, new WebView.VisualStateCallback() {
+                @Override public void onComplete(long id) { HomeWatcher.arrived(); }
+            });
+        } });
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
