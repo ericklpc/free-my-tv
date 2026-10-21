@@ -161,6 +161,8 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 #player .times .left { float: right; }
 #player .skip { position: absolute; right: 80px; bottom: 210px; display: none; }
 #player .skip.on { display: block; }
+#player .skip .btn { background: rgba(16, 16, 18, 0.88); color: #fff; }
+#player .skip .btn.focus { background: #fff; color: #000; }
 #player .next { position: absolute; right: 80px; bottom: 210px; width: 640px; height: 160px; border-radius: 20px; background: rgba(30, 30, 32, 0.92);
   display: none; overflow: hidden; }
 #player .next.on { display: block; }
