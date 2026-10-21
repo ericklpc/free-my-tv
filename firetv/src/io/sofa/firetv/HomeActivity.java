@@ -83,7 +83,6 @@ public class HomeActivity extends Activity {
         web.onResume();
         // Back from Stremio or another app: to the shelf, with fresh lists (what you just watched moves up).
         if (started) js("window.FreeMyTV && FreeMyTV.reopened && FreeMyTV.reopened()");
-        if (isHome()) HomeWatcher.arrived();
         started = true;
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
@@ -172,6 +171,11 @@ public class HomeActivity extends Activity {
             } catch (ActivityNotFoundException e) {
                 return false;
             }
+        }
+
+        /** The page has drawn itself (web/home.js, after opening or coming back): the loading cover can go. */
+        @JavascriptInterface public void shown() {
+            HomeWatcher.arrived();
         }
 
         /** Back on the first screen: to whatever was before (Fire OS's own home, which HomeWatcher then leaves alone). */

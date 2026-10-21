@@ -263,7 +263,6 @@
   function turn(d) {
     if (cards.length < 2) return;
     st.card = (st.card + d + cards.length) % cards.length;
-    if (window.console) console.log('[shelf] turn ' + d + ' -> ' + st.card + ' after ' + (Date.now() - movedAt) + 'ms, hidden=' + document.hidden);
     movedAt = Date.now();
   }
 
@@ -952,7 +951,6 @@
 
   /** Back on screen: the Top Shelf starts over from its first title, with a full turn on the clock. */
   function restartShelf() {
-    if (window.console) console.log('[shelf] start over');
     st.card = 0;
     movedAt = Date.now();
   }
@@ -964,11 +962,10 @@
     var gap = Date.now() - tickedAt;
     tickedAt = Date.now();
     if (gap > 3000) {
-      if (window.console) console.log('[shelf] timers were stopped ' + gap + 'ms: start over');
       restartShelf(); updateFocus(); return;
     }
     // Not while the button has the focus: OK must open the title on screen, not the one that just slid in.
-    if (saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
+    if (document.hidden || saverOn || sheetOpen() || st.zone === Z.DRAWER || st.zone === Z.CARDS || Date.now() - movedAt < AUTO_PLAY) return;
     turn(1);
     updateFocus();
   }, 1000);
@@ -981,13 +978,20 @@
     checkNight();
   });
 
-  function reopened() { restartShelf(); reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
+  /** Tells the TV once the page has really painted what's on screen now (two frames later). */
+  function painted() {
+    var raf = window.requestAnimationFrame || function (f) { setTimeout(f, 16); };
+    raf(function () { raf(function () { TV.shown(); }); });
+  }
+
+  function reopened() { restartShelf(); reset(); painted(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
   window.addEventListener('appcontrol', reopened);        // Samsung: the same
   document.addEventListener('visibilitychange', function () {
-    if (document.hidden) { hideSaver(); return; }
+    // Going away: back to the first title now, so that's what shows the moment Sofá is on screen again.
+    if (document.hidden) { hideSaver(); restartShelf(); updateFocus(); return; }
     idleAt = Date.now();
     restartShelf();
     loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); Stremio.refresh(true); });
@@ -998,6 +1002,7 @@
   renderTop();
   loadApps(function () {
     renderAll();
+    painted();
     Data.refresh();
     Stremio.refresh();
   });
