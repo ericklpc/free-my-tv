@@ -101,7 +101,7 @@ public final class Playback implements Player.Listener {
             if (Math.abs(player.getCurrentPosition() - start) > 3000) player.seekTo(start);
             player.setPlayWhenReady(true);
             onTracksChanged(player.getCurrentTracks());   // the page ignored them while it was on the title's page
-            if (rendered) onRenderedFirstFrame();          // decoded behind the page already: on screen right away
+            if (rendered) { rendered = false; onRenderedFirstFrame(); }   // decoded behind the page already: on screen right away
             Log.i(TAG, "open: preloaded, state " + player.getPlaybackState());
             return;
         }
@@ -258,6 +258,7 @@ public final class Playback implements Player.Listener {
     }
 
     @Override public void onRenderedFirstFrame() {
+        if (rendered && preloaded == null) return;   // a seek renders a "first frame" too: only the start counts
         rendered = true;
         if (preloaded != null) return;
         long ms = SystemClock.elapsedRealtime() - openedAt;
@@ -285,7 +286,8 @@ public final class Playback implements Player.Listener {
                 Format f = group.getTrackFormat(i);
                 J one = new J().put2("group", g).put2("index", i).put2("lang", f.language).put2("label", f.label)
                         .put2("mime", f.sampleMimeType).put2("channels", f.channelCount).put2("selected", group.isTrackSelected(i))
-                        .put2("supported", group.isTrackSupported(i)).put2("id", f.id);
+                        .put2("supported", group.isTrackSupported(i)).put2("id", f.id)
+                        .put2("forced", (f.selectionFlags & C.SELECTION_FLAG_FORCED) != 0);
                 if (group.getType() == C.TRACK_TYPE_AUDIO) audio.add(one);
                 else if (group.getType() == C.TRACK_TYPE_TEXT) text.add(one);
                 else if (group.getType() == C.TRACK_TYPE_VIDEO && group.isTrackSelected(i) && preloaded == null && matchRate) matchRefreshRate(f.frameRate);

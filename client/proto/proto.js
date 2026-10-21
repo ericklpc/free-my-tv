@@ -1201,6 +1201,8 @@
     var br = /^(pt-br|pob)$/.test(lang) || /Bras|Brazil|\bBR\b/i.test(label);
     var eu = /^pt-pt$/.test(lang) || /Portugal|European|\bPT-PT\b|Europeu/i.test(label);
     var pt = /^(pt|por)(-|$)/.test(lang);
+    // A forced track only carries signs and lines in a third language: not for a film in another language.
+    if (/forced|for[cç]ad/i.test(label) || x.forced) return 5;
     if (br) return ext ? 90 : 100;
     if (pt && !eu) return ext ? 60 : 70;
     if (/^(en|eng)(-|$)/.test(lang)) return SET.subLang === 2 ? 110 : 30;
@@ -1314,8 +1316,8 @@
         var out = {skip: [], credits: 0};
         function add(list, label) {
           for (var i = 0; list && i < list.length; i++) {
-            var a = list[i].start_ms, b = list[i].end_ms;
-            if (a != null && b && b > a) out.skip.push({from: a / 1000, to: b / 1000, label: label});
+            var a = list[i].start_ms || 0, b = list[i].end_ms;   // no start: from the beginning
+            if (b && b > a) out.skip.push({from: a / 1000, to: b / 1000, label: label});
           }
         }
         add(o.recap, 'Pular recapitulação'); add(o.intro, 'Pular abertura');
