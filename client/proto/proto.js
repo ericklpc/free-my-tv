@@ -541,6 +541,76 @@
     });
   }
 
+  // MARK: - Trakt: sign in with a code (trakt.tv/activate on the phone), then scrobble start / pause / stop
+
+  var TRAKT = 'https://api.trakt.tv', trakt = null;
+  try { trakt = JSON.parse(localStorage.getItem('sofa.trakt') || 'null'); } catch (e) {}
+  function traktSave() { try { localStorage.setItem('sofa.trakt', JSON.stringify(trakt)); } catch (e) {} }
+  function traktCall(method, path, body, done, auth) {
+    var x = new XMLHttpRequest();
+    x.open(method, TRAKT + path, true);
+    x.setRequestHeader('Content-Type', 'application/json');
+    x.setRequestHeader('trakt-api-version', '2');
+    x.setRequestHeader('trakt-api-key', CFG.traktId);
+    if (auth && trakt) x.setRequestHeader('Authorization', 'Bearer ' + trakt.access);
+    x.timeout = 15000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      var o = null;
+      try { o = JSON.parse(x.responseText); } catch (e) {}
+      if (done) done(x.status, o);
+    };
+    x.ontimeout = x.onerror = function () { if (done) done(0, null); };
+    x.send(body ? JSON.stringify(body) : null);
+  }
+  // New Trakt apps are public (PKCE): they have no secret, and the token calls go without one.
+  function withSecret(o) { if (CFG.traktSecret) o.client_secret = CFG.traktSecret; return o; }
+  function traktConnect() {
+    if (!CFG.traktId) { toast('Falta o app do Trakt no config.properties'); return; }
+    traktCall('POST', '/oauth/device/code', {client_id: CFG.traktId}, function (st, o) {
+      if (st !== 200 || !o) { toast('O Trakt não respondeu (' + st + ')'); return; }
+      var until = now() + o.expires_in * 1000, waiting = true;
+      openSheet('Conectar o Trakt', [{head: 'No celular, abra ' + o.verification_url}, {a: 'e digite o código', val: o.user_code, act: function () {}},
+        {head: 'A TV espera a confirmação.'}], function () { waiting = false; });
+      (function poll() {
+        if (!waiting || now() > until) return;
+        traktCall('POST', '/oauth/device/token', withSecret({code: o.device_code, client_id: CFG.traktId}), function (st2, t) {
+          if (st2 === 200 && t) {
+            trakt = {access: t.access_token, refresh: t.refresh_token, expires: (t.created_at + t.expires_in) * 1000};
+            traktSave(); waiting = false;
+            if (sheet.open) closeSheet();
+            toast('Trakt conectado');
+            console.log('[trakt] conectado');
+          } else if (st2 === 400 || st2 === 429) setTimeout(poll, (o.interval || 5) * 1000 + (st2 === 429 ? 2000 : 0));
+          else { waiting = false; toast('O Trakt recusou o código (' + st2 + ')'); }
+        });
+      })();
+    });
+  }
+  function traktFresh(done) {
+    if (!trakt) { done(false); return; }
+    if (now() < trakt.expires - 86400000) { done(true); return; }
+    traktCall('POST', '/oauth/token', withSecret({refresh_token: trakt.refresh, client_id: CFG.traktId,
+      redirect_uri: 'urn:ietf:wg:oauth:2.0:oob', grant_type: 'refresh_token'}), function (st, t) {
+      if (st === 200 && t) { trakt = {access: t.access_token, refresh: t.refresh_token, expires: (t.created_at + t.expires_in) * 1000}; traktSave(); done(true); }
+      else { console.log('[trakt] não renovou o login (' + st + ')'); done(false); }
+    });
+  }
+  // start when the picture starts or resumes, pause on pause, stop on leaving (80%+ counts as watched).
+  function scrobble(action) {
+    if (!REAL || !trakt || !P.t || !(P.dur > 0)) return;
+    var imdb = /^tt\d+$/.test(P.id) ? P.id : P.t.imdb;
+    if (!imdb) return;
+    var body = {progress: Math.min(100, Math.round(P.pos / P.dur * 10000) / 100)};
+    if (P.s) { body.show = {ids: {imdb: imdb}}; body.episode = {season: P.s, number: P.e}; } else body.movie = {ids: {imdb: imdb}};
+    traktFresh(function (ok) {
+      if (!ok) return;
+      traktCall('POST', '/scrobble/' + action, body, function (st) {
+        console.log('[trakt] ' + action + ' ' + (P.s ? imdb + ' T' + P.s + 'E' + P.e : imdb) + ' ' + body.progress + '% → ' + st);
+      }, true);
+    });
+  }
+
   // The addons name their catalogs in English: the common ones in Portuguese, the rest as they are.
   function catalogName(n, addon) {
     var trakt = /trakt/i.test(addon), lb = /boxd/i.test(addon);
@@ -753,6 +823,9 @@
       {head: 'Conta'},
       ro('Stremio', CFG.stremioAuthKey ? 'conectado' : 'sem login neste build'),
       ro('Debrid', 'TorBox · só fontes em cache'),
+      {a: 'Trakt', val: trakt ? 'conectado · scrobble ligado' : CFG.traktId ? 'conectar' : 'sem app no config', act: function () {
+        if (trakt) { trakt = null; traktSave(); toast('Trakt desconectado'); openSettings(true); } else traktConnect();
+      }},
       ro('Continuar assistindo', CFG.stremioAuthKey ? 'biblioteca do Stremio (posição salva lá)' : 'exemplo'),
       {head: 'Reprodução'},
       o('binge', 'Assistir em sequência'), o('notice', 'Aviso do próximo episódio'), o('intro', 'Abertura'),
@@ -1168,6 +1241,7 @@
     if (state.screen !== 'player' || !REAL) return;
     if (ev.type === 'firstFrame') {
       clearTimeout(P.spin);
+      if (!P.rec.ttff) scrobble('start');
       if (!P.rec.ttff) console.log('[player] TTFF ' + (now() - P.rec.at) + ' ms do OK (player ' + ev.ms + ' ms) · ' +
         (P.rec.warm ? 'pré-resolvido' : 'resolvido no OK') + ' · ' + Ranking.label(P.stream));
       $('#player .spinner').className = 'spinner';
@@ -1372,7 +1446,7 @@
   function nextEpisode() {
     var s = P.s, e = P.e + 1;
     if (e > P.t.seasons[s - 1]) { s++; e = 1; }
-    if (REAL) { P.pos = P.dur; saveProgress(); }
+    if (REAL) { P.pos = P.dur; saveProgress(); scrobble('stop'); }
     P.s = s; P.e = e; P.pos = 0; P.failedOnce = false;
     loadSegments(P.id, s, e);
     $('#player .next').className = 'next';
@@ -1523,7 +1597,7 @@
 
   function togglePause() {
     P.paused = !P.paused;
-    if (REAL) { if (P.paused) { window.Player.pause(); saveProgress(); } else window.Player.play(); }
+    if (REAL) { if (P.paused) { window.Player.pause(); saveProgress(); scrobble('pause'); } else { window.Player.play(); scrobble('start'); } }
   }
   // Seeks: the simulation moves its clock; the real player seeks.
   function seekBy(sec) {
@@ -1581,7 +1655,7 @@
   // Leaving playback opens the title's page (HIG), where Continue now carries the new position.
   function stopPlayer() {
     clearInterval(P.tick);
-    if (REAL) { saveProgress(); window.Player.stop(); document.body.className = ''; }
+    if (REAL) { saveProgress(); scrobble('stop'); window.Player.stop(); document.body.className = ''; }
     P.started = false;
     var c = continueOf(P.id);
     if (c) { c.posMs = P.pos * 1000; c.progress = P.pos / P.dur; c.left = Math.round((P.dur - P.pos) / 60); if (P.s) { c.s = P.s; c.e = P.e; } }
