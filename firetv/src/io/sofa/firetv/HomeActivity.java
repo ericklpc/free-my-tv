@@ -16,7 +16,10 @@ import android.provider.Settings;
 import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
+import android.util.Log;
+import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -56,6 +59,13 @@ public class HomeActivity extends Activity {
         s.setUseWideViewPort(true);
         s.setLoadWithOverviewMode(true);
         s.setTextZoom(100);
+        web.setWebChromeClient(new WebChromeClient() {
+            // The page's console.log, in adb logcat (tag Sofa).
+            @Override public boolean onConsoleMessage(ConsoleMessage m) {
+                Log.i("Sofa", m.message());
+                return true;
+            }
+        });
         web.addJavascriptInterface(new Bridge(), "AndroidTV");
         setContentView(web);
         web.loadUrl("file:///android_asset/web/index.html");
