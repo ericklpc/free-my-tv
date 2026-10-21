@@ -1352,6 +1352,10 @@
   function showNext() {
     var n = $('#player .next'), s = P.s, e = P.e + 1;
     if (e > P.t.seasons[s - 1]) { s++; e = 1; }
+    if (REAL) {
+      var group = P.stream && P.stream.bingeGroup;
+      resolve(P.id, function (r) { var st = sameRelease(r.rank.play, group); if (st) { window.Player.warm(st.url); loadSubs(st, P.id, s, e); } }, s, e);
+    }
     n.className = 'next on';
     $('.ep', n).textContent = 'T' + s + ' E' + e;
     episodeName(P.id, s, e, function (name) { $('.ep', n).textContent = 'T' + s + ' E' + e + ' · ' + name; });
@@ -1360,9 +1364,15 @@
     if (!$('#player .osd').className.match(/\bon\b/)) setFocus(n);
   }
   // The next episode keeps the stream's bingeGroup (same release group and quality), so it starts as fast.
+  // The same release for the next episode (its bingeGroup), or the best one.
+  function sameRelease(list, group) {
+    for (var i = 0; i < list.length && group; i++) if (list[i].bingeGroup === group) return list[i];
+    return null;
+  }
   function nextEpisode() {
     var s = P.s, e = P.e + 1;
     if (e > P.t.seasons[s - 1]) { s++; e = 1; }
+    if (REAL) { P.pos = P.dur; saveProgress(); }
     P.s = s; P.e = e; P.pos = 0; P.failedOnce = false;
     loadSegments(P.id, s, e);
     $('#player .next').className = 'next';
@@ -1371,10 +1381,10 @@
     if (REAL) {
       var group = P.stream.bingeGroup;
       P.started = false;
+      P.rec = {kind: 'next', at: now(), id: P.id, clicks: 0, warm: !!R[videoId(P.id, s, e)], manual: false, kept: true, fallbacks: 0, ttff: 0, real: true};
       resolve(P.id, function (r) {
         P.list = r.rank.play.slice();
-        var same = null;
-        for (var i = 0; i < P.list.length && group; i++) if (P.list[i].bingeGroup === group) { same = P.list[i]; break; }
+        var same = sameRelease(P.list, group);
         P.stream = same || P.list[0];
         if (!P.stream) { toast('Sem fonte pro próximo episódio'); stopPlayer(); return; }
         toast('T' + s + ' E' + e + (same ? ' · mesma fonte' : ''));
