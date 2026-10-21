@@ -218,9 +218,10 @@ var Stremio = (function () {
     poster: function (p) { return IMAGES + 'poster/medium/' + p.id + '/img'; },
 
     /** Stremio's own link to the title (and, when resuming, straight to the episode). */
-    link: function (p) {
+    /** Where a title opens: Stremio's own link, or the same path under another scheme (Sofá Player's sofa://). */
+    link: function (p, scheme) {
       var video = p.video && p.video !== p.id ? p.video : p.id;
-      return 'stremio:///detail/' + p.type + '/' + p.id + '/' + encodeURIComponent(video);
+      return (scheme || 'stremio:///') + 'detail/' + p.type + '/' + p.id + '/' + encodeURIComponent(video);
     },
 
     /** The line under the title: year and genres (the episode and the time left go on the button). */

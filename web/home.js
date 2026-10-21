@@ -114,16 +114,34 @@
 
   var apps = [], shelf = [], others = [], inputs = [];
 
+  var PLAYER = 'io.sofa.player';   // Sofá Player (client/ on Fire TV): where Stremio's place and titles go, when installed
+
+  function player() {
+    for (var i = 0; i < apps.length; i++) if (apps[i].id === PLAYER) return apps[i];
+    return null;
+  }
+
+  /** Stremio's tile opens Sofá Player instead, when it's there. */
+  function swapStremio(app) {
+    var p = /stremio/i.test(app.id) ? player() : null;
+    return p || app;
+  }
+
   function pickShelf() {
     var chosen = Prefs.shelf(), out = [];
     if (chosen) {
       for (var i = 0; i < chosen.length && out.length < MAX_SHELF; i++) {
-        for (var j = 0; j < apps.length; j++) if (apps[j].id === chosen[i]) out.push(apps[j]);
+        for (var j = 0; j < apps.length; j++) {
+          if (apps[j].id === chosen[i] && out.indexOf(swapStremio(apps[j])) < 0) out.push(swapStremio(apps[j]));
+        }
       }
     } else {
       for (var s = 0; s < SHELF.length && out.length < MAX_SHELF; s++) {
         for (var a = 0; a < apps.length; a++) {
-          if ((SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) && out.indexOf(apps[a]) < 0) { out.push(apps[a]); break; }
+          if ((SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) && out.indexOf(swapStremio(apps[a])) < 0) {
+            out.push(swapStremio(apps[a]));
+            break;
+          }
         }
       }
       if (!out.length) out = apps.slice(0, MAX_SHELF);
@@ -328,6 +346,7 @@
   }
 
   function stremioApp() {
+    if (player()) return player();
     for (var i = 0; i < apps.length; i++) if (/stremio/i.test(apps[i].id) || /stremio/i.test(apps[i].title)) return apps[i];
     return null;
   }
@@ -337,7 +356,7 @@
     openedAt = Date.now();
     var app = stremioApp();
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
-    TV.launch(app.id, {uri: Stremio.link(p)}, function (ok) {
+    TV.launch(app.id, {uri: Stremio.link(p, app.id === PLAYER ? 'sofa://' : null)}, function (ok) {
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
     });
   }

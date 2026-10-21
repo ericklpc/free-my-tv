@@ -111,6 +111,15 @@ public class HomeActivity extends Activity {
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
     }
 
+    /** Sofá Player (the same activity, built as io.sofa.player): a sofa:// link while it's already open. */
+    @Override protected void onNewIntent(Intent i) {
+        super.onNewIntent(i);
+        setIntent(i);
+        if (!"io.sofa.firetv".equals(getPackageName()) && i.getDataString() != null) {
+            js("window.Sofa && Sofa.deepLink && Sofa.deepLink(" + JSONObject.quote(i.getDataString()) + ")");
+        }
+    }
+
     @Override protected void onDestroy() {
         try { unregisterReceiver(appsChanged); } catch (Exception ignored) {}
         super.onDestroy();
