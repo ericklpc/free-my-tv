@@ -1410,6 +1410,7 @@
     $('#player .tabs').className = 'tabs';
     osd(false);
     setFocus(null);
+    clearTimeout(P.spin); P.scrub = null; P.seek = null; P.moved = null;
     P.spin = setTimeout(function () { $('#player .spinner').className = 'spinner on'; }, 2000);   // only after 2 s (HIG)
     resolve(id, function (r) {
       P.list = r.rank.play.slice();
@@ -1520,9 +1521,12 @@
       else P.started = true;
     } else if (ev.type === 'ready') {
       if (ev.dur > 0) P.dur = ev.dur / 1000;
+      clearTimeout(P.buffering);
       $('#player .spinner').className = 'spinner';
     } else if (ev.type === 'buffering') {
-      if (P.started) $('#player .spinner').className = 'spinner on';
+      // Only a wait that lasts shows the spinner: a seek that loads in a moment doesn't flash it.
+      clearTimeout(P.buffering);
+      if (P.started) P.buffering = setTimeout(function () { if (state.screen === 'player') $('#player .spinner').className = 'spinner on'; }, 600);
     } else if (ev.type === 'error' || ev.type === 'stall') {
       fallback(ev.type === 'error' ? 'A fonte falhou' : 'A fonte travou');
     } else if (ev.type === 'ended') {
@@ -1609,8 +1613,20 @@
     if (REAL) {
       var st = {};
       try { st = JSON.parse(window.Player.state()); } catch (e) {}
-      if (st.pos != null) P.pos = st.pos / 1000;
+      // Right after a seek the player still reports where it was: keep the target until it gets there (3 s at most),
+      // or presses in a row each start from the old position.
+      var at = st.pos != null ? st.pos / 1000 : null;
+      if (at != null && P.seek && (Math.abs(at - P.seek.to) < 2 || now() - P.seek.at > 3000)) P.seek = null;
+      if (at != null && !P.seek) P.pos = at;
       if (st.dur > 0) P.dur = st.dur / 1000;
+      // The picture is moving, so nothing is loading: the spinner goes, even if an event got lost on the way.
+      if (at != null) {
+        P.moved = {pos: at, n: P.moved && at > P.moved.pos && at - P.moved.pos < 2 ? P.moved.n + 1 : 0};
+        if (P.moved.n >= 3 && !P.paused) {
+          clearTimeout(P.spin); clearTimeout(P.buffering);
+          $('#player .spinner').className = 'spinner';
+        }
+      }
       if (now() - (P.savedAt || P.rec.at) > 30000) saveProgress();
     } else if (!P.paused) P.pos += 0.25;
     // A stream that breaks: Media3 reports the error (or the buffer stalls for 6 s); the next stream takes over at
@@ -1750,11 +1766,12 @@
 
   function renderOsd() {
     if (state.screen !== 'player') return;
-    var pct = P.dur ? Math.min(1, P.pos / P.dur) : 0;
+    var pos = P.scrub ? P.scrub.to : P.pos;
+    var pct = P.dur ? Math.min(1, pos / P.dur) : 0;
     $('#player .bar .fill').style.width = (pct * 100) + '%';
     $('#player .bar .head').style.left = (pct * 100) + '%';
-    $('#player .times .at').textContent = clock(P.pos) + (P.paused ? '  ❚❚' : '');
-    $('#player .times .left').textContent = '-' + clock(P.dur - P.pos);
+    $('#player .times .at').textContent = clock(pos) + (P.scrub ? (P.scrub.dir > 0 ? '  ▸▸' : '  ◂◂') : P.paused ? '  ❚❚' : '');
+    $('#player .times .left').textContent = '-' + clock(P.dur - pos);
     var pills = $('#player .pills');
     if (!pills.children.length) {
       pills.appendChild(el('span', 'btn lift', 'Legendas'));
@@ -1873,7 +1890,32 @@
   // Seeks: the simulation moves its clock; the real player seeks.
   function seekBy(sec) {
     P.pos = Math.max(0, Math.min(P.dur - 1, P.pos + sec));
-    if (REAL) window.Player.seekTo(Math.round(P.pos * 1000));
+    if (REAL) { P.seek = {to: P.pos, at: now()}; window.Player.seekTo(Math.round(P.pos * 1000)); }
+  }
+
+  // Holding left or right scrubs: the first press jumps (10 s by default), then the bar runs on, faster the longer
+  // the key is held (30 s of film a second, up to 10 min a second after 6 s), and the player seeks once, when the
+  // key is let go (or nothing has come for half a second, for remotes that don't send it).
+  function canScrub() {
+    return state.screen === 'player' && P.started && !P.tabs && !sheet.open && !S.open && (!osdOn() || P.zone === 'bar');
+  }
+  function scrub(dir) {
+    var t = now();
+    if (!P.scrub || P.scrub.dir !== dir) { endScrub(true); P.scrub = {to: P.pos, dir: dir, since: t, last: t}; }
+    var held = (t - P.scrub.since) / 1000, rate = held < 1 ? 30 : held < 2 ? 60 : held < 4 ? 120 : held < 6 ? 300 : 600;
+    P.scrub.to = Math.max(0, Math.min(P.dur - 1, P.scrub.to + dir * rate * Math.max(0.05, Math.min(0.25, (t - P.scrub.last) / 1000))));
+    P.scrub.last = t;
+    clearTimeout(P.scrub.timer);
+    P.scrub.timer = setTimeout(function () { endScrub(); }, 500);
+    P.zone = 'bar'; osd(true); renderOsd(); paintPlayer();
+  }
+  function endScrub(quiet) {
+    var sc = P.scrub;
+    if (!sc) return;
+    clearTimeout(sc.timer);
+    P.scrub = null;
+    seekBy(sc.to - P.pos);
+    if (!quiet && state.screen === 'player') { osd(true); renderOsd(); paintPlayer(); }
   }
 
   function openPlayerSources() {
@@ -1926,6 +1968,7 @@
   // Leaving playback opens the title's page (HIG), where Continue now carries the new position.
   function stopPlayer() {
     clearInterval(P.tick);
+    if (P.scrub) { clearTimeout(P.scrub.timer); P.scrub = null; }
     if (REAL) { saveProgress(); scrobble('stop'); window.Player.stop(); document.body.className = ''; }
     P.started = false;
     var c = continueOf(P.id);
@@ -1962,11 +2005,22 @@
   var CODES = {37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 8: 'back', 27: 'back', 461: 'back', 10009: 'back',
                77: 'menu', 93: 'menu', 457: 'menu', 403: 'menu', 179: 'playpause', 80: 'playpause', 415: 'playpause', 19: 'playpause', 10252: 'playpause',
                228: 'ff', 417: 'ff', 70: 'ff', 227: 'rw', 412: 'rw', 82: 'rw'};
+  var held = {k: '', at: 0};
   document.addEventListener('keydown', function (e) {
     var k = CODES[e.keyCode];
     if (!k) return;
     e.preventDefault();
+    // A key held down repeats; some remotes don't mark the repeats, so a press right after the last one counts too.
+    var again = held.k === k && (e.repeat || now() - held.at < 250);
+    held.k = k; held.at = now();
+    if ((k === 'left' || k === 'right') && canScrub() && (again || P.scrub)) { M.clicks++; scrub(k === 'left' ? -1 : 1); return; }
+    if (P.scrub) endScrub();
     key(k);
+  });
+  document.addEventListener('keyup', function (e) {
+    var k = CODES[e.keyCode];
+    if (held.k === k) held.k = '';
+    if ((k === 'left' || k === 'right') && P.scrub) endScrub();
   });
 
   // The Fire TV app (firetv/) calls these: Back, and the keys the WebView doesn't pass on (Menu, media keys).

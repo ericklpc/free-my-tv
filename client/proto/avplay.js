@@ -48,7 +48,7 @@
     clearTimeout(S.subTimer);
     try { av.stop(); } catch (e) {}
     try { av.close(); } catch (e) {}
-    S.url = ''; S.ready = S.preparing = S.wantPlay = S.rendered = false; S.ext = null; S.cue = '';
+    S.url = ''; S.ready = S.preparing = S.wantPlay = S.rendered = false; S.ext = null; S.cue = ''; S.seeking = false; S.pending = null;
   }
 
   // MARK: - Opening: paused and out of sight (preload), or playing
@@ -101,9 +101,27 @@
     } else playNow();
   }
 
+  // AVPlay refuses a seek while the last one is still going: keep only the newest target and run it after.
+  function seek(ms) {
+    ms = Math.max(0, ms);
+    S.lastMoved = now() + 4000;
+    if (S.ext) extCue(ms);
+    if (S.seeking) { S.pending = ms; return; }
+    S.seeking = true;
+    var done = function () {
+      S.seeking = false;
+      if (S.pending != null) { var p = S.pending; S.pending = null; seek(p); }
+    };
+    try { av.seekTo(ms, done, done); } catch (e) { S.seeking = false; S.pending = null; }
+  }
+
   var listener = {
     onbufferingstart: function () { S.buffering = true; if (S.rendered) emit({type: 'buffering'}); },
-    onbufferingcomplete: function () { S.buffering = false; S.lastMoved = now(); },
+    onbufferingcomplete: function () {
+      S.buffering = false; S.lastMoved = now();
+      var d = 0; try { d = av.getDuration(); } catch (e) {}
+      emit({type: 'ready', dur: d});            // the page takes the spinner away
+    },
     oncurrentplaytime: function (ms) {
       if (!S.wantPlay) return;
       if (ms !== S.last) { S.last = ms; S.lastMoved = now(); }
@@ -248,7 +266,7 @@
     warm: warm,
     play: function () { S.lastMoved = now(); try { av.play(); } catch (e) {} },
     pause: function () { try { av.pause(); } catch (e) {} },
-    seekTo: function (ms) { S.lastMoved = now() + 4000; try { av.seekTo(Math.max(0, ms)); } catch (e) {} if (S.ext) extCue(ms); },
+    seekTo: seek,
     stop: close,
     select: select,
     state: function () {
