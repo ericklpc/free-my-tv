@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 
 /**
  * Fire OS doesn't let another app be the home screen, and Fire OS 6 won't run accessibility services from apps
@@ -62,17 +63,19 @@ public class HomeWatcher extends Service {
         long now = System.currentTimeMillis();
         String front = null;
         try {
-            // Without usage access this comes back empty, and nothing happens.
-            UsageEvents events = usage.queryEvents(checked - 1000, now);
+            // Events can be written a moment after they happen: look back a few seconds and take what's newer than
+            // the last one seen. Without usage access this comes back empty, and nothing happens.
+            UsageEvents events = usage.queryEvents(now - 10000, now + 1000);
             UsageEvents.Event e = new UsageEvents.Event();
             while (events.getNextEvent(e)) {
                 if (e.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND && e.getTimeStamp() > checked) {
                     front = e.getPackageName();
+                    checked = e.getTimeStamp();
                 }
             }
         } catch (Exception ignored) {}
-        checked = now;
         if (front == null) return;
+        Log.i("HomeWatcher", front + (stayOnAmazon ? " (stay)" : "") + (now - opened < GUARD ? " (guard)" : ""));
         if (front.equals(getPackageName())) {
             opened = 0;   // Sofá is up: the next Home counts, however soon it comes
             return;
