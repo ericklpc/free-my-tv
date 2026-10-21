@@ -86,12 +86,16 @@ def tizen(out, profile):
             sys.exit('Signing needs Samsung\'s Tizen tools (set TIZEN_STUDIO).')
         tmp = tempfile.mkdtemp()
         try:
-            cmd = [tz, 'pack', '-t', 'wgt', '-s', profile, '-b', wgt, '-o', tmp] if os.path.exists(tz) else \
+            # tz wants a file name ending in .wgt, not a folder.
+            cmd = [tz, 'pack', '-t', 'wgt', '-s', profile, '-b', wgt, '-o', os.path.join(tmp, 'signed.wgt')] if os.path.exists(tz) else \
                 [cli, 'package', '-t', 'wgt', '-s', profile, '-o', tmp, '--', wgt]
             run = subprocess.run(cmd, capture_output=True, text=True)
             made = [n for n in os.listdir(tmp) if n.endswith('.wgt')]
             if run.returncode != 0 or not made:
                 sys.exit('`tizen package` didn\'t sign it:\n' + (run.stdout + run.stderr).strip())
+            # The TV takes the app's name from the file's: keep the one the installed app has, or it gets a second Sofá.
+            os.remove(wgt)
+            wgt = os.path.join(ROOT, 'Sofa-Player-tizen-signed.wgt')
             shutil.move(os.path.join(tmp, made[0]), wgt)
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
