@@ -51,10 +51,10 @@
 
   var IMG = 'https://image.tmdb.org/t/p/';
   var art = {}, waiting = {};
-  function get(url, done) {
+  function get(url, done, ms) {
     var x = new XMLHttpRequest();
     x.open('GET', url, true);
-    x.timeout = 10000;
+    x.timeout = ms || 10000;
     x.onreadystatechange = function () {
       if (x.readyState !== 4) return;
       if (x.status !== 200) { done(null); return; }
@@ -165,11 +165,15 @@
   function resolve(id, done, s, e) {
     if (TITLES[id].type === 'series' && !s) { var d = defaultEp(id); s = d.s; e = d.e; }
     var key = videoId(id, s, e), r = R[key];
-    if (r && r.ready && now() - r.at < 10 * 60000) { if (done) done(r); return; }
+    if (r && r.ready && now() - r.at < (r.error ? 30000 : 10 * 60000)) { if (done) done(r); return; }
     if (r && !r.ready) { if (done) r.wait.push(done); return; }
     r = R[key] = {ready: false, wait: done ? [done] : [], at: now()};
-    function ready(list) {
+    function ready(list, error) {
       r.rank = Ranking.rank(list, caps());
+      r.error = error || '';
+      if (REAL) console.log('[streams] ' + key + ': ' + (error || list.length + ' fontes, ' + r.rank.play.length + ' tocam') +
+        (r.rank.out.length ? ' · fora: ' + r.rank.out.slice(0, 4).map(function (o) { return o.why; }).join(' | ') : '') +
+        ' · ' + (now() - r.at) + ' ms');
       r.ready = true; r.ms = now() - r.at; r.at = now();
       // Ask the debrid for the best link now, so OK starts on a resolved address.
       if (REAL && r.rank.play[0]) {
@@ -182,10 +186,29 @@
       if (state.screen === 'detail' && D.id === id) renderPick();
     }
     if (REAL) {
-      get(AIO + '/stream/' + (TITLES[id].type === 'series' ? 'series' : 'movie') + '/' + encodeURIComponent(key) + '.json', function (o) {
-        ready((o && o.streams || []).filter(function (x) { return x.url; }).map(Ranking.parse));
+      // The debrid scrapers behind AIOStreams look titles up by IMDb id: TMDB's lists get theirs first.
+      imdbId(id, function (imdb) {
+        if (!imdb) { ready([], 'sem id do IMDb'); return; }
+        var vid = s ? imdb + ':' + s + ':' + e : imdb;
+        // A title nobody asked for in a while: AIOStreams asks every scraper and the debrid, which can take 20 s.
+        get(AIO + '/stream/' + (TITLES[id].type === 'series' ? 'series' : 'movie') + '/' + vid + '.json', function (o) {
+          if (!o) { ready([], 'o AIOStreams não respondeu'); return; }
+          var list = (o.streams || []).filter(function (x) { return x.url; });
+          ready(list.map(Ranking.parse), list.length ? '' : 'o AIOStreams não achou nenhuma fonte');
+        }, 40000);
       });
     } else setTimeout(function () { ready(SAMPLE.streams(id)); }, Math.round(rnd(260, 680)));   // AIOStreams with a warm cache
+  }
+  function imdbId(id, done) {
+    var t = TITLES[id];
+    if (/^tt\d+$/.test(id)) { done(id); return; }
+    if (t.imdb) { done(t.imdb); return; }
+    if (!t.tmdb || !CFG.tmdbKey) { done(''); return; }
+    get('https://api.themoviedb.org/3/' + (t.type === 'series' ? 'tv' : 'movie') + '/' + t.tmdb + '/external_ids?api_key=' +
+        encodeURIComponent(CFG.tmdbKey), function (o) {
+      t.imdb = o && o.imdb_id || '';
+      done(t.imdb);
+    });
   }
   function picked(id) {
     var d = defaultEp(id);
@@ -703,7 +726,12 @@
     var r = picked(D.id), badges = $('#detail .badges'), pick = $('#detail .pick');
     if (!r || !r.ready) { badges.innerHTML = ''; pick.textContent = 'Escolhendo a melhor fonte pra esta TV…'; return; }
     var s = r.rank.play[0];
-    if (!s) { badges.innerHTML = ''; pick.textContent = 'Nenhuma fonte em cache no TorBox que esta TV toque'; return; }
+    if (!s) {
+      badges.innerHTML = '';
+      pick.textContent = r.error ? 'Sem fonte: ' + r.error :
+        r.rank.out.length + (r.rank.out.length === 1 ? ' fonte, nenhuma toca aqui: ' : ' fontes, nenhuma toca aqui: ') + r.rank.out[0].why;
+      return;
+    }
     var bs = [Ranking.resLabel(Math.min(s.res, CAPS.maxHeight))];
     if (s.hdr.indexOf('HDR10') >= 0) bs.push('HDR10');
     bs.push(s.audio[0].replace(/ \d\.\d$/, ''));
