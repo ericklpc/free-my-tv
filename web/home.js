@@ -387,12 +387,25 @@
     platter.style.left = (left - pad) + 'px';
     platter.style.width = (width + 2 * pad) + 'px';
     $('quotes').style.right = (1920 - left - width) + 'px';
+    // Android TV banners are 16:9: their tiles take that shape (centered in the row), so the art fits exactly, with no
+    // bars and nothing cut off.
+    var banners = false;
+    for (var b = 0; b < n; b++) if (shelf[b].banner) banners = true;
+    var bw = tw, bh = 126;
+    if (banners) {
+      bh = Math.min(126, Math.round(tw * 9 / 16));
+      bw = Math.round(bh * 16 / 9);
+    }
     var tiles = $('tiles');
     tiles.innerHTML = '';
     for (var i = 0; i < n; i++) {
       var t = el('div', 'tile', tiles);
-      t.style.left = (left + i * (tw + gap)) + 'px';
-      t.style.width = tw + 'px';
+      t.style.left = (left + i * (tw + gap) + (tw - bw) / 2) + 'px';
+      t.style.width = bw + 'px';
+      if (banners) {
+        t.style.height = bh + 'px';
+        t.style.top = (854 + (126 - bh) / 2) + 'px';
+      }
       face(shelf[i], t, wordFit(shelf[i].title, tw, 30));
       hover(t, Z.SHELF, i);
     }
