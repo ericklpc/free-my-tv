@@ -36,6 +36,23 @@ var Stremio = (function () {
     x.send(body ? JSON.stringify(body) : null);
   }
 
+  // Cinemeta speaks English: its genres, in the screen's language (Portuguese and Spanish; the rest stay as they are).
+  var GENRES = {
+    'Action': ['Ação', 'Acción'], 'Adventure': ['Aventura', 'Aventura'], 'Animation': ['Animação', 'Animación'],
+    'Biography': ['Biografia', 'Biografía'], 'Comedy': ['Comédia', 'Comedia'], 'Crime': ['Crime', 'Crimen'],
+    'Documentary': ['Documentário', 'Documental'], 'Drama': ['Drama', 'Drama'], 'Family': ['Família', 'Familia'],
+    'Fantasy': ['Fantasia', 'Fantasía'], 'History': ['História', 'Historia'], 'Horror': ['Terror', 'Terror'],
+    'Music': ['Música', 'Música'], 'Musical': ['Musical', 'Musical'], 'Mystery': ['Mistério', 'Misterio'],
+    'Romance': ['Romance', 'Romance'], 'Sci-Fi': ['Ficção científica', 'Ciencia ficción'], 'Sport': ['Esporte', 'Deporte'],
+    'Thriller': ['Suspense', 'Suspenso'], 'War': ['Guerra', 'Bélica'], 'Western': ['Faroeste', 'Western'],
+    'Reality-TV': ['Reality', 'Reality'], 'Talk-Show': ['Entrevistas', 'Entrevistas'], 'Game-Show': ['Game show', 'Concurso']
+  };
+
+  function genre(g) {
+    var t = GENRES[g];
+    return t && I18N.lang === 'pt' ? t[0] : t && I18N.lang === 'es' ? t[1] : g;
+  }
+
   function year(m) { return (m.releaseInfo || m.year || '').toString().replace(/[–-]$/, '–'); }
 
   /** A Cinemeta meta → what the screen shows. */
@@ -175,7 +192,7 @@ var Stremio = (function () {
     meta: function (p) {
       var parts = [];
       if (p.year) parts.push(p.year);
-      for (var i = 0; i < p.genres.length; i++) parts.push(p.genres[i]);
+      for (var i = 0; i < p.genres.length; i++) parts.push(genre(p.genres[i]));
       return parts;
     }
   };
