@@ -74,7 +74,31 @@ var Stremio = (function () {
       if (!items) return;
       lists['continue'] = items.filter(function (it) {
         return !it.removed && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series');
-      }).map(fromLibrary).sort(function (a, b) { return b.at - a.at; }).slice(0, SIZE);
+      }).map(fromLibrary).sort(function (a, b) { return b.at - a.at; }).slice(0, SIZE).map(withDetails);
+      changed();
+      lists['continue'].forEach(function (p) { if (!p.description) loadDetails(p); });
+    });
+  }
+
+  // The library only knows names: the year, genres, rating and synopsis come from Cinemeta, once per title.
+  var details = {};
+
+  function withDetails(p) {
+    var d = details[p.id];
+    if (!d) return p;
+    var out = {};
+    for (var k in p) out[k] = p[k];
+    out.year = d.year; out.genres = d.genres; out.rating = d.rating; out.description = d.description;
+    return out;
+  }
+
+  function loadDetails(p) {
+    if (details[p.id]) return;
+    request('GET', CINEMETA + '/meta/' + p.type + '/' + p.id + '.json', null, function (err, o) {
+      if (err || !o || !o.meta) return;
+      details[p.id] = fromMeta(o.meta, p.type);
+      // A new object for the changed title, so the screen sees it changed.
+      lists['continue'] = lists['continue'].map(function (x) { return x.id === p.id ? withDetails(x) : x; });
       changed();
     });
   }
@@ -128,8 +152,9 @@ var Stremio = (function () {
     hasAccount: function () { return !!AUTH; },
     onChange: function (f) { listeners.push(f); },
 
-    refresh: function () {
-      if (Date.now() - loadedAt < 10 * 60000) return;
+    /** Fresh lists: the library every 2 minutes (or right away when `now`, e.g. back from watching), the catalogs too. */
+    refresh: function (now) {
+      if (!now && Date.now() - loadedAt < 2 * 60000) return;
       loadedAt = Date.now();
       loadLibrary();
       loadCatalog('movie');
@@ -146,11 +171,9 @@ var Stremio = (function () {
       return 'stremio:///detail/' + p.type + '/' + p.id + '/' + encodeURIComponent(video);
     },
 
-    /** The line under the title: year, genres, rating (or the episode and the time left). */
+    /** The line under the title: year and genres (the episode and the time left go on the button). */
     meta: function (p) {
       var parts = [];
-      if (p.episode) parts.push(tr('T', 'S', 'T') + p.season + ' · E' + p.episode);
-      if (p.left) parts.push(tr('Faltam ' + p.left + ' min', p.left + ' min left', 'Faltan ' + p.left + ' min'));
       if (p.year) parts.push(p.year);
       for (var i = 0; i < p.genres.length; i++) parts.push(p.genres[i]);
       return parts;

@@ -561,7 +561,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #art { -webkit-transition: opacity 0.4s; transition: opacity 0.4s; }
 .drawer-open #art { opacity: 0.35; }
 
-#info { position: absolute; left: 90px; top: 228px; width: 980px; color: #FFF; }
+#info { position: absolute; left: 90px; top: 268px; width: 980px; color: #FFF; }
 #info.empty { display: none; }
 #info .logo { position: relative; height: 156px; }
 #info .logo img { position: absolute; left: 0; bottom: 0; max-width: 560px; max-height: 156px; display: none; }
@@ -596,49 +596,57 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 #info .desc { margin-top: 14px; width: 900px; max-height: 76px; overflow: hidden; font-size: 27px; line-height: 38px; color: rgba(255, 255, 255, 0.86); }
 
-#cards { position: absolute; left: 90px; top: 560px; width: 1830px; height: 250px; }
-#cards .strip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  -webkit-transition: -webkit-transform 0.45s cubic-bezier(0.32, 0.72, 0.2, 1);
-  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0.2, 1);
-}
-#cards .card { top: 0; height: 200px; }
-#cards .card.focus { -webkit-transform: translateY(-4px) scale(1.08); transform: translateY(-4px) scale(1.08); }
-#cards .card .img { border-radius: 16px; background-color: #2C2C30; }
-#cards .card .img::after { border-radius: 16px; }
-#cards .card .ph {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 18px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.12;
-  color: rgba(255, 255, 255, 0.92);
-}
-#cards .card .resume .ph { bottom: 40px; }
-#cards .card .loaded .ph { display: none; }
-#cards .card .bar {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 18px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.32);
-  overflow: hidden;
-}
-#cards .card .bar i { display: block; height: 100%; background: #FFF; }
-#cards .card .name {
-  top: 222px;
-  font-size: 24px;
+.no-picks #info, .no-picks #dots { display: none; }
+
+/* A short fade when the title changes (auto play, ← →). */
+#info { -webkit-transition: opacity 0.35s; transition: opacity 0.35s; }
+#info.swap { opacity: 0; -webkit-transition: none; transition: none; }
+
+/* Watch / resume: a glass pill, white when focused, like the Apple TV app's button. */
+#play {
+  position: relative;
+  display: inline-block;
+  margin-top: 28px;
+  height: 72px;
+  padding: 0 36px 0 30px;
+  border-radius: 36px;
+  font-size: 27px;
   font-weight: 600;
-  color: #F5F5F7;
-  opacity: 0;
-  -webkit-transition: opacity 0.2s;
-  transition: opacity 0.2s;
+  line-height: 72px;
+  white-space: nowrap;
+  color: #FFF;
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  -webkit-transition: -webkit-transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2), background-color 0.25s, color 0.25s, box-shadow 0.3s;
+  transition: transform 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.2), background-color 0.25s, color 0.25s, box-shadow 0.3s;
 }
-#cards .card .name { display: none; }   /* the Top Shelf above already names the focused title, as on Apple TV */
-.no-picks #info, .no-picks #cards { display: none; }
+#play.focus { background: #FFF; color: #1D1D1F; -webkit-transform: scale(1.06); transform: scale(1.06); box-shadow: 0 14px 30px rgba(0, 0, 0, 0.45); }
+#play .icon {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-right: 16px;
+  border-style: solid;
+  border-width: 11px 0 11px 18px;
+  border-color: transparent transparent transparent currentColor;
+  vertical-align: -1px;
+}
+#play .bar { display: none; position: relative; width: 64px; height: 6px; margin-right: 16px; border-radius: 3px; background: rgba(255, 255, 255, 0.35); vertical-align: 5px; overflow: hidden; }
+#play.focus .bar { background: rgba(29, 29, 31, 0.2); }
+#play.resume .bar { display: inline-block; }
+#play .bar i { position: absolute; left: 0; top: 0; height: 100%; background: currentColor; }
+
+/* Page dots: where the auto play is; the current one stretches into a pill. */
+#dots { position: absolute; left: 0; width: 1920px; top: 752px; height: 12px; text-align: center; font-size: 0; }
+#dots .dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin: 0 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  -webkit-transition: width 0.35s, background-color 0.35s;
+  transition: width 0.35s, background-color 0.35s;
+}
+#dots .dot.on { width: 40px; background: #FFF; }
+.drawer-open #dots { opacity: 0; }

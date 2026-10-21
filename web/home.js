@@ -149,8 +149,6 @@
     list = $('buttons').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.TOP && st.top === 3 + i);
     setClass($('quotes'), 'hide', st.zone === Z.TOP && st.top >= 3);
-    list = $('cards').firstChild.children;
-    for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.CARDS && st.card === i);
     list = $('tiles').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.SHELF && st.shelf === i);
     list = document.querySelectorAll('#drawer .key');
@@ -227,11 +225,11 @@
 
   // MARK: - Picks and background
 
-  // MARK: - Top Shelf: Stremio's row and the focused title, full screen behind everything
+  // MARK: - Top Shelf: one Stremio title at a time, full screen, with page dots and auto play (as on Apple TV)
 
-  var CARD_W = 356, CARD_GAP = 40, CARDS_SEEN = 4;
+  var SHELF_MAX = 8, AUTO_PLAY = 9000, movedAt = 0;
 
-  /** Loads an image and calls back only when it's there (offline, the placeholder stays). */
+  /** Loads an image and calls back only when it's there (offline, the dark background stays). */
   function whenLoaded(url, done) {
     var img = new Image();
     img.onload = function () { done(url); };
@@ -241,48 +239,44 @@
   function renderCards() {
     // Nothing to continue (no account yet, or nothing started): open on Movies instead of an empty row.
     if (st.tab === 0 && !Stremio.list('continue').length && Stremio.list('movie').length) st.tab = 1;
-    var list = Stremio.list(TAB_KIND[st.tab]);
-    var strip = $('cards').firstChild;
+    var list = Stremio.list(TAB_KIND[st.tab]).slice(0, SHELF_MAX);
     setClass(body, 'no-picks', !list.length);
     var same = list.length === cards.length;
-    for (var i = 0; same && i < list.length; i++) same = list[i].id === cards[i].id && list[i].progress === cards[i].progress;
-    if (same && strip.children.length === list.length) return;
+    for (var i = 0; same && i < list.length; i++) same = list[i] === cards[i];   // Stremio hands a new object when a title changes
+    if (same) return;
+    var keep = cards[st.card] && list[st.card] && cards[st.card].id === list[st.card].id;
     cards = list;
-    strip.innerHTML = '';
-    for (var c = 0; c < list.length; c++) {
-      (function (p, c) {
-        var card = el('div', 'card', strip);
-        card.style.left = c * (CARD_W + CARD_GAP) + 'px';
-        card.style.width = CARD_W + 'px';
-        var img = el('div', 'img' + (p.progress ? ' resume' : ''), card);
-        el('div', 'ph', img, p.title);
-        if (p.progress) el('i', '', el('div', 'bar', img)).style.width = Math.round(p.progress * 100) + '%';
-        whenLoaded(Stremio.background(p), function (url) {
-          img.style.backgroundImage = 'url(' + url + ')';
-          setClass(img, 'loaded', true);
-        });
-        el('div', 'name', card, p.title);
-        hover(card, Z.CARDS, c);
-      })(list[c], c);
-    }
+    var dots = $('dots');
+    dots.innerHTML = '';
+    for (var c = 0; c < list.length; c++) el('span', 'dot', dots);
     st.card = Math.min(st.card, Math.max(0, list.length - 1));
     if (!list.length && st.zone === Z.CARDS) st.zone = Z.SHELF;
     shown = null;
+    if (!keep) movedAt = Date.now();
     updateFocus();
+  }
+
+  /** The next title (or the previous one), wrapping around like the Apple TV's Top Shelf. */
+  function turn(d) {
+    if (cards.length < 2) return;
+    st.card = (st.card + d + cards.length) % cards.length;
+    movedAt = Date.now();
   }
 
   var shown = null, artFront = 0;
 
-  /** The Top Shelf follows the focus: the focused title, or the row's first one while the focus is on the apps. */
   function showInfo() {
-    var p = cards.length ? cards[st.zone === Z.CARDS ? st.card : 0] : null;
-    var strip = $('cards').firstChild, first = Math.max(0, Math.min(cards.length - CARDS_SEEN, st.zone === Z.CARDS ? st.card - 1 : 0));
-    strip.style.webkitTransform = strip.style.transform = 'translateX(' + (-first * (CARD_W + CARD_GAP)) + 'px)';
+    var p = cards.length ? cards[st.card] : null;
+    var dots = $('dots').children;
+    for (var d = 0; d < dots.length; d++) setClass(dots[d], 'on', d === st.card);
+    setClass($('play'), 'focus', st.zone === Z.CARDS);
     if (p === shown) return;
     shown = p;
     var info = $('info'), logo = info.firstChild;
     setClass(info, 'empty', !p);
     if (!p) return;
+    setClass(info, 'swap', true);   // a short fade between titles
+    setTimeout(function () { setClass(info, 'swap', false); }, 60);
     logo.lastChild.textContent = p.title;
     setClass(logo, 'has', false);
     whenLoaded(Stremio.logo(p), function (url) {
@@ -295,7 +289,14 @@
     var parts = Stremio.meta(p);
     for (var i = 0; i < parts.length; i++) el('span', '', meta, parts[i]);
     if (p.rating) el('span', 'badge', meta, 'IMDb ' + p.rating);
-    info.lastChild.textContent = p.description;
+    info.children[2].textContent = p.description;
+    var play = $('play');
+    setClass(play, 'resume', !!p.progress);
+    play.querySelector('i').style.width = Math.round((p.progress || 0) * 100) + '%';
+    play.querySelector('.label').textContent = p.progress
+      ? (p.episode ? tr('T', 'S', 'T') + p.season + ', E' + p.episode : tr('Continuar', 'Resume', 'Continuar'))
+        + (p.left ? ' · ' + p.left + ' min' : '')
+      : tr('Assistir no Stremio', 'Watch on Stremio', 'Ver en Stremio');
     whenLoaded(Stremio.background(p), function (url) {
       if (shown !== p) return;
       var shots = $('art').children, next = shots[1 - artFront];
@@ -715,31 +716,33 @@
   function selectTab(i) {
     if (i === st.tab) return;
     st.tab = i;
+    st.card = 0;
     renderCards();
   }
 
   function move(dx, dy) {
-    var tiles = $('tiles').children, cardNodes = $('cards').firstChild.children;
+    var tiles = $('tiles').children;
     switch (st.zone) {
       case Z.SHELF:
         if (dx) st.shelf = Math.max(0, Math.min(shelf.length - 1, st.shelf + dx));
         else if (dy > 0) { openDrawer(); return; }
         else if (dy < 0) {
-          if (cards.length) { st.zone = Z.CARDS; st.card = nearest(cardNodes, centerX(tiles[st.shelf])); }
+          if (cards.length) st.zone = Z.CARDS;
           else { st.zone = Z.TOP; st.top = st.tab; }
         }
         break;
       case Z.CARDS:
-        if (dx) st.card = Math.max(0, Math.min(cards.length - 1, st.card + dx));
+        if (dx) turn(dx);
         else if (dy < 0) { st.zone = Z.TOP; st.top = st.tab; }
-        else if (shelf.length) { st.zone = Z.SHELF; st.shelf = nearest(tiles, centerX(cardNodes[st.card])); }
+        else if (shelf.length) st.zone = Z.SHELF;
+        movedAt = Date.now();
         break;
       case Z.TOP:
         if (dx) {
           st.top = Math.max(0, Math.min(5, st.top + dx));
           if (st.top < 3) selectTab(st.top);   // as on Apple TV: focusing a tab selects it
         } else if (dy > 0) {
-          if (cards.length) { st.zone = Z.CARDS; st.card = Math.min(cards.length - 1, st.top < 3 ? 0 : cards.length - 1); }
+          if (cards.length) st.zone = Z.CARDS;
           else st.zone = Z.SHELF;
         }
         break;
@@ -783,7 +786,7 @@
       if (zone === Z.SHELF && st.zone === Z.DRAWER) closeDrawer();
       st.zone = zone;
       if (zone === Z.TOP) { st.top = index; if (index < 3) selectTab(index); }
-      else if (zone === Z.CARDS) st.card = index;
+      else if (zone === Z.CARDS && index >= 0) st.card = index;
       else if (zone === Z.SHELF) st.shelf = index;
       else if (zone === Z.DRAWER) st.drawer = index;
       else if (zone === Z.APPS) st.grid = index;
@@ -922,6 +925,15 @@
     updateFocus();
   }
 
+  hover($('play'), Z.CARDS, -1);
+
+  /** Auto play: the Top Shelf moves on by itself, unless something covers it. */
+  setInterval(function () {
+    if (saverOn || sheetOpen() || st.zone === Z.DRAWER || Date.now() - movedAt < AUTO_PLAY) return;
+    turn(1);
+    updateFocus();
+  }, 1000);
+
   Stremio.onChange(renderCards);
   Data.onChange(function () {
     renderQuotes();
@@ -930,7 +942,7 @@
     checkNight();
   });
 
-  function reopened() { reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); }); }
+  function reopened() { reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
@@ -938,7 +950,7 @@
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) { hideSaver(); return; }
     idleAt = Date.now();
-    loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); });
+    loadApps(function () { renderShelf(); renderDrawer(); updateFocus(); Data.refresh(); Stremio.refresh(true); });
   });
 
   I18N.set(Prefs.language());
