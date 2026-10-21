@@ -131,10 +131,23 @@ def details(tid):
                 language='pt-BR')
 
 
+# Keywords that half of cinema has: they'd make every pick look alike ("based on a book, like Call Me by Your Name").
+GENERIC = {'based on novel or book', 'based on true story', 'woman director', 'duringcreditsstinger', 'aftercreditsstinger',
+           'sequel', 'remake', 'biography', 'friendship', 'love', 'family', 'murder', 'death', 'new york city', 'los angeles, california',
+           'london, england', 'paris, france', 'based on comic', 'based on play or musical', 'based on short story', 'dramatic',
+           'betrayal', 'revenge', 'loss', 'relationship', 'small town', 'husband wife relationship', 'father son relationship',
+           'mother daughter relationship', 'mother son relationship', 'father daughter relationship', 'rivalry', 'suspenseful', 'intense',
+           'romantic', 'inspirational', 'admiring', 'hopeful', 'melancholy', 'sad', 'cautionary', 'anxious', 'bold', 'complex'}
+GENERIC_RE = re.compile(r'^\d{4}s$|^\d{2}th century$')
+# How much each kind of feature says about taste: an auteur's name says more than a genre or a decade.
+KIND_W = {'d': 2.2, 'w': 1.4, 'p': 1.0, 'c': 0.7, 'k': 1.0, 'g': 0.35, 'o': 0.8, 'l': 0.8, 'y': 0.25}
+
+
 def features(d):
     f = []
     f += ['g:%d' % g['id'] for g in d.get('genres', [])]
-    f += ['k:%d' % k['id'] for k in (d.get('keywords') or {}).get('keywords', [])[:25]]
+    f += ['k:%d' % k['id'] for k in (d.get('keywords') or {}).get('keywords', [])[:25]
+          if k['name'].lower() not in GENERIC and not GENERIC_RE.match(k['name'].lower())]
     crew = (d.get('credits') or {}).get('crew', [])
     f += ['d:%d' % c['id'] for c in crew if c.get('job') == 'Director']
     f += ['w:%d' % c['id'] for c in crew if c.get('department') == 'Writing'][:3]
@@ -199,13 +212,23 @@ def profile(rated, liked, info):
             count[f] = count.get(f, 0) + 1
             if rating >= 4 and (f not in best or rating > best[f][1]):
                 best[f] = (name, rating)
-    taste = {f: weight[f] / math.sqrt(count[f] + 1) for f in weight}
+    taste = {f: KIND_W.get(f[0], 1) * weight[f] / math.sqrt(count[f] + 1) for f in weight}
     return taste, best, mean
 
 
-def score(d, taste, wish):
+def rarity(docs):
+    """Inverse document frequency over the candidates: a feature every candidate has explains nothing."""
+    df = {}
+    for d in docs:
+        for f in set(features(d)):
+            df[f] = df.get(f, 0) + 1
+    n = float(len(docs) or 1)
+    return {f: math.log(1 + n / c) for f, c in df.items()}
+
+
+def score(d, taste, wish, idf=None):
     f = set(features(d))
-    sim = sum(taste.get(x, 0) for x in f) / math.sqrt(len(f) + 4)
+    sim = sum(taste.get(x, 0) * (idf.get(x, 1) if idf else 1) for x in f) / math.sqrt(len(f) + 4) / (2.5 if idf else 1)
     votes = d.get('vote_count') or 0
     quality = ((d.get('vote_average') or 6) - 6.6) * min(1.0, math.log10(votes + 1) / 3)
     return sim + 0.35 * quality + (0.4 if d['id'] in wish else 0)
@@ -254,34 +277,74 @@ def cached(imdb):
 
 # MARK: - Why lines
 
-def why(d, taste, best, info_names):
-    shared = sorted(((taste.get(f, 0), f) for f in set(features(d)) if taste.get(f, 0) > 0 and f in best), reverse=True)
-    n = dict(info_names)
-    n.update(names(d))
-    kinds = {'d': 'Do diretor de %s', 'w': 'Do roteirista de %s', 'p': 'Da fotografia de %s', 'c': 'Com o elenco de %s'}
-    lines, used = [], set()
-    for _, f in shared:
+KW_PT = {'coming of age': 'amadurecimento', 'gay theme': 'romance gay', 'lgbt': 'cinema queer', 'gay': 'cinema queer',
+         'queer': 'cinema queer', 'lesbian': 'romance lésbico', 'transgender': 'protagonista trans', 'dark comedy': 'humor ácido',
+         'satire': 'sátira', 'psychological thriller': 'suspense psicológico', 'neo-noir': 'neo-noir', 'serial killer': 'serial killer',
+         'dystopia': 'distopia', 'folk horror': 'folk horror', 'witch': 'bruxaria', 'cult': 'seita', 'body horror': 'body horror',
+         'surrealism': 'surrealismo', 'class differences': 'luta de classes', 'social commentary': 'crítica social',
+         'artificial intelligence (a.i.)': 'inteligência artificial', 'loneliness': 'solidão', 'first love': 'primeiro amor',
+         'dictatorship': 'ditadura', 'military dictatorship': 'ditadura militar', 'favela': 'favela', 'sertão': 'sertão',
+         'teenage girl': 'adolescência', 'high school': 'colégio', 'drug addiction': 'vício', 'grief': 'luto',
+         'mental illness': 'saúde mental', 'existentialism': 'existencialismo', 'slow cinema': 'cinema contemplativo',
+         'nonlinear timeline': 'narrativa fora de ordem', 'unreliable narrator': 'narrador não confiável', 'heist': 'roubo',
+         'anime': 'anime', 'stop motion': 'stop motion', 'musical': 'musical', 'period drama': 'drama de época',
+         'female protagonist': 'protagonista mulher', 'mother daughter relationship': 'mãe e filha', 'religion': 'fé',
+         'slasher': 'slasher', 'haunted house': 'casa assombrada', 'demonic possession': 'possessão', 'space': 'espaço',
+         'time travel': 'viagem no tempo', 'police brutality': 'violência policial', 'gangster': 'gângsteres', 'mafia': 'máfia',
+         'fashion': 'moda', 'ballet': 'balé', 'drugs': 'drogas', 'rave': 'rave', 'vampire': 'vampiros', 'creature': 'criatura'}
+COUNTRY_PT = {'BR': 'brasileiro', 'FR': 'francês', 'KR': 'coreano', 'JP': 'japonês', 'IT': 'italiano', 'IR': 'iraniano',
+              'MX': 'mexicano', 'AR': 'argentino', 'DK': 'dinamarquês', 'NO': 'norueguês', 'ES': 'espanhol', 'DE': 'alemão',
+              'CN': 'chinês', 'HK': 'de Hong Kong', 'TW': 'taiwanês', 'CA': 'canadense', 'SE': 'sueco', 'PL': 'polonês',
+              'BE': 'belga', 'CL': 'chileno', 'CO': 'colombiano', 'PT': 'português', 'TH': 'tailandês', 'IN': 'indiano', 'RU': 'russo'}
+
+
+def stars(r):
+    return ('%g' % r).replace('.', ',') + '★'
+
+
+def reasons(d, taste, best, idf):
+    f = set(features(d))
+    return sorted(((taste.get(x, 0) * idf.get(x, 1), x) for x in f if taste.get(x, 0) > 0 and x in best), reverse=True)
+
+
+def why(d, taste, best, idf):
+    """One line, in Portuguese: who made it, or what it shares with films he rated high, and the critics' grade."""
+    n = names(d)
+    kw = dict(((('k:%d' % k['id']), k['name'].lower()) for k in (d.get('keywords') or {}).get('keywords', [])))
+    out, used = [], set()
+    for _, f in reasons(d, taste, best, idf):
         film, rating = best[f]
-        if film in used:
+        k, line = f[0], ''
+        if k == 'd':
+            line = 'De %s, que fez %s (%s)' % (n.get(f, '?'), film, stars(rating))
+        elif k == 'w':
+            line = 'Roteiro de %s, de %s (%s)' % (n.get(f, '?'), film, stars(rating))
+        elif k == 'p':
+            line = 'Fotografia de %s, a de %s' % (n.get(f, '?'), film)
+        elif k == 'c':
+            line = 'Com %s, de %s (%s)' % (n.get(f, '?'), film, stars(rating))
+        elif k == 'k' and kw.get(f) in KW_PT:
+            line = '%s, como em %s (%s)' % (KW_PT[kw[f]].capitalize(), film, stars(rating))
+        elif k == 'o' and f[2:] in COUNTRY_PT and f[2:] != 'US':
+            line = 'Cinema %s, como %s (%s)' % (COUNTRY_PT[f[2:]], film, stars(rating))
+        if not line or film in used:
             continue
-        stars = ('%g' % rating).replace('.', ',') + '★'
-        if f[0] in kinds:
-            lines.append((kinds[f[0]] % film) + ' (' + stars + ')')
-        elif f[0] == 'k' and len(lines) < 2:
-            lines.append('%s, como em %s (%s)' % (n.get(f, '').capitalize(), film, stars))
-        else:
-            continue
+        out.append(line)
         used.add(film)
-        if len(lines) == 2:
+        if len(out) == 2:
             break
-    if not lines and shared:
-        film, rating = best[shared[0][1]]
-        lines.append('Perto de %s (%s)' % (film, ('%g' % rating).replace('.', ',') + '★'))
-    crit = d.get('vote_average') or 0
-    head = d.get('tagline') or ''
-    tail = ' · '.join(lines)
-    note = ('nota %s no TMDB' % ('%.1f' % crit).replace('.', ',')) if crit >= 7.4 and (d.get('vote_count') or 0) > 300 else ''
-    return ' · '.join(x for x in (head, tail, note) if x)[:160]
+    if not out:
+        g = [x['name'].lower() for x in d.get('genres', [])][:2]
+        out.append(' e '.join(g).capitalize() if g else 'Fora da sua zona de conforto')
+    crit, votes = d.get('vote_average') or 0, d.get('vote_count') or 0
+    if crit >= 7.6 and votes > 400:
+        out.append('nota %s no TMDB' % ('%.1f' % crit).replace('.', ','))
+    return ' · '.join(out)
+
+
+def main_reason(d, taste, best, idf):
+    r = reasons(d, taste, best, idf)
+    return r[0][1] if r else None
 
 
 # MARK: - The run
@@ -297,11 +360,10 @@ def pick(args):
     taste, best, mean = profile(rated, liked, info)
     pool = candidate_ids(rated, info, wish) - seen
     cand = build_info(pool)
+    idf = rarity(list(cand.values()))
     ranked = sorted((d for d in cand.values() if not d.get('adult') and (d.get('runtime') or 90) >= 60),
-                    key=lambda d: -score(d, taste, wish))
-    every = {}
-    for d in info.values():
-        every.update(names(d))
+                    key=lambda d: -score(d, taste, wish, idf))
+    reason_count = {}
     groups = {'new': [], 'classic': [], 'mix': []}
     quota = {'new': 10, 'classic': 10, 'mix': 10}
     def group(d):
@@ -315,9 +377,11 @@ def pick(args):
         ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), batch, workers=6)
         checked += len(batch)
         for d, good in zip(batch, ok):
-            g = group(d)
-            if good and len(groups[g]) < quota[g]:
+            g, main = group(d), main_reason(d, taste, best, idf)
+            # Variety: at most two picks for the same reason (the same director, the same theme).
+            if good and len(groups[g]) < quota[g] and reason_count.get(main, 0) < 2:
                 groups[g].append(d)
+                reason_count[main] = reason_count.get(main, 0) + 1
     picks = []
     for g in ('new', 'mix', 'classic'):
         for d in groups[g]:
@@ -326,7 +390,7 @@ def pick(args):
                           'runtime': d.get('runtime') or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
                           'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
                           'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
-                          'why': why(d, taste, best, every), 'score': round(score(d, taste, wish), 3)})
+                          'why': why(d, taste, best, idf), 'score': round(score(d, taste, wish, idf), 3)})
     os.makedirs(OUT, exist_ok=True)
     out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks}
     with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
@@ -353,7 +417,8 @@ def backtest(args):
         pool = candidate_ids(train, info, wish - hidden) - (seen - hidden)
         cand = build_info(pool)
         found = [h for h in hidden if h in cand]
-        ranked = sorted(cand.values(), key=lambda d: -score(d, taste, wish - hidden))
+        idf = rarity(list(cand.values()))
+        ranked = sorted(cand.values(), key=lambda d: -score(d, taste, wish - hidden, idf))
         pop = sorted(cand.values(), key=lambda d: -(d.get('popularity') or 0))
         pos = {d['id']: i + 1 for i, d in enumerate(ranked)}
         ppos = {d['id']: i + 1 for i, d in enumerate(pop)}
