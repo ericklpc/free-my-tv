@@ -268,7 +268,17 @@ def playable(st):
     return not (m and float(m.group(1).replace(',', '.')) > 30)
 
 
+CACHED = {}
+
+
 def cached(imdb):
+    if imdb in CACHED:
+        return CACHED[imdb]
+    CACHED[imdb] = ok = cached_now(imdb)
+    return ok
+
+
+def cached_now(imdb):
     base = re.sub(r'/(manifest\.json|configure)$', '', CFG.get('aiostreams_url', '').strip().rstrip('/'))
     if not base or not imdb:
         return False
@@ -358,6 +368,73 @@ def build_info(ids):
     return {i: d for i, d in zip(ids, parallel(details, ids)) if d}
 
 
+def entry(d, line, group=''):
+    return {'id': d['external_ids']['imdb_id'], 'tmdb': d['id'], 'group': group, 'title': d.get('title'),
+            'original': d.get('original_title'), 'year': int((d.get('release_date') or '0')[:4] or 0),
+            'runtime': d.get('runtime') or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
+            'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
+            'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '', 'why': line}
+
+
+# MARK: - The personal rows (Netflix style): each one has its own reason, and they change every week
+
+def discover(**params):
+    ids = []
+    for page in (1, 2):
+        o = tmdb('/discover/movie', page=page, **params)
+        ids += [m['id'] for m in (o or {}).get('results', [])]
+    return ids
+
+
+def directed(person):
+    o = tmdb('/person/%s/movie_credits' % person) or {}
+    return [m['id'] for m in o.get('crew', []) if m.get('job') == 'Director']
+
+
+def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
+    """Seeds from his taste (5★ films, directors, themes, countries), a few of each, rotating with the week."""
+    seeds = []
+    fives = [r for r in rated if r[1] >= 5 and r[0] in info]
+    for tid, rating, name, year in week_rnd.sample(fives, min(3, len(fives))):
+        d = info[tid]
+        ids = [m['id'] for k in ('recommendations', 'similar') for m in (d.get(k) or {}).get('results', [])]
+        seeds.append(('Porque você deu 5★ em %s' % name, 'because', ids))
+    ranked = sorted(((v, f) for f, v in taste.items() if v > 0 and f in best), reverse=True)
+    people = {}
+    for d in info.values():
+        people.update(names(d))
+    directors = [f for _, f in ranked if f[0] == 'd'][:8]
+    for f in week_rnd.sample(directors, min(2, len(directors))):
+        seeds.append(('Mais de %s' % people.get(f, ''), 'director', directed(f[2:])))
+    themes = []
+    for _, f in ranked:
+        if f[0] == 'k':
+            o = tmdb('/keyword/%s' % f[2:]) or {}
+            if o.get('name', '').lower() in KW_PT:
+                themes.append((f, KW_PT[o['name'].lower()]))
+        if len(themes) == 8:
+            break
+    for f, label in week_rnd.sample(themes, min(2, len(themes))):
+        seeds.append((label[0].upper() + label[1:], 'theme', discover(with_keywords=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 150})))
+    countries = [f for _, f in ranked if f[0] == 'o' and f[2:] in COUNTRY_PT][:4]
+    for f in countries[:1] + week_rnd.sample(countries[1:], min(1, len(countries[1:]))):
+        seeds.append(('Cinema ' + COUNTRY_PT[f[2:]], 'country', discover(with_origin_country=f[2:], sort_by='vote_average.desc', **{'vote_count.gte': 200})))
+    rows = []
+    for title, kind, ids in seeds:
+        # A film shows once on the home: not in the picks, not in an earlier row.
+        ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
+        docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and not d.get('adult')]
+        docs.sort(key=lambda d: -score(d, taste, wish, idf))
+        docs = docs[:16]
+        ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
+        items = [entry(d, why(d, taste, best, idf)) for d, good in zip(docs, ok) if good][:10]
+        if len(items) >= 5:
+            rows.append({'title': title, 'kind': kind, 'items': items})
+            taken.update(x['tmdb'] for x in items)
+        print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
+    return rows
+
+
 def pick(args):
     rated, liked, seen, wish = load_history(args.letterboxd)
     info = build_info(set(t for t, _, _, _ in rated))
@@ -396,7 +473,9 @@ def pick(args):
                           'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
                           'why': why(d, taste, best, idf, said), 'score': round(score(d, taste, wish, idf), 3)})
     os.makedirs(OUT, exist_ok=True)
-    out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks}
+    week = datetime.date.today().isocalendar()[1]
+    rows = personal_rows(rated, info, taste, best, idf, seen, wish, random.Random(week), set(p['tmdb'] for p in picks))
+    out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows}
     with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     print('curation: %d picks (%s), %d checked in the debrid, from %d candidates' % (

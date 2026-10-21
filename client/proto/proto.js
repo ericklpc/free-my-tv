@@ -258,7 +258,66 @@
       return {id: p.id, why: p.why};
     });
     row.subtitle = 'Curadoria de ' + w.week.split('-').reverse().slice(0, 2).join('/') + ' · só o que já está no seu TorBox';
+    function item(p) {
+      if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: 'movie', title: p.title, year: p.year, genres: p.genres || [],
+        rating: p.rating || '', runtime: p.runtime || 0, cert: '', colors: colorsFor(p.id), desc: p.desc || '',
+        art: {backdrop: p.backdrop ? IMG + 'w1280' + p.backdrop : '', poster: p.poster ? IMG + 'w342' + p.poster : ''}};
+      return {id: p.id, why: p.why};
+    }
+    // The week's own rows ("Porque você deu 5★ em…", "Mais de…"): they take the place of the sample ones, one after
+    // each list from Stremio or TMDB, like Netflix mixes its rows.
+    var mine = (w.rows || []).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
+    if (!mine.length) return;
+    var rest = HOME.rows.filter(function (r) { return r.source; }), fixed = HOME.rows.filter(function (r) { return r.kind === 'continue' || r.kind === 'picks'; });
+    var out = fixed.slice();
+    for (var k = 0; k < Math.max(rest.length, mine.length); k++) {
+      if (rest[k]) out.push(rest[k]);
+      if (mine[k]) out.push(mine[k]);
+    }
+    HOME.rows = out;
+    // The hero: the best new pick, the first of this week's rows and a classic (Continue joins in front once the
+    // library loads).
+    var hero = [], first = function (g) { for (var j = 0; j < w.picks.length; j++) if (w.picks[j].group === g) return w.picks[j]; };
+    var nw = first('new') || w.picks[0], cl = first('classic');
+    hero.push({id: nw.id, kicker: 'Escolhido pra você', why: nw.why});
+    hero.push({id: mine[0].items[0].id, kicker: mine[0].title, why: mine[0].items[0].why});
+    if (cl) hero.push({id: cl.id, kicker: 'Clássico que você não viu', why: cl.why});
+    HOME.hero = hero;
   })();
+
+  // MARK: - The home's order: rows Erick opens and plays from climb, a little each time, and the climb fades
+  // in about two weeks (Continue and the picks stay on top).
+
+  var ROWS = {};
+  try { ROWS = JSON.parse(localStorage.getItem('sofa.rows') || '{}') || {}; } catch (e) {}
+  function rowScore(title) {
+    var o = ROWS[title];
+    return o ? o.s * Math.pow(0.5, (now() - o.t) / (14 * 864e5)) : 0;
+  }
+  function used(row, w) {
+    if (!row || row.kind === 'continue' || row.kind === 'picks') return;
+    ROWS[row.title] = {s: rowScore(row.title) + w, t: now()};
+    try { localStorage.setItem('sofa.rows', JSON.stringify(ROWS)); } catch (e) {}
+  }
+  // Each open is worth three places, each play six.
+  function ordered(rows) {
+    return rows.map(function (r, i) {
+      if (r.at == null) r.at = i;                          // its place before any climb
+      return {r: r, k: r.kind === 'continue' ? -1e9 : r.kind === 'picks' ? -1e8 : r.at - 3 * rowScore(r.title)};
+    }).sort(function (a, b) { return a.k - b.k; }).map(function (x) { return x.r; });
+  }
+  HOME.rows = ordered(HOME.rows);
+  // The addons' rows arrive after the others: they find their place too, while nobody is in the rows.
+  function arrange() {
+    if (H.zone !== 'hero') return;
+    var order = ordered(HOME.rows), rows = [], idx = [];
+    for (var i = 0; i < order.length; i++) {
+      var j = HOME.rows.indexOf(order[i]);
+      rows.push(H.rows[j]); idx.push(H.idx[j]);
+      $('#rows').appendChild(H.rows[j].el);
+    }
+    HOME.rows = order; H.rows = rows; H.idx = idx;
+  }
 
   function heroItem() { return HOME.hero[H.page]; }
   function continueOf(id) {
@@ -323,7 +382,7 @@
     }, 9000);
   }
 
-  var CARD = {continue: 'wide', picks: 'wide', chart: 'chart', poster: 'poster', wide: 'wide'};
+  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide'};
   var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240};
 
   function card(kind, item, n) {
@@ -343,7 +402,7 @@
       if (item.next) l2 = 'Próximo · T' + item.s + ' E' + item.e;
       else if (item.s) l2 = 'T' + item.s + ' · E' + item.e + ' · ' + item.left + ' min restantes';
       else l2 = minutes(item.left) + ' restantes';
-    } else if (kind === 'picks') l2 = item.why;
+    } else if (kind === 'picks' || kind === 'mine') l2 = item.why;
     else if (kind === 'chart' || kind === 'poster') { l1 = ''; }
     else l2 = t.year + ' · ' + t.genres[0];
     if (l1 || l2) c.appendChild(el('div', 'cap', '<div class="l1">' + esc(l1) + '</div><div class="l2">' + esc(l2) + '</div>'));
@@ -417,7 +476,7 @@
       if (!items || items.length < 4) return;              // keep the stand-ins when a list comes back thin
       row.items = items.slice(0, row.limit || 20);
       row.live = true;
-      fillRow(r);
+      fillRow(HOME.rows.indexOf(row));
       if (state.screen === 'home' && !S.open && !sheet.open) paintHome();
     }
     if (src.tmdb && CFG.tmdbKey) {
@@ -461,6 +520,7 @@
           loadRow(HOME.rows.length - 1);
         }
       }
+      arrange();
     };
     x.send(JSON.stringify({type: 'AddonCollectionGet', authKey: key, update: true}));
   }
@@ -524,6 +584,14 @@
     var row = HOME.rows[0];
     row.items = items; row.live = true;
     fillRow(0);
+    HOME.hero = HOME.hero.filter(function (h) { return !h.cont; });
+    if (items.length) {
+      var c = items[0];
+      HOME.hero.unshift({id: c.id, cont: true, kicker: 'Continuar assistindo',
+        why: c.s ? 'T' + c.s + ' · E' + c.e + (c.left ? ' · ' + c.left + ' min restantes' : '') : c.left ? minutes(c.left) + ' restantes' : ''});
+      if (H.zone === 'hero') H.page = 0;
+    }
+    H.page = Math.min(H.page, HOME.hero.length - 1);
     if (state.screen === 'home' && !S.open && !sheet.open) { renderHero(); paintHome(); }
   }
 
@@ -764,6 +832,8 @@
       } else if (H.idx[H.row] < H.rows[H.row].cards.length - 1) H.idx[H.row]++;
     } else if (k === 'ok') {
       var it = homeItem();
+      H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
+      used(H.from, 1);
       if (H.zone === 'hero' && H.btn === 0) { var c = continueOf(it.id); play(it.id, c || {}); return; }
       if (H.zone === 'hero' && H.btn === 2) { toast('Na sua watchlist do Trakt'); return; }
       if (H.zone === 'rows' && HOME.rows[H.row].kind === 'continue') { play(it.id, it); return; }   // Continue plays right away
@@ -773,6 +843,7 @@
       if (H.zone === 'rows') { H.zone = 'hero'; homeShown(); }       // Back from a row scrolls to the top first, like tvOS
       else { openSide(); return; }
     } else if (k === 'menu') {
+      H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
       openSources(homeItem().id, null, function (s) { play(homeItem().id, continueOf(homeItem().id) || {}, s); });
       return;
     }
@@ -1163,6 +1234,7 @@
 
   function play(id, from, chosen) {
     var t = TITLES[id], t0 = now(), clicks = M.clicks, warm = R[id] && R[id].ready;
+    if (H.from) { used(H.from, 2); H.from = null; }       // a play counts for the row it came from
     P.id = id; P.t = t; P.s = from && from.s || (t.type === 'series' ? 1 : 0); P.e = from && from.e || (t.type === 'series' ? 1 : 0);
     P.dur = (t.type === 'series' ? 50 : t.runtime) * 60;
     P.pos = from && from.posMs ? from.posMs / 1000 : from && from.progress ? from.progress * P.dur : 0;   // resume without asking (HIG: playing video)
