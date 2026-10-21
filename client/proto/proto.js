@@ -10,7 +10,7 @@
   'use strict';
 
   var CFG = window.CONFIG || {};
-  var CAPS = SAMPLE.caps, TITLES = SAMPLE.titles;
+  var CAPS = window.PLAYER_CAPS || SAMPLE.caps, TITLES = SAMPLE.titles;   // the Samsung build brings its own
   var $ = function (sel, root) { return (root || document).querySelector(sel); };
 
   // MARK: - Small helpers
@@ -1285,7 +1285,7 @@
     $('#player .subs').className = 'subs size' + SET.subSize + ' bg' + SET.subBg;
     P.tracks = null; P.started = false;
     var s = P.stream;
-    window.Player.open(JSON.stringify({url: s.url, startMs: Math.round(fromSec * 1000), subtitles: s.subs || [], matchRate: SET.rate === 1}));
+    window.Player.open(JSON.stringify({url: s.url, startMs: Math.round(fromSec * 1000), subtitles: s.subs || [], matchRate: SET.rate === 1, uhd: s.res >= 2160}));
   }
 
   // External subtitles for a stream, fetched while pre-resolving so they're there at OK. OpenSubtitles ranks them
@@ -1330,7 +1330,7 @@
     withSubs(st, function () {
       if (preloadKey !== key || state.screen === 'player') return;
       console.log('[player] preload ' + videoId(id, s, e) + ' · ' + Ranking.label(st));
-      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || [], matchRate: SET.rate === 1}));
+      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || [], matchRate: SET.rate === 1, uhd: st.res >= 2160}));
     });
   }
   function unpreload() {
@@ -1800,7 +1800,7 @@
   // In a browser: arrows, Enter, Esc or Backspace, M (Menu), P (play/pause), F and R (forward, rewind).
   // The Fire TV's Menu and media keys come through FreeMyTV.key().
   var CODES = {37: 'left', 38: 'up', 39: 'right', 40: 'down', 13: 'ok', 8: 'back', 27: 'back', 461: 'back', 10009: 'back',
-               77: 'menu', 93: 'menu', 179: 'playpause', 80: 'playpause', 415: 'playpause', 19: 'playpause', 10252: 'playpause',
+               77: 'menu', 93: 'menu', 457: 'menu', 403: 'menu', 179: 'playpause', 80: 'playpause', 415: 'playpause', 19: 'playpause', 10252: 'playpause',
                228: 'ff', 417: 'ff', 70: 'ff', 227: 'rw', 412: 'rw', 82: 'rw'};
   document.addEventListener('keydown', function (e) {
     var k = CODES[e.keyCode];

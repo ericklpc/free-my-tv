@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Builds the player prototype into out/proto/ (open index.html in a browser), or serves it with --serve.
+With --tizen it's also packed for Samsung TVs as Sofa-Player-tizen.wgt, on Samsung's own player (avplay.js);
+--sign PROFILE signs it with a certificate profile of Samsung's Tizen tools (2023+ TVs need a Samsung one).
 
 The TMDB key (art and Brazil's charts), the Stremio key (the catalogs of the account's addons) and the AIOStreams
 link (real streams, in the Fire TV app) go in, so keep the build to yourself. Without the AIOStreams link, or in a
@@ -9,7 +11,10 @@ import http.server
 import json
 import os
 import shutil
+import subprocess
 import sys
+import tempfile
+import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
@@ -51,12 +56,53 @@ def build(out_dir):
     return key
 
 
+def tizen(out, profile):
+    """out/ (just built) as a Tizen package: Samsung's web APIs and avplay.js before the page's own scripts."""
+    page = os.path.join(out, 'index.html')
+    with open(page, encoding='utf-8') as f:
+        html = f.read()
+    html = html.replace('<script src="config.js"></script>',
+                        '<script src="$WEBAPIS/webapis/webapis.js"></script>\n<script src="avplay.js"></script>\n<script src="config.js"></script>')
+    with open(page, 'w', encoding='utf-8') as f:
+        f.write(html)
+    shutil.copy(os.path.join(HERE, 'tizen.xml'), os.path.join(out, 'config.xml'))
+    shutil.copy(os.path.join(ROOT, 'firetv', 'res', 'drawable-nodpi', 'icon.png'), os.path.join(out, 'icon.png'))
+    wgt = os.path.join(ROOT, 'Sofa-Player-tizen.wgt')
+    with zipfile.ZipFile(wgt, 'w', zipfile.ZIP_DEFLATED) as z:
+        for base, _, names in os.walk(out):
+            for n in sorted(names):
+                full = os.path.join(base, n)
+                z.write(full, os.path.relpath(full, out))
+    if profile:
+        sys.path.insert(0, os.path.join(ROOT, 'tizen'))
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('tizen_build', os.path.join(ROOT, 'tizen', 'build.py'))
+        tb = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(tb)
+        cli = tb.tizen_cli()
+        if not cli:
+            sys.exit('Signing needs Samsung\'s Tizen tools (set TIZEN_STUDIO).')
+        tmp = tempfile.mkdtemp()
+        try:
+            run = subprocess.run([cli, 'package', '-t', 'wgt', '-s', profile, '-o', tmp, '--', wgt], capture_output=True, text=True)
+            made = [n for n in os.listdir(tmp) if n.endswith('.wgt')]
+            if run.returncode != 0 or not made:
+                sys.exit('`tizen package` didn\'t sign it:\n' + (run.stdout + run.stderr).strip())
+            shutil.move(os.path.join(tmp, made[0]), wgt)
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+    print('Built %s (%d KB, %s)' % (os.path.basename(wgt), os.path.getsize(wgt) // 1024,
+                                    'signed with "%s"' % profile if profile else 'not signed'))
+
+
 if __name__ == '__main__':
     out = os.path.join(ROOT, 'out', 'proto')
     if '--out' in sys.argv:
         out = os.path.abspath(sys.argv[sys.argv.index('--out') + 1])
     key = build(out)
     print('Built %s (%s)' % (os.path.relpath(out, ROOT), 'TMDB art' if key else 'no TMDB key: gradients instead of art'))
+    if '--tizen' in sys.argv:
+        tizen(out, sys.argv[sys.argv.index('--sign') + 1] if '--sign' in sys.argv else None)
     if '--serve' in sys.argv:
         port = 8766
         os.chdir(out)

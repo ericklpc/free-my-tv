@@ -24,6 +24,11 @@ var Ranking = (function () {
   function blocked(s, caps) {
     if (!s.cached) return 'Não está no cache do TorBox';
     if (s.codec === 'AV1' && !caps.av1) return 'AV1: o stick não decodifica';
+    if (caps.audioNone && s.audio.length) {             // Samsung: no DTS or TrueHD decoder at all
+      var none = true;
+      for (var i = 0; i < s.audio.length; i++) if (caps.audioNone.indexOf(audioKind(s.audio[i])) < 0) none = false;
+      if (none) return 'Áudio ' + audioKind(s.audio[0]) + ': a TV não decodifica';
+    }
     if (s.hdr.indexOf('DV') >= 0 && s.hdr.indexOf('HDR10') < 0) return 'Só Dolby Vision (perfil ' + (s.dvProfile || 5) + '): a TV não exibe';
     if (s.mbps && s.mbps > caps.maxMbps) return Math.round(s.mbps) + ' Mbps: acima do que o Wi-Fi aguenta';
     if (caps.limit && s.res > caps.limit) return 'Acima da qualidade máxima dos Ajustes';
@@ -42,7 +47,8 @@ var Ranking = (function () {
     p += hw ? 30 : soft ? -25 : -60;                      // DTS/TrueHD only: ffmpeg works, but costs CPU and TTFF
     if (s.pt) p += caps.ptAudio ? 40 : 18;
     var mbps = s.mbps || (s.gb ? s.gb * 8192 / 7200 : 12);  // unknown bitrate: from the size, as if 2 hours long
-    p -= Math.abs(mbps - 12) * 0.8;                       // 8–16 Mbps starts fast and looks good at 1080p
+    var aim = caps.maxHeight >= 2160 ? 25 : 12;           // 8–16 Mbps starts fast and looks good at 1080p; 4K wants more
+    p -= Math.abs(mbps - aim) * 0.8;
     p += /REMUX/.test(s.source) ? 2 : /BluRay/.test(s.source) ? 6 : /WEB-DL/.test(s.source) ? 5 : 0;
     if (s.hdr.indexOf('HDR10') >= 0) p += caps.preferSdr ? -20 : 3;
     return p;
