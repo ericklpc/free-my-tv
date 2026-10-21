@@ -101,7 +101,23 @@ public class HomeActivity extends Activity {
             return web.dispatchKeyEvent(new KeyEvent(e.getDownTime(), e.getEventTime(), e.getAction(), KeyEvent.KEYCODE_ENTER,
                     e.getRepeatCount(), e.getMetaState()));
         }
+        // Keys the WebView doesn't pass on as DOM keys: the player prototype (client/proto) reads them here.
+        String name = remoteKey(e.getKeyCode());
+        if (name != null) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN) js("window.FreeMyTV && FreeMyTV.key && FreeMyTV.key('" + name + "')");
+            return true;
+        }
         return super.dispatchKeyEvent(e);
+    }
+
+    private static String remoteKey(int code) {
+        switch (code) {
+            case KeyEvent.KEYCODE_MENU: return "menu";
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: return "playpause";
+            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD: return "ff";
+            case KeyEvent.KEYCODE_MEDIA_REWIND: return "rw";
+            default: return null;
+        }
     }
 
     private void js(final String code) {

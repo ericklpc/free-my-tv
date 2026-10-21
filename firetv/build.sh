@@ -21,15 +21,40 @@ AJ="$(ls -d "$SDK"/platforms/android-*/android.jar 2>/dev/null | sort -V | tail 
 JAVAC="${JAVA_HOME:+$JAVA_HOME/bin/}javac"
 KEYTOOL="${JAVA_HOME:+$JAVA_HOME/bin/}keytool"
 
+# --proto: the player prototype (client/proto/) instead of the home screen, as its own app ("Sofá Player",
+# io.sofa.player), so both can be installed side by side.
+PROTO=0
+ARGS=()
+for a in "$@"; do if [ "$a" = "--proto" ]; then PROTO=1; else ARGS+=("$a"); fi; done
+set -- ${ARGS[@]+"${ARGS[@]}"}
+
 rm -rf out && mkdir -p out/assets out/classes out/gen
-# The web app's files, with the settings, as the APK's assets/web/.
-python3 -c "
+MANIFEST=AndroidManifest.xml
+APK=Sofa-FireTV.apk
+if [ $PROTO = 1 ]; then
+  python3 ../client/proto/build.py --out out/assets/web
+  # Its own package and name, no home-screen filter and no Home button service.
+  python3 -c "
+import re
+m = open('AndroidManifest.xml', encoding='utf-8').read()
+m = m.replace('package=\"io.sofa.firetv\"', 'package=\"io.sofa.player\"').replace('android:label=\"Sofá\"', 'android:label=\"Sofá Player\"')
+m = m.replace('android:name=\".HomeActivity\"', 'android:name=\"io.sofa.firetv.HomeActivity\"')
+m = re.sub(r'\s*<!-- A home screen.*?</intent-filter>', '', m, flags=re.S)
+m = re.sub(r'\s*<!-- Home button.*?</service>', '', m, flags=re.S)
+open('out/AndroidManifest.xml', 'w', encoding='utf-8').write(m)
+"
+  MANIFEST=out/AndroidManifest.xml
+  APK=Sofa-Player.apk
+else
+  # The web app's files, with the settings, as the APK's assets/web/.
+  python3 -c "
 import sys; sys.path.insert(0, '../tools'); import webapp
 webapp.preview(webapp.files(webapp.config_from_args(sys.argv[1:]), 'firetv/build.sh'), 'out/assets/web')
 " "$@"
+fi
 
 "$BT/aapt2" compile --dir res -o out/res.zip
-"$BT/aapt2" link -o out/base.apk -I "$AJ" --manifest AndroidManifest.xml --java out/gen out/res.zip \
+"$BT/aapt2" link -o out/base.apk -I "$AJ" --manifest "$MANIFEST" --java out/gen --custom-package io.sofa.firetv out/res.zip \
   --min-sdk-version 22 --target-sdk-version 28 -A out/assets -0 ttf
 "$JAVAC" -nowarn -Xlint:-options -source 8 -target 8 -classpath "$AJ" -encoding UTF-8 -d out/classes \
   $(find src out/gen -name '*.java')
@@ -42,5 +67,5 @@ if [ ! -f sofa.keystore ]; then
   "$KEYTOOL" -genkeypair -keystore sofa.keystore -alias sofa -keyalg RSA -keysize 2048 -validity 20000 \
     -storepass sofa-tv -keypass sofa-tv -dname "CN=Sofa" >/dev/null 2>&1
 fi
-"$BT/apksigner" sign --ks sofa.keystore --ks-pass pass:sofa-tv --key-pass pass:sofa-tv --out Sofa-FireTV.apk out/aligned.apk
-echo "Built firetv/Sofa-FireTV.apk ($(du -h Sofa-FireTV.apk | cut -f1)). Install: adb connect <IP>:5555 && adb install -r firetv/Sofa-FireTV.apk"
+"$BT/apksigner" sign --ks sofa.keystore --ks-pass pass:sofa-tv --key-pass pass:sofa-tv --out "$APK" out/aligned.apk
+echo "Built firetv/$APK ($(du -h "$APK" | cut -f1)). Install: adb connect <IP>:5555 && adb install -r firetv/$APK"
