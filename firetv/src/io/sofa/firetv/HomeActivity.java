@@ -31,6 +31,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,9 +48,12 @@ public class HomeActivity extends Activity {
 
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
+        Log.i("Sofa", "[start] created");
         WebView.setWebContentsDebuggingEnabled(true);   // chrome://inspect from the computer, over adb
         web = new WebView(this);
-        web.setBackgroundColor(Color.BLACK);
+        // See-through until the page has drawn itself, so the splash (the theme's background) shows meanwhile; then
+        // opaque, which is cheaper to draw (Bridge.shown).
+        web.setBackgroundColor(Color.TRANSPARENT);
         web.setFocusable(true);
         web.setFocusableInTouchMode(true);
         WebSettings s = web.getSettings();
@@ -79,6 +85,8 @@ public class HomeActivity extends Activity {
         changes.addAction(Intent.ACTION_PACKAGE_REPLACED);
         changes.addDataScheme("package");
         registerReceiver(appsChanged, changes);
+        appsCache = read(appsFile());
+        if (appsCache != null) rebuildApps();   // without one, the page's first apps() builds it
         web.loadUrl("file:///android_asset/web/index.html");
         web.requestFocus();
         // The Home button watcher belongs to the home screen app only, not to the player prototype (io.sofa.player).
@@ -93,13 +101,84 @@ public class HomeActivity extends Activity {
 
     private boolean isHome() { return "io.sofa.firetv".equals(getPackageName()); }
 
+    /** The TV's apps with their banners, as the page wants them. Slow (it draws every banner): off the UI thread. */
+    private String buildApps() {
+        PackageManager pm = getPackageManager();
+        JSONArray out = new JSONArray();
+        Set<String> seen = new HashSet<String>();
+        seen.add(getPackageName());
+        for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
+            List<ResolveInfo> list = pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(category), 0);
+            for (ResolveInfo r : list) {
+                ActivityInfo a = r.activityInfo;
+                if (a == null || !seen.add(a.packageName)) continue;
+                try {
+                    JSONObject o = new JSONObject();
+                    o.put("id", a.packageName);
+                    o.put("title", String.valueOf(r.loadLabel(pm)));
+                    Drawable art = a.loadBanner(pm);
+                    if (art == null) art = a.applicationInfo.loadBanner(pm);
+                    Bitmap banner = art != null ? draw(art, 640, 360) : null;
+                    o.put("color", banner != null ? edgeColor(banner) : "");
+                    o.put("banner", banner != null);
+                    o.put("icon", banner != null ? png(banner) : "");   // png() recycles it
+                    out.put(o);
+                } catch (Exception ignored) {}
+            }
+        }
+        return out.toString();
+    }
+
+    private File appsFile() { return new File(getCacheDir(), "apps.json"); }
+
+    private void saveApps(String json) {
+        try {
+            FileOutputStream f = new FileOutputStream(appsFile());
+            f.write(json.getBytes("UTF-8"));
+            f.close();
+        } catch (Exception ignored) {}
+    }
+
+    private static String read(File file) {
+        try {
+            byte[] bytes = new byte[(int) file.length()];
+            FileInputStream f = new FileInputStream(file);
+            int n = 0;
+            while (n < bytes.length) { int r = f.read(bytes, n, bytes.length - n); if (r < 0) break; n += r; }
+            f.close();
+            return n == bytes.length && n > 0 ? new String(bytes, "UTF-8") : null;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private volatile boolean rebuilding;
+
+    /** Builds the list again in the background; if it changed, keeps it and tells the page. */
+    private void rebuildApps() {
+        if (rebuilding) return;
+        rebuilding = true;
+        new Thread(new Runnable() { @Override public void run() {
+            try {
+                String fresh = buildApps();
+                if (!fresh.equals(appsCache)) {
+                    appsCache = fresh;
+                    saveApps(fresh);
+                    js("window.FreeMyTV && FreeMyTV.appsUpdated && FreeMyTV.appsUpdated()");
+                }
+            } finally {
+                rebuilding = false;
+            }
+        } }, "apps").start();
+    }
+
     private boolean started;
 
-    /** The apps list as apps() last made it; dropped when an app is installed, updated or removed. */
+    /** The apps list as last built; kept on disk too, so a cold start shows the shelf at once. */
     private volatile String appsCache;
 
     private final BroadcastReceiver appsChanged = new BroadcastReceiver() {
-        @Override public void onReceive(Context c, Intent i) { appsCache = null; }
+        @Override public void onReceive(Context c, Intent i) { rebuildApps(); }
     };
 
     @Override protected void onResume() {
@@ -174,34 +253,13 @@ public class HomeActivity extends Activity {
 
     /** What web/tv.js calls. Runs on a WebView thread: anything touching the UI goes through runOnUiThread. */
     final class Bridge {
+        /** The apps list: from the cache at once (rebuilt in the background); built here only the very first time. */
         @JavascriptInterface public String apps() {
-            // The page asks again every time Sofá comes back: drawing every banner each time made coming back slow.
             String cached = appsCache;
             if (cached != null) return cached;
-            PackageManager pm = getPackageManager();
-            JSONArray out = new JSONArray();
-            Set<String> seen = new HashSet<String>();
-            seen.add(getPackageName());
-            for (String category : new String[] {Intent.CATEGORY_LEANBACK_LAUNCHER, Intent.CATEGORY_LAUNCHER}) {
-                List<ResolveInfo> list = pm.queryIntentActivities(new Intent(Intent.ACTION_MAIN).addCategory(category), 0);
-                for (ResolveInfo r : list) {
-                    ActivityInfo a = r.activityInfo;
-                    if (a == null || !seen.add(a.packageName)) continue;
-                    try {
-                        JSONObject o = new JSONObject();
-                        o.put("id", a.packageName);
-                        o.put("title", String.valueOf(r.loadLabel(pm)));
-                        Drawable art = a.loadBanner(pm);
-                        if (art == null) art = a.applicationInfo.loadBanner(pm);
-                        Bitmap banner = art != null ? draw(art, 640, 360) : null;
-                        o.put("color", banner != null ? edgeColor(banner) : "");
-                        o.put("banner", banner != null);
-                        o.put("icon", banner != null ? png(banner) : "");   // png() recycles it
-                        out.put(o);
-                    } catch (Exception ignored) {}
-                }
-            }
-            return appsCache = out.toString();
+            String fresh = buildApps();
+            saveApps(fresh);
+            return appsCache = fresh;
         }
 
         /** Opens an app; with a link (stremio:///detail/...), straight to it inside that app. */
@@ -225,6 +283,7 @@ public class HomeActivity extends Activity {
 
         /** The page has drawn itself (web/home.js, after opening or coming back): the loading cover can go. */
         @JavascriptInterface public void shown() {
+            runOnUiThread(new Runnable() { @Override public void run() { web.setBackgroundColor(Color.BLACK); } });
             HomeWatcher.arrived("page");
         }
 
