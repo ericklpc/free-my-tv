@@ -149,8 +149,7 @@
     list = $('buttons').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.TOP && st.top === 3 + i);
     setClass($('quotes'), 'hide', st.zone === Z.TOP && st.top >= 3);
-    list = $('cards').firstChild.children;
-    for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.CARDS && st.card === i);
+    setClass($('dots'), 'focus', st.zone === Z.CARDS);
     list = $('tiles').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.SHELF && st.shelf === i);
     list = document.querySelectorAll('#drawer .key');
@@ -227,9 +226,9 @@
 
   // MARK: - Picks and background
 
-  // MARK: - Top Shelf: Stremio's row and the focused title, full screen behind everything
+  // MARK: - Top Shelf: Stremio's row as a slideshow, one title full screen behind everything, dots below it
 
-  var CARD_W = 356, CARD_GAP = 40, CARDS_SEEN = 4;
+  var SLIDE_MS = 8000, DOTS_SEEN = 9;
 
   /** Loads an image and calls back only when it's there (offline, the placeholder stays). */
   function whenLoaded(url, done) {
@@ -242,44 +241,56 @@
     // Nothing to continue (no account yet, or nothing started): open on Movies instead of an empty row.
     if (st.tab === 0 && !Stremio.list('continue').length && Stremio.list('movie').length) st.tab = 1;
     var list = Stremio.list(TAB_KIND[st.tab]);
-    var strip = $('cards').firstChild;
     setClass(body, 'no-picks', !list.length);
     var same = list.length === cards.length;
     for (var i = 0; same && i < list.length; i++) same = list[i].id === cards[i].id && list[i].progress === cards[i].progress;
-    if (same && strip.children.length === list.length) return;
+    if (same) return;
     cards = list;
-    strip.innerHTML = '';
-    for (var c = 0; c < list.length; c++) {
-      (function (p, c) {
-        var card = el('div', 'card', strip);
-        card.style.left = c * (CARD_W + CARD_GAP) + 'px';
-        card.style.width = CARD_W + 'px';
-        var img = el('div', 'img' + (p.progress ? ' resume' : ''), card);
-        el('div', 'ph', img, p.title);
-        if (p.progress) el('i', '', el('div', 'bar', img)).style.width = Math.round(p.progress * 100) + '%';
-        whenLoaded(Stremio.background(p), function (url) {
-          img.style.backgroundImage = 'url(' + url + ')';
-          setClass(img, 'loaded', true);
-        });
-        el('div', 'name', card, p.title);
-        hover(card, Z.CARDS, c);
-      })(list[c], c);
-    }
     st.card = Math.min(st.card, Math.max(0, list.length - 1));
     if (!list.length && st.zone === Z.CARDS) st.zone = Z.SHELF;
     shown = null;
     updateFocus();
   }
 
+  /** As on tvOS: a dot per title, the current one a pill that fills up until the next slide. Long rows show a window. */
+  function renderDots() {
+    var dots = $('dots'), n = cards.length;
+    dots.innerHTML = '';
+    if (n < 2) return;
+    var first = Math.max(0, Math.min(n - DOTS_SEEN, st.card - (DOTS_SEEN >> 1))), last = Math.min(n, first + DOTS_SEEN);
+    for (var i = first; i < last; i++) {
+      var edge = (i === first && first > 0) || (i === last - 1 && last < n);
+      var dot = el('i', i === st.card ? 'on' : edge ? 'edge' : '', dots);
+      if (i === st.card) {
+        var fill = el('b', '', dot);
+        fill.style.webkitAnimationDuration = fill.style.animationDuration = SLIDE_MS + 'ms';
+      }
+      hover(dot, Z.CARDS, i);
+    }
+  }
+
+  var slideTimer = 0;
+
+  /** Moves to the next title by itself, unless something covers the Top Shelf; any move starts the wait over. */
+  function autoplay() {
+    clearTimeout(slideTimer);
+    slideTimer = setTimeout(function () {
+      if (cards.length > 1 && !saverOn && !sheetOpen() && st.zone !== Z.DRAWER) {
+        st.card = (st.card + 1) % cards.length;
+        updateFocus();
+      } else autoplay();
+    }, SLIDE_MS);
+  }
+
   var shown = null, artFront = 0;
 
-  /** The Top Shelf follows the focus: the focused title, or the row's first one while the focus is on the apps. */
+  /** The Top Shelf shows the slideshow's current title, wherever the focus is. */
   function showInfo() {
-    var p = cards.length ? cards[st.zone === Z.CARDS ? st.card : 0] : null;
-    var strip = $('cards').firstChild, first = Math.max(0, Math.min(cards.length - CARDS_SEEN, st.zone === Z.CARDS ? st.card - 1 : 0));
-    strip.style.webkitTransform = strip.style.transform = 'translateX(' + (-first * (CARD_W + CARD_GAP)) + 'px)';
+    var p = cards.length ? cards[st.card] : null;
     if (p === shown) return;
     shown = p;
+    renderDots();
+    autoplay();
     var info = $('info'), logo = info.firstChild;
     setClass(info, 'empty', !p);
     if (!p) return;
@@ -719,27 +730,27 @@
   }
 
   function move(dx, dy) {
-    var tiles = $('tiles').children, cardNodes = $('cards').firstChild.children;
+    var tiles = $('tiles').children;
     switch (st.zone) {
       case Z.SHELF:
         if (dx) st.shelf = Math.max(0, Math.min(shelf.length - 1, st.shelf + dx));
         else if (dy > 0) { openDrawer(); return; }
         else if (dy < 0) {
-          if (cards.length) { st.zone = Z.CARDS; st.card = nearest(cardNodes, centerX(tiles[st.shelf])); }
+          if (cards.length) st.zone = Z.CARDS;
           else { st.zone = Z.TOP; st.top = st.tab; }
         }
         break;
       case Z.CARDS:
-        if (dx) st.card = Math.max(0, Math.min(cards.length - 1, st.card + dx));
+        if (dx) st.card = (st.card + dx + cards.length) % cards.length;
         else if (dy < 0) { st.zone = Z.TOP; st.top = st.tab; }
-        else if (shelf.length) { st.zone = Z.SHELF; st.shelf = nearest(tiles, centerX(cardNodes[st.card])); }
+        else if (shelf.length) st.zone = Z.SHELF;
         break;
       case Z.TOP:
         if (dx) {
           st.top = Math.max(0, Math.min(5, st.top + dx));
           if (st.top < 3) selectTab(st.top);   // as on Apple TV: focusing a tab selects it
         } else if (dy > 0) {
-          if (cards.length) { st.zone = Z.CARDS; st.card = Math.min(cards.length - 1, st.top < 3 ? 0 : cards.length - 1); }
+          if (cards.length) st.zone = Z.CARDS;
           else st.zone = Z.SHELF;
         }
         break;

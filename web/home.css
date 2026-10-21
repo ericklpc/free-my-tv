@@ -561,7 +561,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 #art { -webkit-transition: opacity 0.4s; transition: opacity 0.4s; }
 .drawer-open #art { opacity: 0.35; }
 
-#info { position: absolute; left: 90px; top: 228px; width: 980px; color: #FFF; }
+#info { position: absolute; left: 90px; top: 400px; width: 980px; color: #FFF; }
 #info.empty { display: none; }
 #info .logo { position: relative; height: 156px; }
 #info .logo img { position: absolute; left: 0; bottom: 0; max-width: 560px; max-height: 156px; display: none; }
@@ -596,49 +596,27 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 }
 #info .desc { margin-top: 14px; width: 900px; max-height: 76px; overflow: hidden; font-size: 27px; line-height: 38px; color: rgba(255, 255, 255, 0.86); }
 
-#cards { position: absolute; left: 90px; top: 560px; width: 1830px; height: 250px; }
-#cards .strip {
-  position: absolute;
-  left: 0;
-  top: 0;
-  -webkit-transition: -webkit-transform 0.45s cubic-bezier(0.32, 0.72, 0.2, 1);
-  transition: transform 0.45s cubic-bezier(0.32, 0.72, 0.2, 1);
-}
-#cards .card { top: 0; height: 200px; }
-#cards .card.focus { -webkit-transform: translateY(-4px) scale(1.08); transform: translateY(-4px) scale(1.08); }
-#cards .card .img { border-radius: 16px; background-color: #2C2C30; }
-#cards .card .img::after { border-radius: 16px; }
-#cards .card .ph {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 18px;
-  font-size: 28px;
-  font-weight: 700;
-  line-height: 1.12;
-  color: rgba(255, 255, 255, 0.92);
-}
-#cards .card .resume .ph { bottom: 40px; }
-#cards .card .loaded .ph { display: none; }
-#cards .card .bar {
-  position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 18px;
-  height: 6px;
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.32);
+/* As on tvOS: the dots under the title; the current one a pill that fills up until the next slide. */
+#dots { position: absolute; left: 0; top: 744px; width: 1920px; height: 24px; text-align: center; font-size: 0; }
+#dots i {
+  display: inline-block;
+  position: relative;
+  vertical-align: middle;
+  width: 12px;
+  height: 12px;
+  margin: 0 7px;
+  border-radius: 6px;
   overflow: hidden;
+  background: rgba(255, 255, 255, 0.38);
+  -webkit-transition: width 0.35s cubic-bezier(0.32, 0.72, 0.2, 1), height 0.25s, background 0.25s, -webkit-transform 0.25s;
+  transition: width 0.35s cubic-bezier(0.32, 0.72, 0.2, 1), height 0.25s, background 0.25s, transform 0.25s;
 }
-#cards .card .bar i { display: block; height: 100%; background: #FFF; }
-#cards .card .name {
-  top: 222px;
-  font-size: 24px;
-  font-weight: 600;
-  color: #F5F5F7;
-  opacity: 0;
-  -webkit-transition: opacity 0.2s;
-  transition: opacity 0.2s;
-}
-#cards .card .name { display: none; }   /* the Top Shelf above already names the focused title, as on Apple TV */
-.no-picks #info, .no-picks #cards { display: none; }
+#dots i.edge { -webkit-transform: scale(0.6); transform: scale(0.6); }
+#dots i.on { width: 44px; }
+#dots i b { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #FFF; -webkit-animation: dotfill linear forwards; animation: dotfill linear forwards; }
+#dots.focus i { width: 16px; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.6); }
+#dots.focus i.on { width: 58px; }
+.drawer-open #dots i b { -webkit-animation-play-state: paused; animation-play-state: paused; }
+@-webkit-keyframes dotfill { to { width: 100%; } }
+@keyframes dotfill { to { width: 100%; } }
+.no-picks #info, .no-picks #dots { display: none; }
