@@ -216,6 +216,7 @@
     return R[videoId(id, d.s, d.e)];
   }
   function focusTitle(id) {
+    if (!id || !TITLES[id]) return;                        // a key of the search keyboard
     focusId = id;
     clearTimeout(resolveTimer);
     // Where OK plays right away (the hero's Play, Continue watching), the stream is also prepared after a short stay.
@@ -309,7 +310,7 @@
   HOME.rows = ordered(HOME.rows);
   // The addons' rows arrive after the others: they find their place too, while nobody is in the rows.
   function arrange() {
-    if (H.zone !== 'hero') return;
+    if (H.zone !== 'hero' || !onHome()) return;
     var order = ordered(HOME.rows), rows = [], idx = [];
     for (var i = 0; i < order.length; i++) {
       var j = HOME.rows.indexOf(order[i]);
@@ -319,9 +320,129 @@
     HOME.rows = order; H.rows = rows; H.idx = idx;
   }
 
+  // MARK: - The sidebar's pages (Filmes, Séries, Curadoria, Biblioteca, Buscar): the same hero and rows as the home,
+  // with their own lists. MAIN is the home; HOME is whatever is on screen.
+
+  var MAIN = HOME, VIEW = 'home', ALL_LIB = [];
+  function onHome() { return HOME === MAIN; }
+  function tmdbRow(kind, title, path, limit) { return {kind: kind, title: title, source: {tmdb: path}, items: [], limit: limit}; }
+  function metaRow(kind, title, path) { return {kind: kind, title: title, source: {cinemeta: path}, items: []}; }
+  function genreRows(type, list) {
+    return list.map(function (g, i) {
+      return CFG.tmdbKey ? tmdbRow(i % 2 ? 'poster' : 'wide', g[0], 'discover/' + (type === 'series' ? 'tv' : 'movie') + '?' + g[1] + '&sort_by=popularity.desc&vote_count.gte=100')
+        : metaRow(i % 2 ? 'poster' : 'wide', g[0], type + '/top/genre=' + g[2]);
+    });
+  }
+  function addonRows(type, re) {
+    return MAIN.rows.filter(function (r) { return r.source && r.source.addon && (!type || r.source.type === type) && (!re || re.test(r.title)); });
+  }
+  function continueRow(type) {
+    var items = MAIN.rows[0].items.filter(function (c) { return !type || (TITLES[c.id] && TITLES[c.id].type === type); });
+    return {kind: 'continue', title: 'Continuar assistindo', items: items};
+  }
+  function pickHero(list, kicker) {
+    return list.slice(0, 5).map(function (p) { return {id: p.id, kicker: kicker, why: p.why || ''}; });
+  }
+  var KEYS = [{key: '⌫', del: true}, {key: '␣', sp: true}].concat('abcdefghijklmnopqrstuvwxyz0123456789'.split('').map(function (c) { return {key: c}; }));
+
+  function makeView(name) {
+    var w = CFG.picks || {}, picks = w.picks || [];
+    if (name === 'movies') return {title: 'Filmes', heroFrom: 1, hero: pickHero(picks.filter(function (p) { return p.group !== 'classic'; }), 'Escolhido pra você'), rows: [
+      continueRow('movie'),
+      CFG.tmdbKey ? tmdbRow('wide', 'Em alta nesta semana', 'trending/movie/week') : metaRow('wide', 'Populares', 'movie/top'),
+      tmdbRow('chart', 'Top 10 filmes no Brasil', 'movie/popular?region=BR', 10),
+      tmdbRow('poster', 'Novos nos cinemas', 'movie/now_playing?region=BR'),
+      tmdbRow('wide', 'Cinema brasileiro', 'discover/movie?with_origin_country=BR&sort_by=popularity.desc&vote_count.gte=50')
+    ].concat(genreRows('movie', [['Ação', 'with_genres=28', 'Action'], ['Comédia', 'with_genres=35', 'Comedy'], ['Drama', 'with_genres=18', 'Drama'],
+      ['Terror', 'with_genres=27', 'Horror'], ['Ficção científica', 'with_genres=878', 'Sci-Fi'], ['Animação', 'with_genres=16', 'Animation'],
+      ['Documentários', 'with_genres=99', 'Documentary']]), [tmdbRow('poster', 'Os mais bem avaliados', 'movie/top_rated')], addonRows('movie'))};
+    if (name === 'series') return {title: 'Séries', heroFrom: 1, hero: [], rows: [
+      continueRow('series'),
+      CFG.tmdbKey ? tmdbRow('wide', 'Em alta nesta semana', 'trending/tv/week') : metaRow('wide', 'Populares', 'series/top'),
+      tmdbRow('poster', 'Mais vistas', 'tv/popular'),
+      tmdbRow('wide', 'Séries brasileiras', 'discover/tv?with_origin_country=BR&sort_by=popularity.desc&vote_count.gte=20')
+    ].concat(genreRows('series', [['Drama', 'with_genres=18', 'Drama'], ['Comédia', 'with_genres=35', 'Comedy'], ['Crime', 'with_genres=80', 'Crime'],
+      ['Ficção e fantasia', 'with_genres=10765', 'Sci-Fi'], ['Animação', 'with_genres=16', 'Animation'], ['Documentais', 'with_genres=99', 'Documentary']]),
+      [tmdbRow('poster', 'As mais bem avaliadas', 'tv/top_rated')], addonRows('series'))};
+    if (name === 'picks') {
+      var g = function (k) { return picks.filter(function (p) { return p.group === k; }).map(function (p) { return {id: p.id, why: p.why}; }); };
+      return {title: 'Curadoria', hero: pickHero(picks, 'Curadoria da semana'), rows: [
+        {kind: 'mine', title: 'Lançamentos', items: g('new')}, {kind: 'mine', title: 'Pra qualquer dia', items: g('mix')},
+        {kind: 'mine', title: 'Clássicos que você não viu', items: g('classic')}
+      ].concat(MAIN.rows.filter(function (r) { return r.kind === 'mine'; }), addonRows(null, /letterboxd|boxd/i))};
+    }
+    if (name === 'library') {
+      var mine = function (type) {
+        return ALL_LIB.filter(function (it) { return it.type === type; }).map(function (it) {
+          return fromCinemeta({id: it._id, name: it.name, poster: it.poster}, it.type);
+        });
+      };
+      return {title: 'Biblioteca', hero: [], rows: [continueRow(null),
+        {kind: 'poster', title: 'Filmes na biblioteca', items: mine('movie')}, {kind: 'poster', title: 'Séries na biblioteca', items: mine('series')}
+      ].concat(addonRows(null, /watchlist|biblioteca|library|torbox/i))};
+    }
+    // Search: a one-line keyboard, like tvOS, and what's trending until something is typed.
+    return {title: 'Buscar', hero: [], query: '', rows: [{kind: 'keys', title: 'Digite pra buscar', items: KEYS},
+      CFG.tmdbKey ? tmdbRow('poster', 'Filmes em alta hoje', 'trending/movie/day') : metaRow('poster', 'Filmes populares', 'movie/top'),
+      CFG.tmdbKey ? tmdbRow('poster', 'Séries em alta hoje', 'trending/tv/day') : metaRow('poster', 'Séries populares', 'series/top')]};
+  }
+
+  function showView(name) {
+    S.open = false; $('#side').className = 'hidden';
+    if (name === VIEW && name !== 'search') { show('home'); paintHome(); return; }
+    unpreload();
+    VIEW = name;
+    HOME = name === 'home' ? MAIN : makeView(name);
+    for (var i = 0; i < S.items.length; i++) S.items[i].on = S.items[i].view === name;
+    H.page = 0; H.btn = 0; H.row = 0;
+    show('home');
+    $('#hero').style.display = HOME.hero.length ? '' : 'none';
+    buildRows();
+    H.zone = HOME.hero.length ? 'hero' : 'rows';
+    if (H.zone === 'rows') H.row = Math.max(0, nextRow(-1, 1));
+    else renderHero();
+    homeShown(); paintHome();
+    var it = homeItem();
+    if (it && it.id) focusTitle(it.id);
+  }
+
+  // The keyboard row: each letter goes in, and the results follow after a short pause.
+  var searchTimer = 0;
+  function typeKey(k) {
+    var v = HOME;
+    v.query = k.del ? v.query.slice(0, -1) : v.query + (k.sp ? ' ' : k.key);
+    H.rows[0].el.querySelector('h2').textContent = v.query ? v.query + '_' : 'Digite pra buscar';
+    clearTimeout(searchTimer);
+    if (v.query.replace(/\s/g, '').length < 2) return;
+    searchTimer = setTimeout(function () { search(v, v.query); }, 450);
+  }
+  function search(v, q) {
+    function fill(r, title, items) {
+      var row = v.rows[r];
+      row.title = title; row.items = items; row.live = true;
+      if (HOME !== v) return;
+      H.rows[r].el.querySelector('h2').textContent = title;
+      fillRow(r);
+    }
+    ['movie', 'series'].forEach(function (type, i) {
+      var label = type === 'movie' ? 'Filmes' : 'Séries';
+      if (CFG.tmdbKey) {
+        get('https://api.themoviedb.org/3/search/' + (type === 'movie' ? 'movie' : 'tv') + '?query=' + encodeURIComponent(q) + '&language=pt-BR&api_key=' + encodeURIComponent(CFG.tmdbKey), function (o) {
+          if (v.query !== q) return;
+          fill(i + 1, label, (o && o.results || []).filter(function (x) { return x.poster_path; }).map(function (x) { return fromTmdb(x, type === 'movie' ? 'movie' : 'tv'); }));
+        });
+      } else {
+        get(CINEMETA + '/catalog/' + type + '/top/search=' + encodeURIComponent(q) + '.json', function (o) {
+          if (v.query !== q) return;
+          fill(i + 1, label, (o && o.metas || []).filter(function (m) { return m.poster; }).map(function (m) { return fromCinemeta(m, type); }));
+        });
+      }
+    });
+  }
+
   function heroItem() { return HOME.hero[H.page]; }
   function continueOf(id) {
-    var c = HOME.rows[0].items;
+    var c = MAIN.rows[0].items;
     for (var i = 0; i < c.length; i++) if (c[i].id === id) return c[i];
     return null;
   }
@@ -382,10 +503,11 @@
     }, 9000);
   }
 
-  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide'};
-  var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240};
+  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key'};
+  var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240, key: 84};
 
   function card(kind, item, n) {
+    if (kind === 'keys') return el('div', 'card lift key', esc(item.key));
     var t = TITLES[item.id], cls = CARD[kind] || kind;
     var c = el('div', 'card lift ' + cls);
     var pic = el('div', 'pic');
@@ -471,16 +593,26 @@
 
   function loadRow(r) {
     var row = HOME.rows[r], src = row.source;
-    if (!src) return;
+    if (!src || row.live) return;
     function done(items) {
       if (!items || items.length < 4) return;              // keep the stand-ins when a list comes back thin
       row.items = items.slice(0, row.limit || 20);
       row.live = true;
-      fillRow(HOME.rows.indexOf(row));
+      var at = HOME.rows.indexOf(row);
+      if (at < 0) return;                                  // another page is on screen now
+      fillRow(at);
+      // A page whose hero waits for its first list (Séries): its first titles.
+      if (HOME.heroFrom === at && !HOME.hero.length) {
+        HOME.hero = row.items.slice(0, 5).map(function (it) { return {id: it.id, kicker: row.title, why: (TITLES[it.id].desc || '').split(/\.\s/)[0]}; });
+        $('#hero').style.display = '';
+        var vt = $('#rows .vtitle'); if (vt) vt.parentNode.removeChild(vt);
+        if (H.zone === 'rows' && H.row === 0 && !S.open) H.zone = 'hero';
+        renderHero();
+      }
       if (state.screen === 'home' && !S.open && !sheet.open) paintHome();
     }
     if (src.tmdb && CFG.tmdbKey) {
-      var type = /^tv\//.test(src.tmdb) ? 'tv' : 'movie';
+      var type = /(^|\/)tv(\/|\?|$)/.test(src.tmdb) ? 'tv' : 'movie';
       get('https://api.themoviedb.org/3/' + src.tmdb + (src.tmdb.indexOf('?') < 0 ? '?' : '&') + 'api_key=' +
           encodeURIComponent(CFG.tmdbKey) + '&language=pt-BR', function (o) {
         done(o && o.results && o.results.filter(function (x) { return x.backdrop_path && x.media_type !== 'person'; })
@@ -514,8 +646,9 @@
         for (var j = 0; j < cats.length; j++) {
           var c = cats[j], needs = (c.extra || []).some(function (e) { return e.isRequired; }) || (c.extraRequired || []).length;
           if (needs || (c.type !== 'movie' && c.type !== 'series')) continue;
-          HOME.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: catalogName(c.name || c.id, m.name),
+          MAIN.rows.push({kind: c.type === 'series' ? 'wide' : 'poster', title: catalogName(c.name || c.id, m.name),
             source: {addon: base + '/catalog/' + c.type + '/' + encodeURIComponent(c.id) + '.json', type: c.type}, items: []});
+          if (!onHome()) continue;
           addRow(HOME.rows.length - 1);
           loadRow(HOME.rows.length - 1);
         }
@@ -549,6 +682,8 @@
     if (!(CFG.stremioAuthKey || '').trim()) return;
     stremio('datastoreGet', {collection: 'libraryItem', all: true}, function (items) {
       if (!items || !items.length) return;
+      ALL_LIB = items.filter(function (it) { return !it.removed && (it.type === 'movie' || it.type === 'series') && /^tt\d+$/.test(it._id); })
+        .sort(function (a, b) { return Date.parse(b._mtime || 0) - Date.parse(a._mtime || 0); });
       var list = items.filter(function (it) {
         return (!it.removed || it.temp) && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series') && /^tt\d+$/.test(it._id);
       }).sort(function (a, b) { return Date.parse(b.state.lastWatched || b._mtime) - Date.parse(a.state.lastWatched || a._mtime); }).slice(0, 12);
@@ -581,8 +716,13 @@
     });
   }
   function showLibrary(items) {
-    var row = HOME.rows[0];
+    var row = MAIN.rows[0];
     row.items = items; row.live = true;
+    if (!onHome()) {                                       // the home gets it when it's back on screen
+      MAIN.hero = MAIN.hero.filter(function (h) { return !h.cont; });
+      if (items.length) MAIN.hero.unshift({id: items[0].id, cont: true, kicker: 'Continuar assistindo', why: ''});
+      return;
+    }
     fillRow(0);
     HOME.hero = HOME.hero.filter(function (h) { return !h.cont; });
     if (items.length) {
@@ -767,8 +907,8 @@
     H.rows = []; H.idx = []; H.pick = 0; H.chips = false;
     for (var r = 0; r < HOME.rows.length; r++) addRow(r);
     for (r = 0; r < HOME.rows.length; r++) loadRow(r);
-    loadAddons();
-    loadLibrary();
+    // A page without a hero says what it is at the top.
+    if (!HOME.hero.length) $('#rows').insertBefore(el('h1', 'vtitle', esc(HOME.title || '')), $('#rows').firstChild);
   }
 
   var focused = null;
@@ -781,7 +921,7 @@
 
   function scrollTrack(row, i) {
     var visible = Math.floor(1760 / row.step);
-    var first = Math.max(0, Math.min(i - 1, row.cards.length - visible));
+    var first = Math.max(0, Math.min(i - (row.step < 100 ? 8 : 1), row.cards.length - visible));   // the keyboard scrolls late
     translate(row.track, -first * row.step, 0);
   }
 
@@ -792,7 +932,7 @@
       setFocus($('#hero .buttons').children[H.btn]);
     } else {
       var row = H.rows[H.row];
-      translate($('#page'), 0, -(900 + row.el.offsetTop - 110));
+      translate($('#page'), 0, HOME.hero.length ? -(900 + row.el.offsetTop - 110) : -Math.max(0, row.el.offsetTop - 220));
       scrollTrack(row, H.idx[H.row]);
       if (row.chips) for (var i = 0; i < PICKS.length; i++) row.chips.children[i].className = i === H.pick ? (H.chips ? 'focus' : 'on') : '';
       setFocus(H.chips ? null : row.cards[H.idx[H.row]]);
@@ -815,7 +955,7 @@
     if (k === 'up') {
       if (H.zone === 'rows') {
         if (H.rows[H.row].chips) H.chips = true;
-        else { var u = nextRow(H.row, -1); if (u >= 0) H.row = u; else H.zone = 'hero'; }
+        else { var u = nextRow(H.row, -1); if (u >= 0) H.row = u; else if (HOME.hero.length) H.zone = 'hero'; }
       }
     } else if (k === 'down') {
       if (H.zone === 'hero') { H.zone = 'rows'; H.row = nextRow(-1, 1); }
@@ -833,6 +973,7 @@
       } else if (H.idx[H.row] < H.rows[H.row].cards.length - 1) H.idx[H.row]++;
     } else if (k === 'ok') {
       var it = homeItem();
+      if (H.zone === 'rows' && HOME.rows[H.row].kind === 'keys') { typeKey(it); return; }
       H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
       used(H.from, 1);
       if (H.zone === 'hero' && H.btn === 0) { var c = continueOf(it.id); play(it.id, c || {}); return; }
@@ -841,16 +982,18 @@
       openDetail(it.id, it);
       return;
     } else if (k === 'back') {
-      if (H.zone === 'rows') { H.zone = 'hero'; homeShown(); }       // Back from a row scrolls to the top first, like tvOS
+      if (H.zone === 'rows' && HOME.hero.length) { H.zone = 'hero'; homeShown(); }   // Back from a row scrolls to the top first, like tvOS
       else { openSide(); return; }
     } else if (k === 'menu') {
+      if (!homeItem() || !homeItem().id) return;
       H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
       openSources(homeItem().id, null, function (s) { play(homeItem().id, continueOf(homeItem().id) || {}, s); });
       return;
     }
     heroTick();
     paintHome();
-    focusTitle(homeItem().id);
+    var hi = homeItem();
+    if (hi) focusTitle(hi.id);
   }
 
   // The three views of the picks, above their row: ← → choose, ↓ goes into the row, ↑ leaves it.
@@ -867,21 +1010,38 @@
 
   // MARK: - Sidebar
 
+  // One set of line icons (24 px grid, 2 px stroke, round ends), drawn in the text's color.
+  var ICON = {
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+    home: '<path d="M4 10.5L12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+    film: '<rect x="3.5" y="4.5" width="17" height="15" rx="2"/><path d="M7.5 4.5v15M16.5 4.5v15M3.5 9.5h4M3.5 14.5h4M16.5 9.5h4M16.5 14.5h4"/>',
+    tv: '<rect x="3" y="5" width="18" height="12.5" rx="2"/><path d="M8.5 21h7M12 17.5V21"/>',
+    sparkle: '<path d="M12 3.5l1.9 5.1a2 2 0 0 0 1.2 1.2l5.1 1.9-5.1 1.9a2 2 0 0 0-1.2 1.2L12 20l-1.9-5.2a2 2 0 0 0-1.2-1.2L3.8 11.7l5.1-1.9a2 2 0 0 0 1.2-1.2z"/>',
+    library: '<path d="M6 3.5h12a1 1 0 0 1 1 1v16l-7-4.5-7 4.5v-16a1 1 0 0 1 1-1z"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M21.5 12h-3M5.5 12h-3M18.7 5.3l-2.1 2.1M7.4 16.6l-2.1 2.1M18.7 18.7l-2.1-2.1M7.4 7.4L5.3 5.3"/>'
+  };
+  function icon(n) {
+    return '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ICON[n] + '</svg>';
+  }
   var S = {open: false, i: 1, items: [
-    {ico: '⌕', a: 'Buscar'}, {ico: '⌂', a: 'Início', on: true}, {ico: '▭', a: 'Filmes'}, {ico: '▤', a: 'Séries'},
-    {ico: '✦', a: 'Curadoria'}, {ico: '♡', a: 'Biblioteca'}, {sep: true},
-    {ico: '⚙', a: 'Ajustes', act: function () { openSettings(); }}
+    {ico: 'search', a: 'Buscar', view: 'search'}, {ico: 'home', a: 'Início', view: 'home', on: true}, {ico: 'film', a: 'Filmes', view: 'movies'},
+    {ico: 'tv', a: 'Séries', view: 'series'}, {ico: 'sparkle', a: 'Curadoria', view: 'picks'}, {ico: 'library', a: 'Biblioteca', view: 'library'},
+    {sep: true}, {ico: 'gear', a: 'Ajustes', act: function () { openSettings(); }}
   ]};
-  function openSide() { S.open = true; S.i = 1; homeShown(); renderSide(); }
+  function openSide() {
+    S.open = true; S.i = 1;
+    for (var i = 0; i < S.items.length; i++) if (S.items[i].on) S.i = i;
+    homeShown(); renderSide();
+  }
   function closeSide() { S.open = false; $('#side').className = 'hidden'; paintHome(); }
   function renderSide() {
     var p = $('#side .panel');
-    p.innerHTML = '<div class="who">Perfil<b>Erick</b></div>';
+    p.innerHTML = '<div class="who"><span class="avatar">E</span><span class="name">Erick<i>Perfil</i></span></div>';
     var focusEl = null;
     for (var i = 0; i < S.items.length; i++) {
       var it = S.items[i];
       if (it.sep) { p.appendChild(el('div', 'sep')); continue; }
-      var e = el('div', 'it lift' + (it.on ? ' on' : ''), '<span class="ico">' + it.ico + '</span>' + esc(it.a) +
+      var e = el('div', 'it lift' + (it.on ? ' on' : ''), icon(it.ico) + '<span class="a">' + esc(it.a) + '</span>' +
         (it.val ? '<span class="val">' + esc(it.val()) + '</span>' : ''));
       p.appendChild(e);
       if (i === S.i) focusEl = e;
@@ -899,8 +1059,7 @@
     else if (k === 'ok') {
       var it = S.items[S.i];
       if (it.act) it.act();
-      else if (it.a === 'Início') closeSide();
-      else toast('No protótipo, só o Início está montado');
+      else showView(it.view);
     }
   }
 
@@ -1822,6 +1981,8 @@
   window.addEventListener('resize', fit);
   fit();
   buildRows();
+  loadAddons();
+  loadLibrary();
   renderHero();
   heroTick();
   focusTitle(heroItem().id);

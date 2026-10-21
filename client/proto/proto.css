@@ -199,19 +199,33 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 /* MARK: - Sidebar (tvOS 18+: Back opens it, → or a choice closes it) */
 
 #side { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
-  background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.1) 50%); background: linear-gradient(90deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.1) 50%); }
-#side .panel { position: absolute; left: 40px; top: 40px; bottom: 40px; width: 440px; border-radius: 36px; background: rgba(36, 36, 38, 0.97);
-  padding: 50px 26px; box-sizing: border-box; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); }
-#side .who { font-size: 24px; color: rgba(255, 255, 255, 0.55); margin: 0 0 30px 22px; }
-#side .who b { display: block; color: #fff; font-size: 30px; margin-top: 4px; }
-#side .it { height: 66px; line-height: 66px; padding: 0 24px; border-radius: 18px; font-size: 29px; font-weight: 600; color: rgba(255, 255, 255, 0.8); margin-bottom: 6px; }
-#side .it .ico { display: inline-block; width: 40px; color: rgba(255, 255, 255, 0.55); }
-#side .it.on { color: #fff; }
+  background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0) 45%); background: linear-gradient(90deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0) 45%); }
+/* Floating, away from every edge (TVs crop the borders), and as tall as what it holds. */
+#side .panel { position: absolute; left: 72px; top: 72px; width: 400px; border-radius: 44px; background: rgba(28, 28, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1); padding: 28px 18px 18px; box-sizing: border-box; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55); }
+#side .who { height: 72px; margin: 0 0 18px 14px; }
+#side .avatar { float: left; width: 64px; height: 64px; line-height: 64px; border-radius: 32px; text-align: center; font-size: 28px; font-weight: 700;
+  background: -webkit-linear-gradient(135deg, #7d8bff, #c86dd7); background: linear-gradient(135deg, #7d8bff, #c86dd7); color: #fff; margin-right: 18px; }
+#side .who .name { display: block; padding-top: 6px; font-size: 28px; font-weight: 700; color: #fff; }
+#side .who .name i { display: block; font-style: normal; font-size: 21px; font-weight: 500; color: rgba(255, 255, 255, 0.5); margin-top: 2px; }
+#side .it { position: relative; height: 64px; line-height: 64px; padding: 0 22px 0 70px; border-radius: 22px; font-size: 27px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.72); margin-bottom: 4px; }
+#side .it .ico { position: absolute; left: 22px; top: 18px; width: 28px; height: 28px; color: rgba(255, 255, 255, 0.6); }
+#side .it.on { color: #fff; background: rgba(255, 255, 255, 0.1); }
+#side .it.on .ico { color: #fff; }
 #side .it.focus { background: #fff; color: #000; -webkit-transform: scale(1.04); transform: scale(1.04); }
 #side .it.focus .ico { color: #000; }
-#side .sep { height: 2px; background: rgba(255, 255, 255, 0.08); margin: 24px 20px; }
+#side .sep { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 14px 18px; }
 #side .it .val { float: right; font-size: 23px; color: rgba(255, 255, 255, 0.5); font-weight: 500; }
 #side .it.focus .val { color: rgba(0, 0, 0, 0.55); }
+
+/* MARK: - Pages without a hero (Buscar, Biblioteca), and the search keyboard */
+
+.vtitle { margin: 0 0 40px 80px; padding-top: 70px; font-size: 64px; font-weight: 800; letter-spacing: -0.02em; }
+.row.keys { height: 200px; }
+.card.key { width: 72px; height: 88px; line-height: 88px; text-align: center; border-radius: 18px; background: rgba(255, 255, 255, 0.1);
+  font-size: 34px; font-weight: 600; text-transform: uppercase; margin-right: 12px; }
+.card.key.focus { background: #fff; color: #000; }
 
 /* MARK: - Menus (sources, subtitles, audio): a popover above the player's buttons */
 
