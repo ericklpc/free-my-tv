@@ -258,6 +258,11 @@ var TV = (function () {
       else this.launch('com.palm.app.settings', null, done);
     },
 
+    /** The page is on screen, drawn (Fire TV: lifts the loading cover put up after the Home button). */
+    shown: function () {
+      if (android && window.AndroidTV.shown) window.AndroidTV.shown();
+    },
+
     /** Back on the first screen: back to wherever the person came from. */
     back: function () {
       if (android) { window.AndroidTV.leave(); return; }

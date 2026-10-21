@@ -978,7 +978,13 @@
     checkNight();
   });
 
-  function reopened() { restartShelf(); reset(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
+  /** Tells the TV once the page has really painted what's on screen now (two frames later). */
+  function painted() {
+    var raf = window.requestAnimationFrame || function (f) { setTimeout(f, 16); };
+    raf(function () { raf(function () { TV.shown(); }); });
+  }
+
+  function reopened() { restartShelf(); reset(); painted(); loadApps(function () { renderShelf(); renderDrawer(); Data.refresh(); Stremio.refresh(true); }); }
 
   window.addEventListener('resize', fit);
   document.addEventListener('webOSRelaunch', reopened);   // LG: opened again while running
@@ -996,6 +1002,7 @@
   renderTop();
   loadApps(function () {
     renderAll();
+    painted();
     Data.refresh();
     Stremio.refresh();
   });

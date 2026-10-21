@@ -98,8 +98,7 @@ public class HomeWatcher extends Service {
         if (front == null) return;
         Log.i("HomeWatcher", front + (stayOnAmazon ? " (stay)" : "") + (now - opened < GUARD ? " (guard)" : ""));
         if (front.equals(getPackageName())) {
-            opened = 0;   // Sofá is up: the next Home counts, however soon it comes
-            uncover();
+            opened = 0;   // Sofá is up: the next Home counts, however soon it comes (the page lifts the cover)
             return;
         }
         if (!AMAZON_HOME.equals(front)) {
@@ -148,8 +147,7 @@ public class HomeWatcher extends Service {
         final View v = cover;
         if (v == null) return;
         cover = null;
-        // Let Sofá draw its first frame under the cover, then fade.
-        v.animate().alpha(0f).setStartDelay(250).setDuration(300).withEndAction(new Runnable() {
+        v.animate().alpha(0f).setStartDelay(100).setDuration(300).withEndAction(new Runnable() {
             @Override public void run() {
                 try { ((WindowManager) getSystemService(WINDOW_SERVICE)).removeView(v); } catch (Exception ignored) {}
             }
