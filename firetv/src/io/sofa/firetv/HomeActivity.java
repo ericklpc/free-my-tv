@@ -70,8 +70,11 @@ public class HomeActivity extends Activity {
         setContentView(web);
         web.loadUrl("file:///android_asset/web/index.html");
         web.requestFocus();
-        HomeWatcher.start(this);
+        // The Home button watcher belongs to the home screen app only, not to the player prototype (io.sofa.player).
+        if (isHome()) HomeWatcher.start(this);
     }
+
+    private boolean isHome() { return "io.sofa.firetv".equals(getPackageName()); }
 
     private boolean started;
 
@@ -80,7 +83,7 @@ public class HomeActivity extends Activity {
         web.onResume();
         // Back from Stremio or another app: to the shelf, with fresh lists (what you just watched moves up).
         if (started) js("window.FreeMyTV && FreeMyTV.reopened && FreeMyTV.reopened()");
-        HomeWatcher.arrived();
+        if (isHome()) HomeWatcher.arrived();
         started = true;
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);

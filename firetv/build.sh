@@ -33,14 +33,15 @@ MANIFEST=AndroidManifest.xml
 APK=Sofa-FireTV.apk
 if [ $PROTO = 1 ]; then
   python3 ../client/proto/build.py --out out/assets/web
-  # Its own package and name, no home-screen filter and no Home button service.
+  # Its own package and name, without the home-screen filter, the Home button watcher and its permissions.
   python3 -c "
 import re
 m = open('AndroidManifest.xml', encoding='utf-8').read()
 m = m.replace('package=\"io.sofa.firetv\"', 'package=\"io.sofa.player\"').replace('android:label=\"Sofá\"', 'android:label=\"Sofá Player\"')
 m = m.replace('android:name=\".HomeActivity\"', 'android:name=\"io.sofa.firetv.HomeActivity\"')
 m = re.sub(r'\s*<!-- A home screen.*?</intent-filter>', '', m, flags=re.S)
-m = re.sub(r'\s*<!-- Home button.*?</service>', '', m, flags=re.S)
+m = re.sub(r'\s*<!-- Home button.*?</receiver>', '', m, flags=re.S)
+m = re.sub(r'\s*<uses-permission android:name=\"android.permission.(PACKAGE_USAGE_STATS|RECEIVE_BOOT_COMPLETED|FOREGROUND_SERVICE|SYSTEM_ALERT_WINDOW)\" />', '', m)
 open('out/AndroidManifest.xml', 'w', encoding='utf-8').write(m)
 "
   MANIFEST=out/AndroidManifest.xml
