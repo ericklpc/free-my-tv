@@ -62,6 +62,7 @@
 
   /** Shelf apps in this order when installed, like the Android app: key, LG app id, name on the TV, brand gradient. */
   var SHELF = [
+    ['stremio', /stremio/i, /stremio/i, ['#8A5CF6', '#4B2BB3']],
     ['netflix', /^netflix$/, /netflix/i, ['#0A0A0A', '#000000']],
     ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
     ['prime', /^amazon$/, /prime video|amazon/i, ['#2AA8FF', '#0A68D4']],
@@ -148,7 +149,7 @@
     list = $('buttons').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.TOP && st.top === 3 + i);
     setClass($('quotes'), 'hide', st.zone === Z.TOP && st.top >= 3);
-    list = $('cards').children;
+    list = $('cards').firstChild.children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.CARDS && st.card === i);
     list = $('tiles').children;
     for (i = 0; i < list.length; i++) setClass(list[i], 'focus', st.zone === Z.SHELF && st.shelf === i);
@@ -161,6 +162,7 @@
     focusRows($('settings'), st.row, st.zone === Z.SETTINGS);
     focusRows($('shelfedit'), st.edit, st.zone === Z.EDIT);
     setClass(body, 'drawer-open', st.zone === Z.DRAWER);
+    showInfo();
   }
 
   function focusRows(sheet, index, on) {
@@ -189,13 +191,13 @@
 
   // MARK: - Top: title, tabs, buttons, quotes
 
-  var TAB_KIND = [null, 'movie', 'tv'];
+  var TAB_KIND = ['continue', 'movie', 'series'];
 
   function renderTop() {
-    $('title').textContent = tr('Para você', 'For You', 'Para ti');
+    $('title').textContent = '';
     var tabs = $('tabs');
     tabs.innerHTML = '';
-    var names = [tr('Explorar', 'Explore', 'Explorar'), tr('Filmes', 'Movies', 'Películas'), tr('Séries', 'Shows', 'Series')];
+    var names = [tr('Continuar', 'Continue', 'Continuar'), tr('Filmes', 'Movies', 'Películas'), tr('Séries', 'Shows', 'Series')];
     for (var i = 0; i < 3; i++) {
       var t = el('button', 'tab', tabs, names[i]);
       hover(t, Z.TOP, i);
@@ -225,30 +227,94 @@
 
   // MARK: - Picks and background
 
+  // MARK: - Top Shelf: Stremio's row and the focused title, full screen behind everything
+
+  var CARD_W = 356, CARD_GAP = 40, CARDS_SEEN = 4;
+
+  /** Loads an image and calls back only when it's there (offline, the placeholder stays). */
+  function whenLoaded(url, done) {
+    var img = new Image();
+    img.onload = function () { done(url); };
+    img.src = url;
+  }
+
   function renderCards() {
-    var list = Data.picks(TAB_KIND[st.tab]);
-    var holder = $('cards');
+    var list = Stremio.list(TAB_KIND[st.tab]);
+    var strip = $('cards').firstChild;
     setClass(body, 'no-picks', !list.length);
     var same = list.length === cards.length;
-    for (var i = 0; same && i < list.length; i++) same = list[i].id === cards[i].id && list[i].backdrop === cards[i].backdrop && list[i].meta === cards[i].meta;
-    if (same && holder.children.length === list.length) return;
+    for (var i = 0; same && i < list.length; i++) same = list[i].id === cards[i].id && list[i].progress === cards[i].progress;
+    if (same && strip.children.length === list.length) return;
     cards = list;
-    holder.innerHTML = '';
-    var rects = [[80, 1040], [1160, 320], [1520, 320]];
+    strip.innerHTML = '';
     for (var c = 0; c < list.length; c++) {
-      var p = list[c], card = el('div', 'card', holder);
-      card.style.left = rects[c][0] + 'px';
-      card.style.width = rects[c][1] + 'px';
-      var img = el('div', 'img', card);
-      img.style.backgroundImage = 'url(' + Data.image(p.backdrop, c === 0 ? 'w1280' : 'w780') + ')';
-      el('div', 'name', card, p.title);
-      if (c === 0 && p.meta) el('div', 'meta', card, p.meta);
-      hover(card, Z.CARDS, c);
+      (function (p, c) {
+        var card = el('div', 'card', strip);
+        card.style.left = c * (CARD_W + CARD_GAP) + 'px';
+        card.style.width = CARD_W + 'px';
+        var img = el('div', 'img' + (p.progress ? ' resume' : ''), card);
+        el('div', 'ph', img, p.title);
+        if (p.progress) el('i', '', el('div', 'bar', img)).style.width = Math.round(p.progress * 100) + '%';
+        whenLoaded(Stremio.background(p), function (url) {
+          img.style.backgroundImage = 'url(' + url + ')';
+          setClass(img, 'loaded', true);
+        });
+        el('div', 'name', card, p.title);
+        hover(card, Z.CARDS, c);
+      })(list[c], c);
     }
     st.card = Math.min(st.card, Math.max(0, list.length - 1));
     if (!list.length && st.zone === Z.CARDS) st.zone = Z.SHELF;
-    backdrop(list.length ? Data.image(list[0].backdrop, 'w300') : '');
+    shown = null;
     updateFocus();
+  }
+
+  var shown = null, artFront = 0;
+
+  /** The Top Shelf follows the focus: the focused title, or the row's first one while the focus is on the apps. */
+  function showInfo() {
+    var p = cards.length ? cards[st.zone === Z.CARDS ? st.card : 0] : null;
+    var strip = $('cards').firstChild, first = Math.max(0, Math.min(cards.length - CARDS_SEEN, st.zone === Z.CARDS ? st.card - 1 : 0));
+    strip.style.webkitTransform = strip.style.transform = 'translateX(' + (-first * (CARD_W + CARD_GAP)) + 'px)';
+    if (p === shown) return;
+    shown = p;
+    var info = $('info'), logo = info.firstChild;
+    setClass(info, 'empty', !p);
+    if (!p) return;
+    logo.lastChild.textContent = p.title;
+    setClass(logo, 'has', false);
+    whenLoaded(Stremio.logo(p), function (url) {
+      if (shown !== p) return;
+      logo.firstChild.src = url;
+      setClass(logo, 'has', true);
+    });
+    var meta = info.children[1];
+    meta.innerHTML = '';
+    var parts = Stremio.meta(p);
+    for (var i = 0; i < parts.length; i++) el('span', '', meta, parts[i]);
+    if (p.rating) el('span', 'badge', meta, 'IMDb ' + p.rating);
+    info.lastChild.textContent = p.description;
+    whenLoaded(Stremio.background(p), function (url) {
+      if (shown !== p) return;
+      var shots = $('art').children, next = shots[1 - artFront];
+      next.style.backgroundImage = 'url(' + url + ')';
+      setClass(next, 'on', true);
+      setClass(shots[artFront], 'on', false);
+      artFront = 1 - artFront;
+    });
+  }
+
+  function stremioApp() {
+    for (var i = 0; i < apps.length; i++) if (/stremio/i.test(apps[i].id) || /stremio/i.test(apps[i].title)) return apps[i];
+    return null;
+  }
+
+  function openTitle(p) {
+    var app = stremioApp();
+    if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
+    TV.launch(app.id, {uri: Stremio.link(p)}, function (ok) {
+      if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
+    });
   }
 
   var bgUrl = null, bgFront = 'bgA';
@@ -624,8 +690,7 @@
         else openSettings();
         return;
       case Z.CARDS:
-        var p = cards[st.card], app = p && Data.appFor(p.app);
-        if (app) launcher(app.id, app.title)();
+        if (cards[st.card]) openTitle(cards[st.card]);
         return;
       case Z.SHELF:
         if (shelf[st.shelf]) launcher(shelf[st.shelf].id, shelf[st.shelf].title)();
@@ -652,7 +717,7 @@
   }
 
   function move(dx, dy) {
-    var tiles = $('tiles').children, cardNodes = $('cards').children;
+    var tiles = $('tiles').children, cardNodes = $('cards').firstChild.children;
     switch (st.zone) {
       case Z.SHELF:
         if (dx) st.shelf = Math.max(0, Math.min(shelf.length - 1, st.shelf + dx));
@@ -855,6 +920,7 @@
     updateFocus();
   }
 
+  Stremio.onChange(renderCards);
   Data.onChange(function () {
     renderQuotes();
     renderCards();
@@ -879,11 +945,13 @@
   loadApps(function () {
     renderAll();
     Data.refresh();
+    Stremio.refresh();
   });
   setInterval(function () {
     renderClock();
     checkNight();
     Data.refresh();
+    Stremio.refresh();
     if (!saverOn && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
   }, 30000);
