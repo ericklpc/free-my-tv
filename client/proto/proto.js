@@ -592,6 +592,7 @@
       if (H.zone === 'hero') H.page = 0;
     }
     H.page = Math.min(H.page, HOME.hero.length - 1);
+    if (state.screen === 'home' && H.zone === 'hero') focusTitle(heroItem().id);   // prepare the hero shown now, not the old one
     if (state.screen === 'home' && !S.open && !sheet.open) { renderHero(); paintHome(); }
   }
 
