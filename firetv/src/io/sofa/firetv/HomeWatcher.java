@@ -9,6 +9,7 @@ import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Build;
 import android.os.Handler;
 import android.graphics.Color;
@@ -41,6 +42,7 @@ public class HomeWatcher extends Service {
     private final Handler handler = new Handler();
     private UsageStatsManager usage;
     private long checked, opened;
+    private String lastFront;
     private View cover;
 
     private static HomeWatcher running;
@@ -61,7 +63,39 @@ public class HomeWatcher extends Service {
         running = this;
         usage = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         checked = System.currentTimeMillis();
+        lastFront = latestFront(checked - 24 * 3600 * 1000L, checked);
+        registerReceiver(wake, new IntentFilter(Intent.ACTION_SCREEN_ON));
         handler.post(tick);
+    }
+
+    /**
+     * Turning the TV on wakes the stick where it was, usually Amazon's home, without anything new coming to the
+     * front: so on waking, Sofá opens if that's where it is (even if you had left Sofá with Back before).
+     */
+    private final BroadcastReceiver wake = new BroadcastReceiver() {
+        @Override public void onReceive(Context c, Intent i) {
+            stayOnAmazon = false;
+            handler.postDelayed(new Runnable() { @Override public void run() {
+                long now = System.currentTimeMillis();
+                String front = latestFront(now - 24 * 3600 * 1000L, now);
+                if (front != null) lastFront = front;
+                Log.i("HomeWatcher", "screen on, front " + lastFront);
+                if (AMAZON_HOME.equals(lastFront)) open(now);
+            } }, 1500);
+        }
+    };
+
+    /** The last app that came to the front between from and to, or null. */
+    private String latestFront(long from, long to) {
+        String front = null;
+        try {
+            UsageEvents events = usage.queryEvents(from, to);
+            UsageEvents.Event e = new UsageEvents.Event();
+            while (events.getNextEvent(e)) {
+                if (e.getEventType() == UsageEvents.Event.MOVE_TO_FOREGROUND) front = e.getPackageName();
+            }
+        } catch (Exception ignored) {}
+        return front;
     }
 
     @Override public int onStartCommand(Intent intent, int flags, int id) {
@@ -96,6 +130,7 @@ public class HomeWatcher extends Service {
             }
         } catch (Exception ignored) {}
         if (front == null) return;
+        lastFront = front;
         Log.i("HomeWatcher", front + (stayOnAmazon ? " (stay)" : "") + (now - opened < GUARD ? " (guard)" : ""));
         if (front.equals(getPackageName())) {
             opened = 0;   // Sofá is up: the next Home counts, however soon it comes (the page lifts the cover)
@@ -106,6 +141,10 @@ public class HomeWatcher extends Service {
             return;
         }
         if (stayOnAmazon || now - opened < GUARD) return;
+        open(now);
+    }
+
+    private void open(long now) {
         opened = now;
         cover();
         startActivity(new Intent(this, HomeActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
@@ -156,6 +195,7 @@ public class HomeWatcher extends Service {
 
     @Override public void onDestroy() {
         if (running == this) running = null;
+        try { unregisterReceiver(wake); } catch (Exception ignored) {}
         uncover();
         handler.removeCallbacks(tick);
         super.onDestroy();
