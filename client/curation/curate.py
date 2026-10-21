@@ -318,7 +318,7 @@ def reasons(d, taste, best, idf):
     return sorted(((taste.get(x, 0) * idf.get(x, 1), x) for x in f if taste.get(x, 0) > 0 and x in best), reverse=True)
 
 
-def why(d, taste, best, idf, said=None, skip=None):
+def why(d, taste, best, idf, said=None, skip=None, bare=True):
     """One line, in Portuguese: who made it, or what it shares with films he rated high, and the critics' grade."""
     n = names(d)
     kw = dict(((('k:%d' % k['id']), k['name'].lower()) for k in (d.get('keywords') or {}).get('keywords', [])))
@@ -353,6 +353,8 @@ def why(d, taste, best, idf, said=None, skip=None):
             said[f] = said.get(f, 0) + 1
         if len(out) == 2:
             break
+    if not out and not bare:
+        return ''                                           # inside a row of its own, a genre alone says nothing
     if not out:
         g = [x['name'].lower() for x in d.get('genres', [])][:2]
         out.append(' e '.join(g).capitalize() if g else 'Fora da sua zona de conforto')
@@ -402,21 +404,29 @@ LINK = (('d', 'Também de %s'), ('w', 'Também com roteiro de %s'), ('c', 'Tamb�
         ('k', 'Também sobre %s'), ('o', 'Também cinema %s'))
 
 
+LINK_PT = {'cinema queer': 'temática LGBT+'}
+
+
 def link(d, seed):
+    """How strongly d comes from seed (a person counts 2, a theme or the country 1, the decade or a genre ½), and
+    the lines that say it, each with its feature."""
     shared, n = set(features(d)) & set(features(seed)), names(seed)
     kw = dict((('k:%d' % k['id']), k['name'].lower()) for k in (seed.get('keywords') or {}).get('keywords', []))
-    out = []
+    out, strength = [], 0
+    for f in shared:
+        strength += 2 if f[0] in 'dwcp' else 1 if f[0] in 'ko' else 0.5 if f[0] in 'yg' else 0
     for kind, text in LINK:
         for f in sorted(x for x in shared if x[0] == kind):
             if kind == 'k':
                 name = KW_PT.get(kw.get(f))
+                name = LINK_PT.get(name, name)
             elif kind == 'o':
                 name = COUNTRY_PT.get(f[2:]) if f[2:] != 'US' else None
             else:
                 name = n.get(f)
             if name:
-                out.append(text % name)
-    return out
+                out.append((text % name, f))
+    return strength, out
 
 
 def proper(d):
@@ -460,9 +470,10 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
         docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)]
         if kind == 'because':
             # Only what really comes from that film: the same director, writer, cast, theme or country.
+            # One person in common, or two other ties (Argentina and the 70s, not just one theme).
             links = dict((d['id'], link(d, seed)) for d in docs)
-            docs = [d for d in docs if links[d['id']]]
-            docs.sort(key=lambda d: (-min(len(links[d['id']]), 2), -score(d, taste, wish, idf)))
+            docs = [d for d in docs if links[d['id']][0] >= 2 and links[d['id']][1]]
+            docs.sort(key=lambda d: (-min(links[d['id']][0], 4), -score(d, taste, wish, idf)))
         else:
             docs.sort(key=lambda d: -score(d, taste, wish, idf))
         docs = docs[:16]
@@ -470,9 +481,10 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week_rnd, taken):
         def line(d):
             if kind == 'because':
                 # The tie to the seed, then one of his own reasons when there is one (they end in the stars).
-                first, rest = links[d['id']][0], why(d, taste, best, idf).split(' · ')[0]
+                first, f = links[d['id']][1][0]
+                rest = why(d, taste, best, idf, skip=f, bare=False).split(' · ')[0]
                 return first + (' · ' + rest if rest.endswith(')') and seed.get('title', '') not in rest else '')
-            return why(d, taste, best, idf, skip=seed)
+            return why(d, taste, best, idf, skip=seed, bare=False)
         items = [entry(d, line(d)) for d, good in zip(docs, ok) if good][:10]
         if len(items) >= 5:
             rows.append({'title': title, 'kind': kind, 'items': items})

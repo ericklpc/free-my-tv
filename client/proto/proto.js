@@ -402,7 +402,7 @@
       if (item.next) l2 = 'Próximo · T' + item.s + ' E' + item.e;
       else if (item.s) l2 = 'T' + item.s + ' · E' + item.e + ' · ' + item.left + ' min restantes';
       else l2 = minutes(item.left) + ' restantes';
-    } else if (kind === 'picks' || kind === 'mine') l2 = item.why;
+    } else if (kind === 'picks' || (kind === 'mine' && item.why)) l2 = item.why;
     else if (kind === 'chart' || kind === 'poster') { l1 = ''; }
     else l2 = t.year + ' · ' + t.genres[0];
     if (l1 || l2) c.appendChild(el('div', 'cap', '<div class="l1">' + esc(l1) + '</div><div class="l2">' + esc(l2) + '</div>'));
