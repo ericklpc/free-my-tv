@@ -442,6 +442,95 @@
     x.send(JSON.stringify({type: 'AddonCollectionGet', authKey: key, update: true}));
   }
 
+  // MARK: - Stremio's library: Continue watching comes from it, and playback saves the position back to it, so
+  // Stremio (and its Trakt sync) see the same progress.
+
+  var LIB = {};
+  function stremio(method, body, done) {
+    var x = new XMLHttpRequest();
+    x.open('POST', 'https://api.strem.io/api/' + method, true);
+    x.setRequestHeader('Content-Type', 'application/json');
+    x.timeout = 15000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      var o = null;
+      try { o = x.status === 200 ? JSON.parse(x.responseText) : null; } catch (e) {}
+      if (done) done(o && o.result);
+    };
+    x.ontimeout = x.onerror = function () { if (done) done(null); };
+    body.authKey = (CFG.stremioAuthKey || '').trim();
+    x.send(JSON.stringify(body));
+  }
+
+  function loadLibrary() {
+    if (!(CFG.stremioAuthKey || '').trim()) return;
+    stremio('datastoreGet', {collection: 'libraryItem', all: true}, function (items) {
+      if (!items || !items.length) return;
+      var list = items.filter(function (it) {
+        return (!it.removed || it.temp) && it.state && it.state.timeOffset > 0 && (it.type === 'movie' || it.type === 'series') && /^tt\d+$/.test(it._id);
+      }).sort(function (a, b) { return Date.parse(b.state.lastWatched || b._mtime) - Date.parse(a.state.lastWatched || a._mtime); }).slice(0, 12);
+      if (!list.length) return;
+      var left = list.length, out = [];
+      list.forEach(function (it, i) {
+        LIB[it._id] = it;
+        var st = it.state, ep = /:(\d+):(\d+)$/.exec(st.video_id || '');
+        out[i] = {id: it._id, s: ep ? +ep[1] : 0, e: ep ? +ep[2] : 0, posMs: st.timeOffset,
+          progress: st.duration ? Math.min(1, st.timeOffset / st.duration) : 0,
+          left: st.duration ? Math.max(1, Math.round((st.duration - st.timeOffset) / 60000)) : 0};
+        libraryTitle(it, function () { if (--left === 0) showLibrary(out); });
+      });
+    });
+  }
+  // A library item knows only its name and poster: the rest from Cinemeta, and the TMDB id for the pt-BR art.
+  function libraryTitle(it, done) {
+    var id = it._id;
+    if (TITLES[id] && TITLES[id].desc) { done(); return; }
+    get(CINEMETA + '/meta/' + it.type + '/' + id + '.json', function (o) {
+      var m = o && o.meta || {name: it.name, poster: it.poster};
+      delete TITLES[id];
+      fromCinemeta(m, it.type);
+      if (!CFG.tmdbKey) { done(); return; }
+      get('https://api.themoviedb.org/3/find/' + id + '?external_source=imdb_id&api_key=' + encodeURIComponent(CFG.tmdbKey), function (f) {
+        var hit = f && ((f.movie_results || [])[0] || (f.tv_results || [])[0]);
+        if (hit) TITLES[id].tmdb = hit.id;
+        done();
+      });
+    });
+  }
+  function showLibrary(items) {
+    var row = HOME.rows[0];
+    row.items = items; row.live = true;
+    fillRow(0);
+    if (state.screen === 'home' && !S.open && !sheet.open) { renderHero(); paintHome(); }
+  }
+
+  // The position goes back to the library every 30 s, on pause and on leaving, like Stremio's own player does.
+  function saveProgress() {
+    if (!REAL || !P.started || !(CFG.stremioAuthKey || '').trim()) return;
+    var t = P.t, imdb = /^tt\d+$/.test(P.id) ? P.id : t.imdb;
+    if (!imdb || !(P.dur > 0)) return;
+    var at = new Date().toISOString(), old = LIB[imdb];
+    var it = old ? JSON.parse(JSON.stringify(old)) : {_id: imdb, name: t.title, type: t.type, poster: t.art && t.art.poster || '',
+      posterShape: 'poster', removed: true, temp: true, _ctime: at,
+      state: {lastWatched: at, timeWatched: 0, timeOffset: 0, overallTimeWatched: 0, timesWatched: 0, flaggedWatched: 0,
+        duration: 0, video_id: imdb, watched: '', noNotif: false},
+      behaviorHints: {defaultVideoId: null, featuredVideoId: null, hasScheduledVideos: false}};
+    var st = it.state, watched = Math.max(0, now() - (P.savedAt || P.rec.at));
+    P.savedAt = now();
+    st.lastWatched = at;
+    st.timeWatched = (st.timeWatched || 0) + watched;
+    st.overallTimeWatched = (st.overallTimeWatched || 0) + watched;
+    st.duration = Math.round(P.dur * 1000);
+    st.timeOffset = Math.round(P.pos * 1000);
+    st.video_id = P.s ? imdb + ':' + P.s + ':' + P.e : imdb;
+    if (!P.s && P.pos / P.dur > 0.9) { st.timeOffset = 0; st.flaggedWatched = 1; st.timesWatched = (st.timesWatched || 0) + 1; }
+    it._mtime = at;
+    LIB[imdb] = it;
+    stremio('datastorePut', {collection: 'libraryItem', changes: [it]}, function (ok) {
+      if (!ok) console.log('[library] não salvou a posição de ' + imdb);
+    });
+  }
+
   // The addons name their catalogs in English: the common ones in Portuguese, the rest as they are.
   function catalogName(n, addon) {
     var trakt = /trakt/i.test(addon), lb = /boxd/i.test(addon);
@@ -500,6 +589,7 @@
     for (var r = 0; r < HOME.rows.length; r++) addRow(r);
     for (r = 0; r < HOME.rows.length; r++) loadRow(r);
     loadAddons();
+    loadLibrary();
   }
 
   var focused = null;
@@ -959,7 +1049,8 @@
     var t = TITLES[id], t0 = now(), clicks = M.clicks, warm = R[id] && R[id].ready;
     P.id = id; P.t = t; P.s = from && from.s || (t.type === 'series' ? 1 : 0); P.e = from && from.e || (t.type === 'series' ? 1 : 0);
     P.dur = (t.type === 'series' ? 50 : t.runtime) * 60;
-    P.pos = from && from.progress ? from.progress * P.dur : 0;      // resume without asking (HIG: playing video)
+    P.pos = from && from.posMs ? from.posMs / 1000 : from && from.progress ? from.progress * P.dur : 0;   // resume without asking (HIG: playing video)
+    P.savedAt = 0;
     if (t.type === 'series' && !P.pos) P.pos = 30;                  // so skip intro shows up soon in the demo
     P.paused = false; P.started = false; P.zone = 'bar'; P.pill = 0; P.tabs = false; P.nextCount = 0;
     show('player');
@@ -1038,6 +1129,7 @@
     } else if (ev.type === 'error' || ev.type === 'stall') {
       fallback(ev.type === 'error' ? 'A fonte falhou' : 'A fonte travou');
     } else if (ev.type === 'ended') {
+      P.pos = P.dur; saveProgress();
       if (P.s && hasNext()) nextEpisode(); else stopPlayer();
     } else if (ev.type === 'tracks') {
       P.tracks = ev;
@@ -1091,6 +1183,7 @@
       try { st = JSON.parse(window.Player.state()); } catch (e) {}
       if (st.pos != null) P.pos = st.pos / 1000;
       if (st.dur > 0) P.dur = st.dur / 1000;
+      if (now() - (P.savedAt || P.rec.at) > 30000) saveProgress();
     } else if (!P.paused) P.pos += 0.25;
     // A stream that breaks: Media3 reports the error (or the buffer stalls for 6 s); the next stream takes over at
     // the same position, without the person doing anything.
@@ -1286,7 +1379,7 @@
 
   function togglePause() {
     P.paused = !P.paused;
-    if (REAL) { if (P.paused) window.Player.pause(); else window.Player.play(); }
+    if (REAL) { if (P.paused) { window.Player.pause(); saveProgress(); } else window.Player.play(); }
   }
   // Seeks: the simulation moves its clock; the real player seeks.
   function seekBy(sec) {
@@ -1344,10 +1437,10 @@
   // Leaving playback opens the title's page (HIG), where Continue now carries the new position.
   function stopPlayer() {
     clearInterval(P.tick);
+    if (REAL) { saveProgress(); window.Player.stop(); document.body.className = ''; }
     P.started = false;
-    if (REAL) { window.Player.stop(); document.body.className = ''; }
     var c = continueOf(P.id);
-    if (c) { c.progress = P.pos / P.dur; c.left = Math.round((P.dur - P.pos) / 60); if (P.s) { c.s = P.s; c.e = P.e; } }
+    if (c) { c.posMs = P.pos * 1000; c.progress = P.pos / P.dur; c.left = Math.round((P.dur - P.pos) / 60); if (P.s) { c.s = P.s; c.e = P.e; } }
     if (state.screen === 'player') {
       if (D.id !== P.id) D.stack = [];       // played straight from Home: Back on the page goes Home
       openDetail(P.id, c || (D.id === P.id ? D.item : {}), true);
