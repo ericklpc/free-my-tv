@@ -506,7 +506,8 @@ def learn():
     # from the one that holds him least. Never more than one row moves per run.
     quota = {'because': 3, 'director': 3, 'theme': 2, 'country': 2}
     measured = [k for k in KINDS if policy['stats'].get('row:' + k, {}).get('shown', 0) >= 20]
-    if len(measured) >= 2:
+    starts = sum(policy['stats'].get('row:' + k, {}).get('started', 0) for k in KINDS)
+    if len(measured) >= 2 and starts >= 3:                  # a few films started, not one peek
         best_k = max(measured, key=lambda k: weight[k])
         worst_k = min(measured, key=lambda k: weight[k])
         if best_k != worst_k and weight[best_k] > 1.5 * weight[worst_k] and quota[worst_k] > 1:
