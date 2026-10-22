@@ -96,7 +96,8 @@
   function loadSeason(id, n, done) {
     var t = TITLES[id];
     loadArt(id, function (a) {
-      if (!a) { done(null); return; }
+      // No TMDB for this one (a title from a Stremio list): Cinemeta has the names and pictures too.
+      if (!a || !a.seasons || !t.tmdb || !CFG.tmdbKey) { cinemetaSeason(id, n, done); return; }
       if (a.seasons[n]) { done(a.seasons[n]); return; }
       get('https://api.themoviedb.org/3/tv/' + t.tmdb + '/season/' + n + '?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&language=pt-BR', function (o) {
         var eps = [];
@@ -107,6 +108,21 @@
         a.seasons[n] = eps;
         done(eps);
       });
+    });
+  }
+  var cine = {};
+  function cinemetaSeason(id, n, done) {
+    function pick(v) {
+      var eps = [];
+      for (var i = 0; i < v.length; i++) if (v[i].season === n && v[i].episode > 0)
+        eps[v[i].episode - 1] = {name: v[i].name || v[i].title || 'Episódio ' + v[i].episode, desc: v[i].overview || v[i].description || '', still: v[i].thumbnail || '', runtime: 0};
+      for (i = 0; i < eps.length; i++) if (!eps[i]) eps[i] = {name: 'Episódio ' + (i + 1), desc: '', still: '', runtime: 0};
+      done(eps.length ? eps : null);
+    }
+    if (cine[id]) { pick(cine[id]); return; }
+    get(CINEMETA + '/meta/series/' + id + '.json', function (o) {
+      cine[id] = o && o.meta && o.meta.videos || [];
+      pick(cine[id]);
     });
   }
   function episodeName(id, s, e, done) {
@@ -1188,6 +1204,11 @@
       for (var s = 1; s <= t.seasons.length; s++) tabs.appendChild(el('span', s === D.season ? 'on' : '', 'Temporada ' + s));
       box.appendChild(tabs);
       D.tabs = tabs;
+      // Side by side when they fit on the screen; past that, one button that opens the list.
+      var wide = 0;
+      for (s = 0; s < tabs.children.length; s++) wide += tabs.children[s].offsetWidth + 8;
+      D.drop = t.seasons.length > 1 && wide > 1760;
+      if (D.drop) { tabs.innerHTML = ''; tabs.appendChild(el('span', 'on drop', '')); }
       var eps = el('div', 'row');
       eps.appendChild(el('div', 'sub', ''));
       var track = el('div', 'track');
@@ -1253,7 +1274,10 @@
 
   function paintDetail() {
     var t = TITLES[D.id];
-    if (D.tabs) {
+    if (D.tabs && D.drop) {
+      D.tabs.firstChild.textContent = 'Temporada ' + D.season + '  ·  ' + t.seasons.length + ' temporadas  ▾';
+      D.tabs.firstChild.className = 'on drop';
+    } else if (D.tabs) {
       var spans = D.tabs.children;
       for (var i = 0; i < spans.length; i++) spans[i].className = (i + 1 === D.season ? 'on' : '');
     }
@@ -1263,7 +1287,7 @@
     } else if (D.zone === 'seasons') {
       translate($('#dpage'), 0, -760);
       setFocus(null);
-      D.tabs.children[D.season - 1].className = 'focus';
+      D.tabs.children[D.drop ? 0 : D.season - 1].className = 'focus' + (D.drop ? ' drop' : '');
     } else {
       var row = D.rows[D.row];
       var top = 1080 + row.el.offsetTop - (t.type === 'series' && D.row === 0 ? 240 : 170);
@@ -1271,6 +1295,13 @@
       scrollTrack(row, D.idx[D.row]);
       setFocus(row.cards[D.idx[D.row]]);
     }
+  }
+
+  function pickSeason() {
+    var t = TITLES[D.id], items = [];
+    for (var s = 1; s <= t.seasons.length; s++) items.push({a: 'Temporada ' + s, b: t.seasons[s - 1] + ' episódios', chk: s === D.season,
+      act: (function (s) { return function () { D.season = s; D.idx[0] = 0; fillEpisodes(); closeSheet(); }; })(s)});
+    openSheet(t.title, items);
   }
 
   function detailKey(k) {
@@ -1300,6 +1331,7 @@
       if (k === 'left' && D.season > 1) { D.season--; fillEpisodes(); }
       else if (k === 'right' && D.season < t.seasons.length) { D.season++; fillEpisodes(); }
       else if (k === 'up') D.zone = 'buttons';
+      else if (k === 'ok' && D.drop) { pickSeason(); return; }
       else if (k === 'down' || k === 'ok') { D.zone = 'rows'; D.row = 0; }
     } else {
       var row = D.rows[D.row];

@@ -124,7 +124,7 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 #detail .desc { margin-top: 24px; font-size: 27px; line-height: 38px; color: rgba(255, 255, 255, 0.85); max-width: 900px; max-height: 114px; overflow: hidden; }
 #detail .credits { margin-top: 16px; font-size: 23px; color: rgba(255, 255, 255, 0.55); }
 #drows { position: relative; background: #000; padding-top: 10px; padding-bottom: 80px; }
-.seasons { margin: 0 0 18px 80px; height: 50px; }
+.seasons { margin: 0 0 18px 80px; height: 50px; white-space: nowrap; }
 .seasons span { display: inline-block; font-size: 25px; font-weight: 600; padding: 0 22px; height: 50px; line-height: 50px; border-radius: 25px;
   color: rgba(255, 255, 255, 0.55); margin-right: 8px; }
 .seasons span.on { color: #fff; background: rgba(255, 255, 255, 0.16); }

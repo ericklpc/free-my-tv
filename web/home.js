@@ -359,6 +359,7 @@
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
     TV.launch(app.id, {uri: Stremio.link(p, app.id === PLAYER ? 'sofa://' : null)}, function (ok) {
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
+      else away = true;
     });
   }
 
@@ -724,6 +725,7 @@
     return function () {
       TV.launch(id, null, function (ok) {
         if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + (name || id));
+        else away = true;
       });
     };
   }
@@ -870,6 +872,9 @@
     setClass(body, 'night', Data.isNight(Date.now()));
   }
 
+  // away: something was opened from here (an app, an input). On some Samsungs the page still counts as on screen
+  // under an input, so no screensaver until a key is pressed here again.
+  var away = false;
   var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, SAVER_AFTER = 5 * 60000;
 
   function showSaver() {
@@ -923,7 +928,7 @@
   }
 
   function poke() {
-    idleAt = Date.now();
+    idleAt = Date.now(); away = false;
     if (saverOn) { hideSaver(); return true; }
     return false;
   }
@@ -1060,7 +1065,7 @@
     checkNight();
     Data.refresh();
     Stremio.refresh();
-    if (!saverOn && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
+    if (!saverOn && !away && !document.hidden && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
   }, 30000);
 

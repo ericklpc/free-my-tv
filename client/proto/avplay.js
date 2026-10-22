@@ -143,11 +143,23 @@
     ondrmevent: function () {}
   };
 
+  // The TV's screensaver stays off while a film plays, and comes back when it's paused or closed.
+  var saverOff = false;
+  function saver(off) {
+    if (off === saverOff) return;
+    saverOff = off;
+    try {
+      var st = webapis.appcommon.AppCommonScreenSaverState;
+      webapis.appcommon.setScreenSaver(off ? st.SCREEN_SAVER_OFF : st.SCREEN_SAVER_ON);
+    } catch (e) {}
+  }
+
   // A stream that stops moving for 6 s, or never starts in 25: the page moves to the next source.
   setInterval(function () {
-    if (!S.wantPlay || !S.url) return;
     var state = '';
     try { state = av.getState(); } catch (e) {}
+    saver(!!S.url && state === 'PLAYING');
+    if (!S.wantPlay || !S.url) return;
     if (!S.rendered) {
       if (now() - S.openedAt > START_MS) { emit({type: 'error', code: 'TIMEOUT', message: 'no picture in 25 s'}); S.wantPlay = false; }
       return;
