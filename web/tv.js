@@ -53,6 +53,8 @@ var TV = (function () {
 
   // Samsung's live TV viewer: it shows whichever source the TV is on (the antenna, or the HDMI picked here).
   var SAMSUNG_VIEWER = 'org.tizen.tv-viewer';
+  // The Frame's Art Mode app (opened on its picture picker when the channel below doesn't answer).
+  var SAMSUNG_ART = 'org.tizen.art-app';
 
   var SAMPLE = [
     ['com.stremio.one', 'Stremio', '#7B5BF5'], ['netflix', 'Netflix', '#E50914'], ['youtube.leanback.v4', 'YouTube', '#FF0033'], ['amazon', 'Prime Video', '#1A98FF'],
@@ -160,6 +162,44 @@ var TV = (function () {
     });
   }
 
+  /**
+   * The Frame: into Art Mode, as Samsung's own remote apps do it, through the TV's local art channel (wss, port 8002).
+   * The first time the TV asks to allow "Sofá"; its token is kept for the next times. If the channel doesn't answer,
+   * the Art app opens instead (on its picture picker).
+   */
+  function samsungArt(done) {
+    var finished = false, ws = null, token = '';
+    try { token = window.localStorage.getItem('sofa.art.token') || ''; } catch (e) {}
+    function end(ok) {
+      if (finished) return;
+      finished = true;
+      try { if (ws) ws.close(); } catch (e) {}
+      if (ok) { if (done) done(true); } else samsungLaunch(SAMSUNG_ART, done);
+    }
+    var timer = setTimeout(function () { end(false); }, 15000);   // time to answer the TV's "allow" question
+    try {
+      ws = new WebSocket('wss://127.0.0.1:8002/api/v2/channels/com.samsung.art-app?name=' + window.btoa('Sofa')
+        + (token ? '&token=' + token : ''));
+      ws.onmessage = function (m) {
+        var o = null;
+        try { o = JSON.parse(m.data); } catch (e) { return; }
+        if (o.event === 'ms.channel.connect') {
+          if (o.data && o.data.token) { try { window.localStorage.setItem('sofa.art.token', o.data.token); } catch (e) {} }
+          ws.send(JSON.stringify({method: 'ms.channel.emit', params: {event: 'art_app_request', to: 'host',
+            data: JSON.stringify({request: 'set_artmode_status', value: 'on', id: String(Date.now())})}}));
+          setTimeout(function () { clearTimeout(timer); end(true); }, 1000);
+        } else if (o.event === 'ms.channel.unauthorized' || o.event === 'ms.error') {
+          clearTimeout(timer);
+          end(false);
+        }
+      };
+      ws.onerror = function () { clearTimeout(timer); end(false); };
+    } catch (e) {
+      clearTimeout(timer);
+      end(false);
+    }
+  }
+
   /** Samsung's settings: whichever app answers the platform's "settings" request. */
   function samsungSettings(done) {
     try {
@@ -175,6 +215,12 @@ var TV = (function () {
 
   return {
     name: webos ? 'webos' : samsung ? 'tizen' : android ? 'android' : 'browser',
+    /** The Frame (Samsung's Art Mode TVs). */
+    frame: function () {
+      if (!samsung) return false;
+      try { return /^Q[NE]\d\dL?S03/.test(window.webapis.productinfo.getRealModel()); } catch (e) {}
+      try { return !!window.tizen.application.getAppInfo(SAMSUNG_ART); } catch (e) { return false; }
+    },
 
     /** Installed apps, as the TV's launcher lists them: [{id, title, icon, color}]. */
     apps: function (done) {
@@ -209,7 +255,8 @@ var TV = (function () {
     /** Opens an app (or an input); done(ok). */
     launch: function (id, params, done) {
       if (samsung) {
-        if (id.indexOf('source:') === 0) samsungSource(id, done);
+        if (id === 'art') samsungArt(done);
+        else if (id.indexOf('source:') === 0) samsungSource(id, done);
         else if (params && params.uri) samsungOpen(id, params.uri, done);
         else samsungLaunch(id, done);
         return;

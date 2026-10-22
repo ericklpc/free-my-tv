@@ -115,11 +115,29 @@
 
   var apps = [], shelf = [], others = [], inputs = [];
 
-  var PLAYER = 'io.sofa.player';   // Sofá Player (client/ on Fire TV): where Stremio's place and titles go, when installed
+  var PLAYER = 'io.sofa.player';   // Sofá Player (client/): where Stremio's place and titles go, when installed
+  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;          // on Fire TV, and on Samsung
 
   function player() {
-    for (var i = 0; i < apps.length; i++) if (apps[i].id === PLAYER) return apps[i];
+    for (var i = 0; i < apps.length; i++) if (IS_PLAYER.test(apps[i].id)) return apps[i];
     return null;
+  }
+
+  // Samsung: live TV and (on The Frame) Art Mode right on the shelf, next to the first app, a press or two from start.
+  function glyph(paths) {
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" '
+      + 'fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>');
+  }
+
+  function tvTiles() {
+    if (TV.name !== 'tizen') return [];
+    var out = [{id: 'source:TV:1', title: tr('TV ao vivo', 'Live TV', 'TV en vivo'), color: '#E5484D',
+      icon: glyph('<rect x="5" y="10" width="38" height="26" rx="4"/><path d="M16 42h16M19 4l5 6 5-6"/>')}];
+    if (TV.frame()) {
+      out.push({id: 'art', title: tr('Modo Arte', 'Art Mode', 'Modo Arte'), color: '#B08D57',
+        icon: glyph('<rect x="5" y="7" width="38" height="34" rx="2"/><rect x="11" y="13" width="26" height="22"/><path d="M11 31l8-8 6 6 4-4 8 8"/>')});
+    }
+    return out;
   }
 
   /** Stremio's tile opens Sofá Player instead, when it's there. */
@@ -147,6 +165,8 @@
       }
       if (!out.length) out = apps.slice(0, MAX_SHELF);
     }
+    var extra = tvTiles();
+    if (extra.length) out = out.slice(0, 1).concat(extra, out.slice(1)).slice(0, MAX_SHELF);
     shelf = out;
     others = apps.filter(function (x) { return shelf.indexOf(x) < 0; });
   }
@@ -357,7 +377,7 @@
     openedAt = Date.now();
     var app = stremioApp();
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
-    TV.launch(app.id, {uri: Stremio.link(p, app.id === PLAYER ? 'sofa://' : null)}, function (ok) {
+    TV.launch(app.id, {uri: Stremio.link(p, IS_PLAYER.test(app.id) ? 'sofa://' : null)}, function (ok) {
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
     });
   }

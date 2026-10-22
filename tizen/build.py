@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import webapp  # noqa: E402
 
 OUT = os.path.join(ROOT, 'out', 'tizen')
-WGT = os.path.join(ROOT, 'FreeMyTV-tizen.wgt')
+WGT = os.path.join(ROOT, 'Sofa-Launcher-tizen.wgt')
 
 
 def tizen_cli():
@@ -39,18 +39,28 @@ def tizen_cli():
     return shutil.which('tizen')
 
 
+def tz_cli():
+    """The newer `tz` command of Tizen Studio (tools/tizen-core/tz), or None."""
+    path = os.path.join(os.environ.get('TIZEN_STUDIO') or os.path.expanduser('~/tizen-studio'), 'tools', 'tizen-core', 'tz')
+    return path if os.path.exists(path) else shutil.which('tz')
+
+
 def sign(profile):
     cli = tizen_cli()
-    if not cli:
+    tz = None if cli else tz_cli()
+    if not cli and not tz:
         sys.exit('Signing needs Samsung\'s Tizen tools (Tizen Studio, or Samsung\'s tizen-sdk-skills). Not found: set '
                  'TIZEN_STUDIO to where they are installed.')
     out = tempfile.mkdtemp()
     try:
-        run = subprocess.run([cli, 'package', '-t', 'wgt', '-s', profile, '-o', out, '--', WGT],
-                             capture_output=True, text=True)
+        if cli:
+            cmd = [cli, 'package', '-t', 'wgt', '-s', profile, '-o', out, '--', WGT]
+        else:
+            cmd = [tz, 'pack', '-t', 'wgt', '-s', profile, '-b', WGT, '-o', os.path.join(out, os.path.basename(WGT))]
+        run = subprocess.run(cmd, capture_output=True, text=True)
         made = [n for n in os.listdir(out) if n.endswith('.wgt')]
         if run.returncode != 0 or not made:
-            sys.exit('`tizen package` didn\'t sign it:\n' + (run.stdout + run.stderr).strip())
+            sys.exit('Signing didn\'t work:\n' + (run.stdout + run.stderr).strip())
         shutil.move(os.path.join(out, made[0]), WGT)
     finally:
         shutil.rmtree(out, ignore_errors=True)
