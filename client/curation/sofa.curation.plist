@@ -8,7 +8,10 @@
   <key>ProgramArguments</key>
   <array><string>/bin/bash</string><string>HOME_DIR/sofa-player/client/curation/weekly.sh</string></array>
   <key>StartCalendarInterval</key>
-  <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
   <key>StandardOutPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
   <key>StandardErrorPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
 </dict>

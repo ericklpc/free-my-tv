@@ -272,7 +272,7 @@
       if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: 'movie', title: p.title, year: p.year, genres: p.genres || [],
         rating: p.rating || '', runtime: p.runtime || 0, cert: '', colors: colorsFor(p.id), desc: p.desc || '',
         art: {backdrop: p.backdrop ? IMG + 'w1280' + p.backdrop : '', poster: p.poster ? IMG + 'w342' + p.poster : ''}};
-      return {id: p.id, why: p.why};
+      return {id: p.id, why: p.why, group: p.group};
     });
     row.subtitle = 'Curadoria de ' + w.week.split('-').reverse().slice(0, 2).join('/') + ' · só o que já está no seu TorBox';
     function item(p) {
@@ -283,7 +283,7 @@
     }
     // The week's own rows ("Porque você deu 5★ em…", "Mais de…"): they take the place of the sample ones, one after
     // each list from Stremio or TMDB, like Netflix mixes its rows.
-    var mine = (w.rows || []).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
+    var mine = (w.rows || []).filter(function (r) { return r.items.length >= 8; }).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
     if (!mine.length) return;
     var rest = HOME.rows.filter(function (r) { return r.source; }), fixed = HOME.rows.filter(function (r) { return r.kind === 'continue' || r.kind === 'picks'; });
     var out = fixed.slice();
@@ -296,9 +296,9 @@
     // library loads).
     var hero = [], first = function (g) { for (var j = 0; j < w.picks.length; j++) if (w.picks[j].group === g) return w.picks[j]; };
     var nw = first('new') || w.picks[0], cl = first('classic');
-    hero.push({id: nw.id, kicker: 'Escolhido pra você', why: nw.why});
-    hero.push({id: mine[0].items[0].id, kicker: mine[0].title, why: mine[0].items[0].why});
-    if (cl) hero.push({id: cl.id, kicker: 'Clássico que você não viu', why: cl.why});
+    hero.push({id: nw.id, kicker: 'Escolhido pra você', why: blurb(TITLES[nw.id], nw.why).text});
+    hero.push({id: mine[0].items[0].id, kicker: mine[0].title, why: blurb(TITLES[mine[0].items[0].id], mine[0].items[0].why).text});
+    if (cl) hero.push({id: cl.id, kicker: 'Clássico que você não viu', why: blurb(TITLES[cl.id], cl.why).text});
     HOME.hero = hero;
   })();
 
@@ -501,22 +501,57 @@
     if (c && c.progress) play.innerHTML += '<span class="bar"><i style="width:' + Math.round(c.progress * 100) + '%"></i></span>';
     b.appendChild(play);
     b.appendChild(el('span', 'btn lift', 'Detalhes'));
-    b.appendChild(el('span', 'btn round lift', '+'));
+    b.appendChild(el('span', 'btn round lift' + (inLibrary(h.id) ? ' done' : ''), '+'));
     var d = $('#hero .dots');
     d.innerHTML = '';
-    for (var i = 0; i < HOME.hero.length; i++) d.appendChild(el('i', i === H.page ? 'on' : ''));
+    for (var i = 0; i < HOME.hero.length; i++) d.appendChild(el('i', i === H.page ? 'on' : '', '<b></b>'));
+    heroDots();
     paintHome();
   }
 
   // The hero turns its pages by itself while it has focus and nobody touches the remote (9 s, like the Top Shelf).
   function heroTick() {
     clearTimeout(H.heroTimer);
+    H.tickAt = now();
+    heroDots();
     H.heroTimer = setTimeout(function () {
       if (state.screen === 'home' && H.zone === 'hero' && !S.open && !sheet.open) {
         H.page = (H.page + 1) % HOME.hero.length; H.btn = 0; renderHero(); focusTitle(heroItem().id);
       }
       heroTick();
     }, 9000);
+  }
+
+  // A pick's card: a short synopsis, led by who made it or who's in it only when that's a reason he'd trust (a
+  // director or actor of a film he gave 5★), then the length and a high critics' grade.
+  function blurb(t, why) {
+    var lead = '', grade = '', parts = (why || '').split(' · ');
+    for (var i = 0; i < parts.length; i++) {
+      var m = /^(De|Com) ([^,]+), (?:que fez|de) .*\((?:5|4,5)★\)$/.exec(parts[i]);
+      if (m && !lead) lead = (m[1] === 'De' ? 'De ' : 'Com ') + m[2];
+      var g = /^nota (\d+,\d) no TMDB$/i.exec(parts[i]);
+      if (g && parseFloat(g[1].replace(',', '.')) >= 8) grade = 'Nota ' + g[1];
+    }
+    var syn = (t.desc || '').split(/\.\s/)[0].replace(/\.$/, '');
+    if (syn.length > 120) syn = syn.slice(0, 117).replace(/\s+\S*$/, '') + '…';
+    var text = lead && syn ? lead + '. ' + syn + '.' : lead || (syn ? syn + '.' : '');
+    var foot = [t.runtime ? minutes(t.runtime) : '', grade].filter(Boolean).join(' · ');
+    return {text: text, foot: foot};
+  }
+
+  // The current dot fills up until the next page, like the launcher's (only while the hero turns by itself).
+  function heroDots() {
+    var on = $('#hero .dots i.on b');
+    if (!on) return;
+    on.style.webkitTransition = on.style.transition = 'none';
+    var turning = state.screen === 'home' && H.zone === 'hero' && !S.open && !sheet.open && HOME.hero.length > 1;
+    var done = turning ? Math.min(1, (now() - (H.tickAt || now())) / 9000) : 0;
+    on.style.width = (done * 100) + '%';
+    if (!turning) return;
+    void on.offsetWidth;                                   // start the transition from here
+    var left = Math.max(0, 9000 - (now() - H.tickAt)) + 'ms linear';
+    on.style.webkitTransition = 'width ' + left; on.style.transition = 'width ' + left;
+    on.style.width = '100%';
   }
 
   var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key'};
@@ -540,10 +575,11 @@
       if (item.next) l2 = 'Próximo · T' + item.s + ' E' + item.e;
       else if (item.s) l2 = 'T' + item.s + ' · E' + item.e + ' · ' + item.left + ' min restantes';
       else l2 = minutes(item.left) + ' restantes';
-    } else if (kind === 'picks' || (kind === 'mine' && item.why)) l2 = item.why;
+    } else if (kind === 'picks' || kind === 'mine') { var bl = blurb(t, item.why); l2 = bl.text; var l3 = bl.foot; }
     else if (kind === 'chart' || kind === 'poster') { l1 = ''; }
     else l2 = t.year + ' · ' + t.genres[0];
-    if (l1 || l2) c.appendChild(el('div', 'cap', '<div class="l1">' + esc(l1) + '</div><div class="l2">' + esc(l2) + '</div>'));
+    if (l1 || l2) c.appendChild(el('div', 'cap', '<div class="l1">' + esc(l1) + '</div><div class="l2' + (l3 != null ? ' syn' : '') + '">' + esc(l2) + '</div>' +
+      (l3 ? '<div class="l3">' + esc(l3) + '</div>' : '')));
     loadArt(item.id, function (a) {
       if (!a) return;
       var url = (cls === 'poster' || cls === 'chart') ? a.poster : a.backdrop;
@@ -611,7 +647,7 @@
     var row = HOME.rows[r], src = row.source;
     if (!src || row.live) return;
     function done(items) {
-      if (!items || items.length < 4) return;              // keep the stand-ins when a list comes back thin
+      if (!items || items.length < 8) return;              // a list of two isn't a list: keep the stand-ins
       row.items = items.slice(0, row.limit || 20);
       row.live = true;
       var at = HOME.rows.indexOf(row);
@@ -698,6 +734,7 @@
     if (!(CFG.stremioAuthKey || '').trim()) return;
     stremio('datastoreGet', {collection: 'libraryItem', all: true}, function (items) {
       if (!items || !items.length) return;
+      for (var li = 0; li < items.length; li++) if (items[li] && items[li]._id) LIB[items[li]._id] = items[li];   // what's saved, what's seen
       ALL_LIB = items.filter(function (it) { return !it.removed && (it.type === 'movie' || it.type === 'series') && /^tt\d+$/.test(it._id); })
         .sort(function (a, b) { return Date.parse(b._mtime || 0) - Date.parse(a._mtime || 0); });
       var list = items.filter(function (it) {
@@ -752,13 +789,33 @@
     if (state.screen === 'home' && !S.open && !sheet.open) { renderHero(); paintHome(); }
   }
 
+  // This TV's own copy of where each title stopped, written every few seconds: what playing again starts from,
+  // even when the app was closed before the library got it.
+  var POS = {};
+  try { POS = JSON.parse(localStorage.getItem('sofa.pos') || '{}'); } catch (e) {}
+  function rememberPos() {
+    if (!P.id || !P.started || P.pos < 10) return;
+    POS[P.id] = {pos: Math.round(P.pos), s: P.s, e: P.e, dur: Math.round(P.dur), at: Date.now()};
+    var ids = Object.keys(POS).sort(function (a, b) { return POS[b].at - POS[a].at; });
+    for (var i = 60; i < ids.length; i++) delete POS[ids[i]];
+    try { localStorage.setItem('sofa.pos', JSON.stringify(POS)); } catch (e) {}
+  }
+  // Leaving the app (Home, another app): save now, it may not come back.
+  function leaving() {
+    if (state.screen !== 'player' || !P.started) return;
+    rememberPos(); saveProgress();
+    if (!P.paused) scrobble('pause');
+  }
+  document.addEventListener('visibilitychange', function () { if (document.hidden) leaving(); });
+  window.addEventListener('pagehide', leaving);
+
   // The position goes back to the library every 30 s, on pause and on leaving, like Stremio's own player does.
   function saveProgress() {
     if (!REAL || !P.started || !(CFG.stremioAuthKey || '').trim()) return;
     var t = P.t, imdb = /^tt\d+$/.test(P.id) ? P.id : t.imdb;
     if (!imdb || !(P.dur > 0)) return;
     var at = new Date().toISOString(), old = LIB[imdb];
-    if (!old && P.pos < 120) return;                       // a peek or a test isn't "watching": not in Continue yet
+    if (!old && P.pos < 45) return;                        // a peek isn't "watching": not in Continue yet
     var it = old ? JSON.parse(JSON.stringify(old)) : {_id: imdb, name: t.title, type: t.type, poster: t.art && t.art.poster || '',
       posterShape: 'poster', removed: true, temp: true, _ctime: at,
       state: {lastWatched: at, timeWatched: 0, timeOffset: 0, overallTimeWatched: 0, timesWatched: 0, flaggedWatched: 0,
@@ -779,6 +836,96 @@
       if (!ok) console.log('[library] não salvou a posição de ' + imdb);
     });
   }
+
+  // "+": into his Stremio library (and Trakt's watchlist, when connected); again takes it out.
+  function inLibrary(id) { var it = LIB[id]; return !!(it && !it.removed && !it.temp); }
+  function saveToLibrary(id, btn) {
+    var t = TITLES[id], at = new Date().toISOString(), out = inLibrary(id);
+    var it = LIB[id] ? JSON.parse(JSON.stringify(LIB[id])) : {_id: id, name: t.title, type: t.type, poster: t.art && t.art.poster || '',
+      posterShape: 'poster', _ctime: at,
+      state: {lastWatched: '', timeWatched: 0, timeOffset: 0, overallTimeWatched: 0, timesWatched: 0, flaggedWatched: 0,
+        duration: 0, video_id: '', watched: '', noNotif: false},
+      behaviorHints: {defaultVideoId: null, featuredVideoId: null, hasScheduledVideos: false}};
+    it.removed = out; it.temp = false; it._mtime = at;
+    LIB[id] = it;
+    if ((CFG.stremioAuthKey || '').trim()) stremio('datastorePut', {collection: 'libraryItem', changes: [it]}, function (ok) {
+      if (!ok) toast('Não deu pra salvar no Stremio agora');
+    });
+    if (trakt && /^tt\d+$/.test(id)) {
+      var body = t.type === 'series' ? {shows: [{ids: {imdb: id}}]} : {movies: [{ids: {imdb: id}}]};
+      traktFresh(function () { traktCall('POST', out ? '/sync/watchlist/remove' : '/sync/watchlist', body, function () {}, true); });
+    }
+    if (btn) btn.className = btn.className.replace(/ ?\bdone\b/g, '') + (out ? '' : ' done');
+    toast(out ? 'Tirei da sua biblioteca do Stremio' : 'Salvo na sua biblioteca do Stremio');
+  }
+
+  // Watched: a film leaves Continue and counts as seen in Stremio and on Trakt; a show marks the episode it's on.
+  function seen(id) { var it = LIB[id]; return !!(it && it.state && it.state.flaggedWatched); }
+  function markSeen(id, ep, btn) {
+    var t = TITLES[id], at = new Date().toISOString(), undo = !ep && seen(id);
+    var it = LIB[id] ? JSON.parse(JSON.stringify(LIB[id])) : {_id: id, name: t.title, type: t.type, poster: t.art && t.art.poster || '',
+      posterShape: 'poster', removed: true, temp: true, _ctime: at,
+      state: {lastWatched: at, timeWatched: 0, timeOffset: 0, overallTimeWatched: 0, timesWatched: 0, flaggedWatched: 0,
+        duration: 0, video_id: id, watched: '', noNotif: false},
+      behaviorHints: {defaultVideoId: null, featuredVideoId: null, hasScheduledVideos: false}};
+    it.state.timeOffset = 0;
+    it.state.lastWatched = at;
+    if (ep) it.state.video_id = id + ':' + ep.s + ':' + (ep.e + 1);   // on to the next one
+    else { it.state.flaggedWatched = undo ? 0 : 1; it.state.timesWatched = undo ? 0 : (it.state.timesWatched || 0) + 1; }
+    it._mtime = at;
+    LIB[id] = it;
+    if (REAL && (CFG.stremioAuthKey || '').trim()) stremio('datastorePut', {collection: 'libraryItem', changes: [it]}, function () {});
+    if (trakt && /^tt\d+$/.test(id)) {
+      var body = ep ? {shows: [{ids: {imdb: id}, seasons: [{number: ep.s, episodes: [{number: ep.e}]}]}]} : {movies: [{ids: {imdb: id}}]};
+      traktFresh(function () { traktCall('POST', undo ? '/sync/history/remove' : '/sync/history', body, function () {}, true); });
+    }
+    // Out of Continue watching.
+    var row = MAIN.rows[0];
+    if (row && row.kind === 'continue') row.items = row.items.filter(function (c) { return c.id !== id; });
+    if (btn) btn.className = btn.className.replace(/ ?\bdone\b/g, '') + (!undo ? ' done' : '');
+    toast(undo ? 'Desmarcado' : ep ? 'T' + ep.s + ' E' + ep.e + ' marcado como visto' : 'Marcado como visto');
+  }
+
+  // Trailers: YouTube's, from TMDB (in Portuguese when there is one) or Cinemeta; opened in the TV's YouTube app.
+  function trailer(id) {
+    var t = TITLES[id];
+    function open(key) {
+      if (!key) { toast('Sem trailer pra ' + t.title); return; }
+      var url = 'https://www.youtube.com/watch?v=' + key;
+      if (window.AndroidTV && (window.AndroidTV.launch('com.amazon.firetv.youtube', url) || window.AndroidTV.launch('com.google.android.youtube.tv', url))) return;
+      try {
+        var ctl = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', null, null, null,
+          [new tizen.ApplicationControlData('PAYLOAD', [JSON.stringify({values: 'v=' + key})])]);
+        tizen.application.launchAppControl(ctl, '111299001912', function () {}, function () { inline(key); });
+        return;
+      } catch (e) {}
+      inline(key);
+    }
+    // No YouTube app: on the page itself, Back closes it.
+    function inline(key) {
+      var f = $('#trailer');
+      f.innerHTML = '<iframe allow="autoplay; fullscreen" src="https://www.youtube-nocookie.com/embed/' + key + '?autoplay=1&rel=0&playsinline=1"></iframe>';
+      f.className = 'on';
+    }
+    var kind = t.type === 'series' ? 'tv' : 'movie';
+    function cinemeta() {
+      get(CINEMETA + '/meta/' + (t.type === 'series' ? 'series' : 'movie') + '/' + id + '.json', function (o) {
+        var m = o && o.meta || {}, tr = (m.trailerStreams || [])[0] || (m.trailers || [])[0] || {};
+        open(tr.ytId || tr.source);
+      });
+    }
+    if (!t.tmdb || !CFG.tmdbKey) { cinemeta(); return; }
+    get('https://api.themoviedb.org/3/' + kind + '/' + t.tmdb + '/videos?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&include_video_language=pt,en,null&language=pt-BR', function (o) {
+      var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube' && (x.type === 'Trailer' || x.type === 'Teaser'); });
+      v.sort(function (a, b) {
+        function rank(x) { return (x.iso_639_1 === 'pt' ? 0 : 2) + (x.type === 'Trailer' ? 0 : 1) - (x.official ? 0.5 : 0); }
+        return rank(a) - rank(b);
+      });
+      if (v.length) open(v[0].key); else cinemeta();
+    });
+  }
+  function trailerOpen() { return $('#trailer').className === 'on'; }
+  function closeTrailer() { $('#trailer').className = ''; $('#trailer').innerHTML = ''; }
 
   // MARK: - Trakt: sign in with a code (trakt.tv/activate on the phone), then scrobble start / pause / stop
 
@@ -885,10 +1032,12 @@
     var row = HOME.rows[r];
     if (row.kind !== 'picks' || !H.pick) return row.items;
     var y = new Date().getFullYear();
-    return row.items.filter(function (it) {
+    var list = row.items.filter(function (it) {
       var t = TITLES[it.id];
+      if (it.group) return it.group === (H.pick === 1 ? 'new' : 'classic');
       return H.pick === 1 ? t.year >= y - 3 : t.year < 2000;
     });
+    return list.length >= 8 ? list : row.items;          // never a row of two
   }
 
   function addRow(r) {
@@ -994,7 +1143,7 @@
       H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
       used(H.from, 1);
       if (H.zone === 'hero' && H.btn === 0) { var c = continueOf(it.id); play(it.id, c || {}); return; }
-      if (H.zone === 'hero' && H.btn === 2) { toast('Na sua watchlist do Trakt'); return; }
+      if (H.zone === 'hero' && H.btn === 2) { saveToLibrary(it.id, $('#hero .buttons').children[2]); return; }
       if (H.zone === 'rows' && HOME.rows[H.row].kind === 'continue') { play(it.id, it); return; }   // Continue plays right away
       openDetail(it.id, it);
       return;
@@ -1162,9 +1311,11 @@
     var p = el('span', 'btn lift', '<span class="ico">▶</span>' + label);
     if (c.progress) p.innerHTML += '<span class="bar"><i style="width:' + Math.round(c.progress * 100) + '%"></i></span>';
     b.appendChild(p);
-    b.appendChild(el('span', 'btn round lift', '+'));
+    b.appendChild(el('span', 'btn lift', 'Trailer'));
+    b.appendChild(el('span', 'btn round lift' + (inLibrary(id) ? ' done' : ''), '+'));
+    b.appendChild(el('span', 'btn round lift' + (seen(id) ? ' done' : ''), '✓'));
     b.appendChild(el('span', 'btn lift', 'Fontes'));
-    b.appendChild(el('span', 'btn round lift', '★'));
+    D.acts = ['play', 'trailer', 'list', 'seen', 'sources'];
     if (t.type === 'series' && !t.seasons) loadSeasons(id, function () { if (D.id === id) { buildDetailRows(); paintDetail(); } });
     else if (t.type === 'series') loadSeasons(id, function () {});
     buildDetailRows();
@@ -1314,17 +1465,15 @@
     if (k === 'menu') { openSources(D.id, null, function (s) { play(D.id, D.item, s); }); return; }
     if (D.zone === 'buttons') {
       if (k === 'left' && D.btn > 0) D.btn--;
-      else if (k === 'right' && D.btn < 3) D.btn++;
+      else if (k === 'right' && D.btn < D.acts.length - 1) D.btn++;
       else if (k === 'down' && D.rows.length) { D.zone = series ? 'seasons' : 'rows'; D.row = 0; }
       else if (k === 'ok') {
-        if (D.btn === 0) {
-          var c = continueOf(D.id) || D.item || {};
-          play(D.id, series ? {s: c.s || 1, e: c.e || 1, progress: c.progress || 0} : c);
-          return;
-        }
-        if (D.btn === 1) toast('Na sua watchlist do Trakt');
-        if (D.btn === 2) openSources(D.id, null, function (s) { play(D.id, continueOf(D.id) || D.item || {}, s); });
-        if (D.btn === 3) toast('Nota enviada pro Trakt e pro Letterboxd (no app de verdade)');
+        var act = D.acts[D.btn], c = continueOf(D.id) || D.item || {};
+        if (act === 'play') { play(D.id, series ? {s: c.s || 1, e: c.e || 1, progress: c.progress || 0} : c); return; }
+        if (act === 'trailer') trailer(D.id);
+        if (act === 'list') saveToLibrary(D.id, $('#detail .buttons').children[D.btn]);
+        if (act === 'seen') markSeen(D.id, series ? {s: c.s || 1, e: c.e || 1} : null, $('#detail .buttons').children[D.btn]);
+        if (act === 'sources') openSources(D.id, null, function (s) { play(D.id, c, s); });
         return;
       }
     } else if (D.zone === 'seasons') {
@@ -1431,6 +1580,9 @@
     P.id = id; P.t = t; P.s = from && from.s || (t.type === 'series' ? 1 : 0); P.e = from && from.e || (t.type === 'series' ? 1 : 0);
     P.dur = (t.type === 'series' ? 50 : t.runtime) * 60;
     P.pos = from && from.posMs ? from.posMs / 1000 : from && from.progress ? from.progress * P.dur : 0;   // resume without asking (HIG: playing video)
+    // Where this TV left it, if that's further on (the library may not have it yet: a quick exit, a lost save).
+    var mine = POS[id];
+    if (mine && mine.s === P.s && mine.e === P.e && mine.pos > P.pos && (!mine.dur || mine.pos < mine.dur * 0.95) && Date.now() - mine.at < 60 * 864e5) P.pos = mine.pos;
     P.savedAt = 0;
     if (t.type === 'series' && !P.pos && !REAL) P.pos = 30;        // so skip intro shows up soon in the demo
     loadSegments(id, P.s, P.e);
@@ -1561,8 +1713,10 @@
       if (P.started) P.buffering = setTimeout(function () { if (state.screen === 'player') $('#player .spinner').className = 'spinner on'; }, 600);
     } else if (ev.type === 'error' || ev.type === 'stall') {
       fallback(ev.type === 'error' ? 'A fonte falhou' : 'A fonte travou');
+    } else if (ev.type === 'leave') {
+      leaving();
     } else if (ev.type === 'ended') {
-      P.pos = P.dur; saveProgress();
+      P.pos = P.dur; saveProgress(); delete POS[P.id];
       if (P.s && hasNext()) nextEpisode(); else stopPlayer();
     } else if (ev.type === 'tracks') {
       P.tracks = ev;
@@ -1660,6 +1814,7 @@
         }
       }
       if (now() - (P.savedAt || P.rec.at) > 30000) saveProgress();
+      if (now() - (P.posAt || 0) > 5000) { P.posAt = now(); rememberPos(); }
     } else if (!P.paused) P.pos += 0.25;
     // A stream that breaks: Media3 reports the error (or the buffer stalls for 6 s); the next stream takes over at
     // the same position, without the person doing anything.
@@ -2015,6 +2170,7 @@
   function stopPlayer() {
     clearInterval(P.tick);
     if (P.scrub) { clearTimeout(P.scrub.timer); P.scrub = null; }
+    rememberPos();
     if (REAL) { saveProgress(); scrobble('stop'); window.Player.stop(); document.body.className = ''; }
     P.started = false;
     var c = continueOf(P.id);
@@ -2038,6 +2194,7 @@
 
   function key(k) {
     M.clicks++;
+    if (trailerOpen()) { if (k === 'back' || k === 'ok') closeTrailer(); return; }
     if (sheet.open) sheetKey(k);
     else if (S.open) sideKey(k);
     else if (state.screen === 'home') homeKey(k);

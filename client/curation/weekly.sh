@@ -1,5 +1,5 @@
 #!/bin/bash
-# Monday's run on Erick's Mac (launchd, see sofa.curation.plist): this week's picks, the Trakt list, a new Sofá Player
+# Monday and Thursday runs on Erick's Mac (launchd, see sofa.curation.plist): this week's picks, the Trakt list, a new Sofá Player
 # with them, installed on the Fire TV only when nothing is playing there. Logs to ~/Library/Logs/sofa-curation.log.
 set -uo pipefail
 cd "$(dirname "$0")/../.."

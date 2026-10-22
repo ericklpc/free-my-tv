@@ -83,7 +83,8 @@ public final class Playback implements Player.Listener {
         final Playback p = new Playback(activity, web);
         web.addJavascriptInterface(p.new Bridge(), "Player");
         activity.getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-            @Override public void onActivityPaused(Activity a) { if (a == p.activity && p.player != null) p.player.pause(); }
+            // Leaving (Home, another app): the page saves the position now, in case the app doesn't come back.
+            @Override public void onActivityPaused(Activity a) { if (a == p.activity && p.player != null) { p.player.pause(); p.emit(p.event("leave")); } }
             @Override public void onActivityDestroyed(Activity a) { if (a == p.activity) p.release(); }
             @Override public void onActivityCreated(Activity a, Bundle b) {}
             @Override public void onActivityStarted(Activity a) {}

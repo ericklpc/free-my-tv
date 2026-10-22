@@ -65,17 +65,20 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
   font-weight: 700; line-height: 30px; margin-left: 10px; vertical-align: 2px; }
 #hero .why { font-size: 29px; line-height: 40px; color: rgba(255, 255, 255, 0.92); margin-bottom: 34px; max-width: 860px; }
 #hero .dots { margin-top: 34px; height: 10px; }
-#hero .dots i { display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.35); margin-right: 12px; }
-#hero .dots i.on { width: 34px; background: rgba(255, 255, 255, 0.9); }
+#hero .dots i { display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.35); margin-right: 12px;
+  -webkit-transition: width 0.3s; transition: width 0.3s; }
+#hero .dots i { position: relative; overflow: hidden; vertical-align: top; }
+#hero .dots i b { position: absolute; left: 0; top: 0; width: 0; height: 100%; background: #fff; }
+#hero .dots i.on { width: 40px; background: rgba(255, 255, 255, 0.4); }
 
 #rows { position: relative; padding-bottom: 120px; }
-.row { position: relative; height: 520px; margin-bottom: 10px; }
-.row.picks { height: 640px; margin-top: 36px; margin-bottom: 30px; }
+.row { position: relative; height: 610px; margin-bottom: 10px; }
+.row.picks { height: 650px; margin-top: 36px; margin-bottom: 30px; }
 .row h2 { margin: 0 0 6px 80px; font-size: 34px; font-weight: 700; }
 .row .sub { margin: 0 0 16px 80px; font-size: 23px; color: rgba(255, 255, 255, 0.55); height: 28px; }
 .row .track { position: absolute; left: 80px; top: 92px; white-space: nowrap;
   -webkit-transition: -webkit-transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
-.row.tall { height: 520px; }
+.row.tall { height: 580px; }
 
 .card { display: inline-block; vertical-align: top; margin-right: 40px; white-space: normal; }
 .card .pic { position: relative; border-radius: 14px; overflow: hidden; background: #1c1c1e; background-size: cover; background-position: center;
@@ -89,6 +92,8 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 .card .cap { padding-top: 16px; -webkit-transition: -webkit-transform 0.2s; transition: transform 0.2s; }
 .card .cap .l1 { font-size: 25px; font-weight: 600; color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card .cap .l2 { font-size: 22px; color: rgba(255, 255, 255, 0.5); margin-top: 4px; line-height: 30px; }
+.card .cap .l2.syn { max-height: 60px; overflow: hidden; }
+.card .cap .l3 { font-size: 21px; font-weight: 600; color: rgba(255, 255, 255, 0.4); margin-top: 6px; }
 .card.focus .pic { -webkit-transform: scale(1.1); transform: scale(1.1); box-shadow: 0 28px 50px rgba(0, 0, 0, 0.7); }
 .card.focus .cap { -webkit-transform: translateY(16px); transform: translateY(16px); }
 .card.focus .cap .l1 { color: #fff; }
@@ -282,3 +287,9 @@ body.native #player .frame { display: none; }
 #player .subs.size1 { font-size: 54px; line-height: 70px; }
 #player .subs.size2 { font-size: 36px; line-height: 48px; }
 #player .subs.bg1 span { background: rgba(0, 0, 0, 0.7); padding: 4px 16px; border-radius: 8px; text-shadow: none; }
+
+#trailer { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; background: #000; z-index: 50; display: none; }
+#trailer.on { display: block; }
+#trailer iframe { width: 100%; height: 100%; border: 0; }
+.btn.round.done { color: #30d158; }
+.btn.round.done.focus { color: #0a7d2c; }
