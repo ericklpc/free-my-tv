@@ -68,7 +68,7 @@
     ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
     ['prime', /^amazon$|^com\.amazon\.(avod|amazonvideo)/, /prime video/i, ['#2AA8FF', '#0A68D4']],   // not Amazon Music
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
-    ['max', /hbo|wbd/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],
+    ['max', /(^|\.)(hbo|wbd)/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],   // not Samsung's "aov-dashboard"
     ['appletv', /appletv|apple\.tv/, /apple tv/i, ['#1C1C1E', '#000000']],
     ['hulu', /^hulu/, /hulu/i, ['#1CE783', '#0B8F4E']],
     ['paramount', /paramount|cbs/, /paramount/i, ['#0064FF', '#002A86']],
