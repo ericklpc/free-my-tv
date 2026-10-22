@@ -179,12 +179,16 @@
       }
     } else {
       for (var s = 0; s < SHELF.length && out.length < MAX_SHELF; s++) {
+        // Samsung lists several apps under one name (YouTube's real app next to the platform's icon-less "Youtube"
+        // player, Prime Video next to its stand-in): the one with its own icon, from its maker, wins.
+        var best = null, bestScore = -1;
         for (var a = 0; a < apps.length; a++) {
-          if ((SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) && out.indexOf(swapStremio(apps[a])) < 0) {
-            out.push(swapStremio(apps[a]));
-            break;
-          }
+          var c = swapStremio(apps[a]);
+          if (!(SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) || out.indexOf(c) >= 0) continue;
+          var score = (apps[a].icon ? 2 : 0) + (/^com\.samsung\.|dummy|test/i.test(apps[a].id) ? 0 : 1);
+          if (score > bestScore) { best = c; bestScore = score; }
         }
+        if (best) out.push(best);
       }
       if (!out.length) out = apps.slice(0, MAX_SHELF);
     }

@@ -49,7 +49,7 @@ var TV = (function () {
 
   // Not shown among Samsung's apps: Smart Hub's own pieces, the platform's tools and players (but its browser and
   // Netflix, which live there too), services, keyboards and ad players. The rest is what Smart Hub shows.
-  var SAMSUNG_HIDDEN = /^(org\.volt\.|org\.tizen\.(?!browser$|netflix|primevideo|globoplay|disney|hbo|spotify|youtube|deezer|twitch|crunchyroll|plex)|ise-|d75857a5-)|Service$|[Dd]aemon|Preview$|syspopup|[Hh]elper$|AdPlayer|AdSuite|[Kk]eyboard/;
+  var SAMSUNG_HIDDEN = /^(org\.volt\.|org\.tizen\.(?!browser$|netflix|primevideo|globoplay|disney|hbo|spotify|youtube|deezer|twitch|crunchyroll|plex)|ise-|d75857a5-)|Service$|[Dd]aemon|Preview$|syspopup|[Hh]elper$|AdPlayer|AdSuite|[Kk]eyboard|-dummy$|TestSuite|Worker$/;
 
   // Samsung's live TV viewer: it shows whichever source the TV is on (the antenna, or the HDMI picked here).
   var SAMSUNG_VIEWER = 'org.tizen.tv-viewer';
