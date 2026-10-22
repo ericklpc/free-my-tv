@@ -49,7 +49,7 @@ var TV = (function () {
 
   // Not shown among Samsung's apps: Smart Hub's own pieces, the platform's tools and players (but its browser and
   // Netflix, which live there too), services, keyboards and ad players. The rest is what Smart Hub shows.
-  var SAMSUNG_HIDDEN = /^(org\.volt\.|org\.tizen\.(?!browser$|netflix)|ise-|d75857a5-)|Service$|[Dd]aemon|Preview$|syspopup|[Hh]elper$|AdPlayer|AdSuite|[Kk]eyboard/;
+  var SAMSUNG_HIDDEN = /^(org\.volt\.|org\.tizen\.(?!browser$|netflix|primevideo|globoplay|disney|hbo|spotify|youtube|deezer|twitch|crunchyroll|plex)|ise-|d75857a5-)|Service$|[Dd]aemon|Preview$|syspopup|[Hh]elper$|AdPlayer|AdSuite|[Kk]eyboard/;
 
   // Samsung's live TV viewer: it shows whichever source the TV is on (the antenna, or the HDMI picked here).
   var SAMSUNG_VIEWER = 'org.tizen.tv-viewer';
@@ -68,11 +68,34 @@ var TV = (function () {
     try { self = window.tizen.application.getCurrentApplication().appInfo.id; } catch (e) {}
   }
 
+  /** Debugging on TVs without a console: with debug_log set, logs and the platform's app list go to that address. */
+  function report(kind, data) {
+    var url = window.CONFIG && window.CONFIG.debugLog;
+    if (!url) return;
+    try {
+      var x = new XMLHttpRequest();
+      x.open('POST', url, true);
+      x.setRequestHeader('Content-Type', 'text/plain');
+      x.send(JSON.stringify({kind: kind, at: Date.now(), data: data}));
+    } catch (e) {}
+  }
+  if (window.CONFIG && window.CONFIG.debugLog && window.console) {
+    ['log', 'warn', 'error'].forEach(function (level) {
+      var was = console[level];
+      console[level] = function () {
+        report(level, Array.prototype.slice.call(arguments).map(String).join(' '));
+        if (was) was.apply(console, arguments);
+      };
+    });
+    window.addEventListener('error', function (e) { report('error', e.message + ' @' + e.filename + ':' + e.lineno); });
+  }
+
   // MARK: - Samsung
 
   function samsungApps(done) {
     try {
       window.tizen.application.getAppsInfo(function (list) {
+        report('apps', list.map(function (a) { return {id: a.id, name: a.name, icon: a.iconPath, show: a.show, pkg: a.packageId}; }));
         var out = [];
         for (var i = 0; i < list.length; i++) {
           var a = list[i];
@@ -82,6 +105,11 @@ var TV = (function () {
           if (icon && icon.indexOf('://') < 0) icon = 'file://' + icon;
           out.push({id: a.id, title: a.name || a.id, icon: icon, color: ''});
         }
+        // Apps without an icon of their own (YouTube and HBO Max on the Frame) all point at Tizen's stand-in pinwheel: an
+        // icon file shared by several apps is that one, and the app's name shows instead.
+        var seen = {};
+        for (var k = 0; k < out.length; k++) if (out[k].icon) seen[out[k].icon] = (seen[out[k].icon] || 0) + 1;
+        for (k = 0; k < out.length; k++) if (seen[out[k].icon] > 1) out[k].icon = '';
         // Smart Hub keeps its own order, which isn't readable: the same alphabetical order as All Apps elsewhere.
         out.sort(function (x, y) { var a = x.title.toLowerCase(), b = y.title.toLowerCase(); return a < b ? -1 : a > b ? 1 : 0; });
         done(out);
@@ -93,7 +121,10 @@ var TV = (function () {
 
   function samsungLaunch(id, done) {
     try {
-      window.tizen.application.launch(id, function () { if (done) done(true); }, function () { if (done) done(false); });
+      window.tizen.application.launch(id, function () { if (done) done(true); }, function (e) {
+        report('launch-failed', {id: id, error: e && (e.name + ': ' + e.message)});
+        if (done) done(false);
+      });
     } catch (e) {
       if (done) done(false);
     }
