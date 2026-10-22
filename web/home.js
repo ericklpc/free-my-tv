@@ -109,8 +109,36 @@
       var img = el('img', app.banner ? 'banner' : '', box);   // an Android TV banner fills the whole tile
       word.style.visibility = 'hidden';
       img.onerror = function () { img.parentNode.removeChild(img); word.style.visibility = ''; };
+      if (TV.name === 'tizen' && !app.banner) img.onload = function () { fill(img, box); };
       img.src = app.icon;
     }
+  }
+
+  /**
+   * Samsung icons are small cards with their own background (Netflix's white, Disney+'s blue): when the icon's edge is
+   * one solid color, the tile takes that color and the icon grows to the tile's height, so the tile reads as the app's
+   * own card instead of a sticker on a slab.
+   */
+  function fill(img, box) {
+    try {
+      var c = document.createElement('canvas'), s = 24;
+      c.width = c.height = s;
+      var g = c.getContext('2d');
+      g.drawImage(img, 0, 0, s, s);
+      var d = g.getImageData(0, 0, s, s).data, r = 0, gr = 0, b = 0, a = 0, n = 0, spread = 0, first = null;
+      for (var i = 0; i < s; i++) {
+        var pts = [[i, 0], [i, s - 1], [0, i], [s - 1, i]];
+        for (var j = 0; j < 4; j++) {
+          var o = (pts[j][1] * s + pts[j][0]) * 4;
+          r += d[o]; gr += d[o + 1]; b += d[o + 2]; a += d[o + 3]; n++;
+          if (!first) first = [d[o], d[o + 1], d[o + 2]];
+          spread = Math.max(spread, Math.abs(d[o] - first[0]) + Math.abs(d[o + 1] - first[1]) + Math.abs(d[o + 2] - first[2]));
+        }
+      }
+      if (a / n < 230 || spread > 120) return;   // see-through or busy edges: the icon keeps its place on the gradient
+      box.style.background = 'rgb(' + Math.round(r / n) + ',' + Math.round(gr / n) + ',' + Math.round(b / n) + ')';
+      img.className = 'card';
+    } catch (e) {}
   }
 
   var apps = [], shelf = [], others = [], inputs = [];

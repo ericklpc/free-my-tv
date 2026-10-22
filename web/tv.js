@@ -78,6 +78,7 @@ var TV = (function () {
           var a = list[i];
           if (!a.id || a.show === false || a.id === self || SAMSUNG_HIDDEN.test(a.id)) continue;
           var icon = a.iconPath || '';
+          if (/default/i.test(icon)) icon = '';   // Tizen's stand-in pinwheel: the app's name says more
           if (icon && icon.indexOf('://') < 0) icon = 'file://' + icon;
           out.push({id: a.id, title: a.name || a.id, icon: icon, color: ''});
         }

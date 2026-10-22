@@ -311,6 +311,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   will-change: transform;   /* its own layer: zooming it doesn't repaint the shelf (measured on the Fire TV 4K) */
 }
 .tile img { position: absolute; left: 50%; top: 50%; max-width: 76%; max-height: 62%; -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%); }
+.tile img.card { width: 100%; height: 100%; max-width: none; max-height: none; object-fit: contain; }   /* Samsung: the icon's own card, full height */
 .tile .word {
   position: absolute;
   left: 8%;
