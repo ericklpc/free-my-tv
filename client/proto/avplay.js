@@ -271,7 +271,25 @@
     if (document.hidden && S.url) try { av.pause(); } catch (e) {}
   });
 
+  // A title asked for by another app (the Sofá launcher): launchAppControl with the URI sofa://detail/{type}/{imdb}[/{videoId}]
+  // (or a stremio:///detail one), as the URI or as data "uri".
+  function requested() {
+    try {
+      var c = tizen.application.getCurrentApplication().getRequestedAppControl().appControl;
+      if (c.uri && /^(sofa|stremio):/.test(c.uri)) return c.uri;
+      var d = c.data || [];
+      for (var i = 0; i < d.length; i++) if (d[i].key === 'uri' && /^(sofa|stremio):/.test(d[i].value[0] || '')) return d[i].value[0];
+    } catch (e) {}
+    return '';
+  }
+  // Already running: the request comes as an event.
+  window.addEventListener('appcontrol', function () {
+    var u = requested();
+    if (u && window.Sofa && window.Sofa.deepLink) window.Sofa.deepLink(u);
+  });
+
   window.Player = {
+    launch: requested,
     open: function (json) { open(JSON.parse(json), true); },
     preload: function (json) { open(JSON.parse(json), false); },
     request: request,
