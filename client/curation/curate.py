@@ -502,11 +502,15 @@ def learn():
         rate = rnd.betavariate(1 + started, 1 + max(0, shown_ - started) / 4.0)     # a start in 4 shown is a good row
         length = (st.get('minutes', 0) + 60) / (started + 1)                          # a film's hour as the prior
         weight[k] = rate * length
-    total_w = sum(weight.values()) or 1
-    quota = dict((k, 1) for k in KINDS)                     # every kind keeps a row: room to find out
-    for _ in range(ROWS_TOTAL - len(KINDS)):
-        k = max([k for k in KINDS if quota[k] < 4], key=lambda k: weight[k] / total_w - quota[k] / float(ROWS_TOTAL))
-        quota[k] += 1
+    # The first curation's mix is the base (he liked it); with enough data, the kind that holds him most gains a row
+    # from the one that holds him least. Never more than one row moves per run.
+    quota = {'because': 3, 'director': 3, 'theme': 2, 'country': 2}
+    measured = [k for k in KINDS if policy['stats'].get('row:' + k, {}).get('shown', 0) >= 20]
+    if len(measured) >= 2:
+        best_k = max(measured, key=lambda k: weight[k])
+        worst_k = min(measured, key=lambda k: weight[k])
+        if best_k != worst_k and weight[best_k] > 1.5 * weight[worst_k] and quota[worst_k] > 1:
+            quota[best_k] += 1; quota[worst_k] -= 1
     policy['quota'] = quota
     os.makedirs(OUT, exist_ok=True)
     with open(POLICY, 'w', encoding='utf-8') as f:
@@ -687,7 +691,7 @@ def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
     ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
     items = [entry(d, lines[d['id']]) for d, good in zip(docs, ok) if good][:15]
     print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
-    if len(items) < 8:
+    if len(items) < (6 if kind == 'director' else 8):
         return None
     taken.update(x['tmdb'] for x in items)
     return {'title': title, 'kind': kind, 'items': items}
@@ -734,7 +738,7 @@ def pick(args):
     os.makedirs(OUT, exist_ok=True)
     # Two runs a week (Monday, Thursday): each one its own seeds.
     today = datetime.date.today()
-    week = today.isocalendar()[1] * 2 + (1 if today.weekday() >= 3 else 0)
+    week = today.isocalendar()[1] + (1000 if today.weekday() >= 3 else 0)
     policy = learn()
     rows = personal_rows(rated, info, taste, best, idf, seen, wish, week, set(p['tmdb'] for p in picks), policy.get('quota'))
     out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows}
