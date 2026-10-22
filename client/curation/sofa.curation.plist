@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Monday 8:00, or as soon as the Mac wakes after it. Install: copy to ~/Library/LaunchAgents with HOME_DIR replaced,
+     then `launchctl load ~/Library/LaunchAgents/sofa.curation.plist`. Remove: `launchctl unload` it and delete it. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>sofa.curation</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/bash</string><string>HOME_DIR/sofa-player/client/curation/weekly.sh</string></array>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>StandardOutPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
+  <key>StandardErrorPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
+</dict>
+</plist>

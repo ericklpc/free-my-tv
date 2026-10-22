@@ -1,0 +1,294 @@
+/*
+ * The prototype on a 1920 × 1080 stage, in the Apple TV app's language (tvOS HIG): content inset 80 px at the sides
+ * and 60 px at the top and bottom, focus by lift (scale and shadow, no ring), dark, full-bleed art.
+ * Same rules as web/: no CSS variables, grid or backdrop-filter, and only transform and opacity animate, so the
+ * Fire TV Stick (2018) and older Samsung TVs keep up.
+ */
+@font-face {
+  font-family: 'Inter';
+  src: url('fonts/InterVariable.ttf') format('truetype');
+  font-weight: 100 900;
+}
+
+html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; }
+body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color: #fff; -webkit-font-smoothing: antialiased; }
+
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; background: #000;
+  -webkit-transform-origin: 0 0; transform-origin: 0 0; }
+.screen { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; }
+.hidden { display: none !important; }
+
+.art { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background-size: cover; background-position: center top;
+  -webkit-transition: opacity 0.6s; transition: opacity 0.6s; }
+.ph { font-size: 0; }
+
+/* Lift: what tvOS does to the focused item, without the parallax tilt (a D-pad has no touch surface). */
+.lift { -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* MARK: - Buttons (pills and circles), the same on Home, the details page and the player */
+
+.btn { display: inline-block; vertical-align: top; height: 72px; line-height: 72px; padding: 0 40px; margin-right: 22px;
+  border-radius: 36px; background: rgba(255, 255, 255, 0.16); color: rgba(255, 255, 255, 0.92); font-size: 28px; font-weight: 600;
+  white-space: nowrap; }
+.btn.round { width: 72px; padding: 0; text-align: center; font-size: 34px; font-weight: 500; }
+.btn .ico { display: inline-block; margin-right: 14px; font-size: 24px; }
+.btn.focus { background: #fff; color: #000; -webkit-transform: scale(1.08); transform: scale(1.08);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45); }
+.btn .bar { display: inline-block; vertical-align: middle; width: 70px; height: 6px; margin-left: 16px; border-radius: 3px;
+  background: rgba(255, 255, 255, 0.3); overflow: hidden; position: relative; top: -2px; }
+.btn .bar i { display: block; height: 100%; background: #fff; }
+.btn.focus .bar { background: rgba(0, 0, 0, 0.18); }
+.btn.focus .bar i { background: #000; }
+
+/* MARK: - Home: the hero (full screen, pages with dots) and the rows below it */
+
+#page { position: absolute; left: 0; top: 0; width: 1920px;
+  -webkit-transition: -webkit-transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+#hero { position: relative; width: 1920px; height: 900px; }
+#hero .shade, #detail .shade { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 70%);
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.78) 0%, rgba(0, 0, 0, 0.35) 45%, rgba(0, 0, 0, 0) 70%); }
+#hero .shade:after, #detail .shade:after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 520px;
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0), #000); background: linear-gradient(rgba(0, 0, 0, 0), #000); }
+#hero .info { position: absolute; left: 80px; bottom: 80px; width: 900px; }
+.kicker { font-size: 24px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(255, 255, 255, 0.72); margin-bottom: 18px; }
+.logo { height: 210px; position: relative; margin-bottom: 22px; }
+.logo img { position: absolute; left: 0; bottom: 0; max-width: 620px; max-height: 210px; display: none; }
+.logo .name { position: absolute; left: 0; bottom: 0; width: 1000px; font-size: 84px; line-height: 92px; font-weight: 800; letter-spacing: -0.02em; }
+.logo.has img { display: block; }
+.logo.has .name { display: none; }
+.logo.text { height: auto; }
+.logo.text .name { position: static; display: block; }
+.meta { font-size: 27px; color: rgba(255, 255, 255, 0.72); margin-bottom: 14px; }
+.meta .b { display: inline-block; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 6px; padding: 0 8px; font-size: 20px;
+  font-weight: 700; line-height: 30px; margin-left: 10px; vertical-align: 2px; }
+#hero .why { font-size: 29px; line-height: 40px; color: rgba(255, 255, 255, 0.92); margin-bottom: 34px; max-width: 860px; }
+#hero .dots { margin-top: 34px; height: 10px; }
+#hero .dots i { display: inline-block; width: 10px; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.35); margin-right: 12px;
+  -webkit-transition: width 0.3s; transition: width 0.3s; }
+#hero .dots i { position: relative; overflow: hidden; vertical-align: top; }
+#hero .dots i b { position: absolute; left: 0; top: 0; width: 0; height: 100%; background: #fff; }
+#hero .dots i.on { width: 40px; background: rgba(255, 255, 255, 0.4); }
+
+#rows { position: relative; padding-bottom: 120px; }
+.row { position: relative; height: 610px; margin-bottom: 10px; }
+.row h2 { margin: 0 0 6px 80px; font-size: 34px; font-weight: 700; }
+.row .sub { margin: 0 0 16px 80px; font-size: 23px; color: rgba(255, 255, 255, 0.55); height: 28px; }
+.row .track { position: absolute; left: 80px; top: 92px; white-space: nowrap;
+  -webkit-transition: -webkit-transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.row.tall { height: 580px; }
+
+.card { display: inline-block; vertical-align: top; margin-right: 40px; white-space: normal; }
+.card .pic { position: relative; border-radius: 14px; overflow: hidden; background: #1c1c1e; background-size: cover; background-position: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4); }
+.card .pic .t { position: absolute; left: 24px; right: 24px; bottom: 20px; font-size: 32px; font-weight: 800; line-height: 36px; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); }
+.card .pic.has .t { display: none; }
+.card .pic .prog { position: absolute; left: 24px; right: 24px; bottom: 20px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.3); }
+.card .pic .prog i { display: block; height: 100%; border-radius: 3px; background: #fff; }
+.card .pic.has.withprog .t { display: none; }
+.card .pic.withprog .t { bottom: 42px; }
+.card .cap { padding-top: 16px; -webkit-transition: -webkit-transform 0.2s; transition: transform 0.2s; }
+.card .cap .l1 { font-size: 25px; font-weight: 600; color: rgba(255, 255, 255, 0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card .cap .l2 { font-size: 22px; color: rgba(255, 255, 255, 0.5); margin-top: 4px; line-height: 30px; }
+.card .cap .l2.syn { max-height: 60px; overflow: hidden; }
+.card .cap .l3 { font-size: 21px; font-weight: 600; color: rgba(255, 255, 255, 0.4); margin-top: 6px; }
+.card.focus .pic { -webkit-transform: scale(1.1); transform: scale(1.1); box-shadow: 0 28px 50px rgba(0, 0, 0, 0.7); }
+.card.focus .cap { -webkit-transform: translateY(16px); transform: translateY(16px); }
+.card.focus .cap .l1 { color: #fff; }
+.card.focus .cap .l2 { color: rgba(255, 255, 255, 0.75); }
+
+.card.wide, .card.wide .pic { width: 548px; }
+.card.wide .pic { height: 308px; }
+.card.poster, .card.poster .pic { width: 250px; }
+.card.poster .pic { height: 375px; }
+.card.chart { width: 380px; position: relative; }
+.card.chart .num { position: absolute; left: 0; top: 40px; font-size: 300px; line-height: 300px; font-weight: 800; letter-spacing: -0.06em;
+  color: #000; text-shadow: -2px -2px 0 rgba(255, 255, 255, 0.35), 2px -2px 0 rgba(255, 255, 255, 0.35), -2px 2px 0 rgba(255, 255, 255, 0.35), 2px 2px 0 rgba(255, 255, 255, 0.35); }
+.card.chart .pic { margin-left: 130px; width: 250px; height: 375px; }
+.card.chart .cap { margin-left: 130px; }
+.card.ep, .card.ep .pic { width: 420px; }
+.card.ep .pic { height: 236px; }
+.card.person { width: 200px; text-align: center; }
+.card.person .pic { width: 170px; height: 170px; border-radius: 85px; margin: 0 auto; font-size: 54px; line-height: 170px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
+
+/* MARK: - Details page */
+
+#detail .art { opacity: 0.9; }
+#dpage { position: absolute; left: 0; top: 0; width: 1920px;
+  -webkit-transition: -webkit-transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+#detail .top { position: relative; height: 1080px; }
+#detail .top > * { position: relative; left: 80px; width: 1000px; }
+#detail .top .logo { margin-top: 250px; }
+#detail .badges { margin-bottom: 30px; height: 34px; }
+#detail .badges span { display: inline-block; border: 2px solid rgba(255, 255, 255, 0.55); border-radius: 6px; padding: 0 10px; font-size: 20px;
+  font-weight: 700; line-height: 30px; margin-right: 10px; color: rgba(255, 255, 255, 0.85); }
+#detail .pick { margin-top: 20px; font-size: 22px; color: rgba(255, 255, 255, 0.6); height: 30px; }
+#detail .pick b { color: #FFD60A; font-weight: 700; }
+#detail .desc { margin-top: 24px; font-size: 27px; line-height: 38px; color: rgba(255, 255, 255, 0.85); max-width: 900px; max-height: 114px; overflow: hidden; }
+#detail .credits { margin-top: 16px; font-size: 23px; color: rgba(255, 255, 255, 0.55); }
+#drows { position: relative; background: #000; padding-top: 10px; padding-bottom: 80px; }
+.seasons { margin: 0 0 18px 80px; height: 50px; white-space: nowrap; }
+.seasons span { display: inline-block; font-size: 25px; font-weight: 600; padding: 0 22px; height: 50px; line-height: 50px; border-radius: 25px;
+  color: rgba(255, 255, 255, 0.55); margin-right: 8px; }
+.seasons span.on { color: #fff; background: rgba(255, 255, 255, 0.16); }
+.seasons span.focus { color: #000; background: #fff; }
+
+/* MARK: - Player */
+
+#player { background: #000; }
+#player .frame { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background-size: cover; background-position: center; opacity: 0;
+  -webkit-transition: opacity 0.3s; transition: opacity 0.3s; }
+#player .frame.on { opacity: 1; }
+#player .spinner { position: absolute; left: 930px; top: 510px; width: 60px; height: 60px; display: none; }
+#player .spinner.on { display: block; }
+#player .spinner i { display: block; width: 52px; height: 52px; border-radius: 30px; border: 4px solid rgba(255, 255, 255, 0.2); border-top-color: #fff;
+  -webkit-animation: spin 0.9s linear infinite; animation: spin 0.9s linear infinite; }
+@-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+#player .osd { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; opacity: 0; -webkit-transition: opacity 0.25s; transition: opacity 0.25s;
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.75) 100%);
+  background: linear-gradient(rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 60%, rgba(0, 0, 0, 0.75) 100%); }
+#player .osd.on { opacity: 1; }
+#player .osd .title { position: absolute; left: 80px; bottom: 250px; }
+#player .osd .title .kicker { margin-bottom: 6px; }
+#player .osd .title .name { font-size: 44px; font-weight: 700; }
+#player .controls { position: absolute; left: 80px; right: 80px; bottom: 60px; }
+#player .pills { text-align: right; margin-bottom: 30px; height: 72px; }
+#player .pills .btn { margin-right: 0; margin-left: 18px; font-size: 25px; height: 64px; line-height: 64px; padding: 0 30px; }
+#player .bar { position: relative; height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.28); }
+#player .bar .fill { height: 10px; border-radius: 5px; background: rgba(255, 255, 255, 0.92); width: 0; }
+#player .bar .head { position: absolute; top: -9px; width: 4px; height: 28px; margin-left: -2px; background: #fff; border-radius: 2px; opacity: 0; }
+/* Thicker when focused without moving anything: a transform, not a new height. */
+#player .bar.focus { -webkit-transform: scaleY(1.4); transform: scaleY(1.4); }
+#player .bar.focus .head { opacity: 1; }
+#player .times { margin-top: 14px; font-size: 23px; color: rgba(255, 255, 255, 0.75); font-weight: 600; }
+#player .times .left { float: right; }
+#player .skip { position: absolute; right: 80px; bottom: 210px; display: none; }
+#player .skip.on { display: block; }
+#player .skip .btn { background: rgba(16, 16, 18, 0.88); color: #fff; }
+#player .skip .btn.focus { background: #fff; color: #000; }
+#player .next { position: absolute; right: 80px; bottom: 210px; width: 640px; height: 160px; border-radius: 20px; background: rgba(30, 30, 32, 0.92);
+  display: none; overflow: hidden; }
+#player .next.on { display: block; }
+#player .next.focus { -webkit-transform: scale(1.05); transform: scale(1.05); box-shadow: 0 0 0 4px #fff; }
+#player .next .thumb { position: absolute; left: 0; top: 0; width: 284px; height: 160px; background: #333; background-size: cover; background-position: center; }
+#player .next .text { position: absolute; left: 310px; top: 24px; right: 20px; }
+#player .next .small { font-size: 21px; color: rgba(255, 255, 255, 0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+#player .next .ep { font-size: 27px; font-weight: 700; margin-top: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#player .next .count { font-size: 23px; color: rgba(255, 255, 255, 0.75); margin-top: 10px; }
+#player .tabs { position: absolute; left: 0; top: 0; width: 1920px; height: 520px; display: none;
+  background: -webkit-linear-gradient(top, #141416 0%, #141416 78%, rgba(20, 20, 22, 0) 100%); background: linear-gradient(#141416 0%, #141416 78%, rgba(20, 20, 22, 0) 100%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset; }
+#player .tabs.on { display: block; }
+#player .tabs .heads { padding: 50px 0 0 80px; height: 60px; text-align: center; }
+#player .tabs .heads span { display: inline-block; font-size: 27px; font-weight: 600; padding: 0 24px; height: 52px; line-height: 52px; border-radius: 26px;
+  color: rgba(255, 255, 255, 0.55); margin-right: 8px; }
+#player .tabs .heads span.on { color: #fff; background: rgba(255, 255, 255, 0.14); }
+#player .tabs .heads span.focus { color: #000; background: #fff; }
+#player .tabs .body { padding: 36px 80px 0; font-size: 26px; line-height: 36px; color: rgba(255, 255, 255, 0.85); }
+#player .tabs .info { position: relative; height: 290px; }
+#player .tabs .thumb { position: absolute; left: 0; top: 0; width: 480px; height: 270px; border-radius: 16px; background: #222 center / cover;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5); }
+#player .tabs .text { position: absolute; left: 530px; top: 0; right: 0; }
+#player .tabs .t1 { font-size: 36px; line-height: 44px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+#player .tabs .t2 { max-width: 1000px; max-height: 108px; overflow: hidden; font-size: 26px; line-height: 36px; color: rgba(255, 255, 255, 0.85); margin: 12px 0; }
+#player .tabs .t3 { font-size: 23px; color: rgba(255, 255, 255, 0.55); }
+#player .tabs .t3 .b { font-size: 18px; line-height: 26px; }
+#player .tabs .eps { white-space: nowrap; }
+#player .tabs .eps span { display: inline-block; width: 84px; height: 84px; line-height: 84px; text-align: center; margin-right: 16px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.1); font-size: 30px; font-weight: 700; }
+#player .tabs .eps span.on { background: #fff; color: #000; }
+
+/* MARK: - Sidebar (tvOS 18+: Back opens it, → or a choice closes it) */
+
+#side { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px;
+  background: -webkit-linear-gradient(left, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0) 45%); background: linear-gradient(90deg, rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0) 45%); }
+/* Floating, away from every edge (TVs crop the borders), and as tall as what it holds. */
+#side .panel { position: absolute; left: 72px; top: 72px; width: 400px; border-radius: 44px; background: rgba(28, 28, 30, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1); padding: 28px 18px 18px; box-sizing: border-box; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.55); }
+#side .who { height: 72px; margin: 0 0 18px 14px; }
+#side .avatar { float: left; width: 64px; height: 64px; line-height: 64px; border-radius: 32px; text-align: center; font-size: 28px; font-weight: 700;
+  background: -webkit-linear-gradient(135deg, #7d8bff, #c86dd7); background: linear-gradient(135deg, #7d8bff, #c86dd7); color: #fff; margin-right: 18px; }
+#side .who .name { display: block; padding-top: 6px; font-size: 28px; font-weight: 700; color: #fff; }
+#side .who .name i { display: block; font-style: normal; font-size: 21px; font-weight: 500; color: rgba(255, 255, 255, 0.5); margin-top: 2px; }
+#side .it { position: relative; height: 64px; line-height: 64px; padding: 0 22px 0 70px; border-radius: 22px; font-size: 27px; font-weight: 600;
+  color: rgba(255, 255, 255, 0.72); margin-bottom: 4px; }
+#side .it .ico { position: absolute; left: 22px; top: 18px; width: 28px; height: 28px; color: rgba(255, 255, 255, 0.6); }
+#side .it.on { color: #fff; background: rgba(255, 255, 255, 0.1); }
+#side .it.on .ico { color: #fff; }
+#side .it.focus { background: #fff; color: #000; -webkit-transform: scale(1.04); transform: scale(1.04); }
+#side .it.focus .ico { color: #000; }
+#side .sep { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 14px 18px; }
+#side .it .val { float: right; font-size: 23px; color: rgba(255, 255, 255, 0.5); font-weight: 500; }
+#side .it.focus .val { color: rgba(0, 0, 0, 0.55); }
+
+/* MARK: - Pages without a hero (Buscar, Biblioteca), and the search keyboard */
+
+.vtitle { margin: 0 0 40px 80px; padding-top: 70px; font-size: 64px; font-weight: 800; letter-spacing: -0.02em; }
+.row.keys { height: 200px; }
+.card.key { width: 72px; height: 88px; line-height: 88px; text-align: center; border-radius: 18px; background: rgba(255, 255, 255, 0.1);
+  font-size: 34px; font-weight: 600; text-transform: uppercase; margin-right: 12px; }
+.card.key.focus { background: #fff; color: #000; }
+
+/* MARK: - Menus (sources, subtitles, audio): a popover above the player's buttons */
+
+#sheet { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: rgba(0, 0, 0, 0.35); }
+#sheet .box { position: absolute; right: 80px; bottom: 170px; width: 820px; max-height: 820px; overflow: hidden; border-radius: 30px;
+  background: rgba(40, 40, 42, 0.98); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); padding: 0 0 20px; }
+#sheet h3 { position: relative; z-index: 1; padding: 30px 36px 16px; margin: 0; background: #28282a; font-size: 25px; font-weight: 700; color: rgba(255, 255, 255, 0.55); text-transform: uppercase; letter-spacing: 0.04em; }
+#sheet .list { position: relative; -webkit-transition: -webkit-transform 0.25s; transition: transform 0.25s; }
+#sheet .opt { position: relative; margin: 0 16px; padding: 14px 20px 14px 68px; border-radius: 16px; min-height: 40px; }
+#sheet .opt .a { font-size: 27px; font-weight: 600; line-height: 36px; }
+#sheet .opt .b { font-size: 21px; color: rgba(255, 255, 255, 0.55); line-height: 28px; margin-top: 2px; }
+#sheet .opt .chk { position: absolute; left: 24px; top: 14px; font-size: 26px; line-height: 36px; font-weight: 700; }
+#sheet .opt .tag { display: inline-block; font-size: 18px; font-weight: 700; padding: 0 8px; line-height: 26px; border-radius: 6px; margin-left: 10px;
+  background: rgba(255, 214, 10, 0.18); color: #FFD60A; vertical-align: 3px; }
+#sheet .opt.focus { background: #fff; color: #000; }
+#sheet .opt.focus .b { color: rgba(0, 0, 0, 0.6); }
+#sheet .opt.focus .tag { background: rgba(0, 0, 0, 0.1); color: #8a6d00; }
+#sheet .opt.off .a { color: rgba(255, 255, 255, 0.4); }
+#sheet .opt.off.focus .a { color: rgba(0, 0, 0, 0.45); }
+#sheet .head { margin: 18px 36px 8px; font-size: 21px; font-weight: 700; color: rgba(255, 255, 255, 0.45); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* MARK: - Toast and the prototype's measurements */
+
+#toast { position: absolute; left: 50%; top: 60px; width: 860px; margin-left: -430px; text-align: center; opacity: 0;
+  -webkit-transition: opacity 0.3s; transition: opacity 0.3s; }
+#toast span { display: inline-block; padding: 18px 34px; border-radius: 40px; background: rgba(44, 44, 46, 0.97); font-size: 26px; font-weight: 600;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); }
+#toast.on { opacity: 1; }
+#hud { position: absolute; right: 30px; top: 24px; width: 440px; box-sizing: border-box; padding: 12px 16px; border-radius: 14px; background: rgba(0, 0, 0, 0.62);
+  font: 16px/23px Menlo, Consolas, monospace; color: rgba(255, 255, 255, 0.85); white-space: pre-wrap; }
+#hud b { color: #30D158; font-weight: 700; }
+#hud.off { display: none; }
+#hud.left { right: auto; left: 30px; }
+
+/* MARK: - The picks' three views, and Settings */
+
+.row .chips { position: absolute; left: 520px; top: 0; height: 46px; }
+.row .chips span { display: inline-block; height: 46px; line-height: 46px; padding: 0 22px; margin-right: 8px; border-radius: 23px; font-size: 24px;
+  font-weight: 600; color: rgba(255, 255, 255, 0.55); }
+.row .chips span.on { color: #fff; background: rgba(255, 255, 255, 0.16); }
+.row .chips span.focus { color: #000; background: #fff; -webkit-transform: scale(1.06); transform: scale(1.06); }
+#sheet .box.settings { left: 80px; right: auto; top: 60px; bottom: 60px; width: 1000px; max-height: none; }
+#sheet .opt .v { float: right; font-size: 24px; line-height: 36px; color: rgba(255, 255, 255, 0.55); margin-left: 20px; }
+#sheet .opt.focus .v { color: rgba(0, 0, 0, 0.6); }
+
+/* MARK: - Over the native player: the page turns see-through where the video is, and draws the subtitles */
+
+/* The body's black is the canvas's (html has none of its own): turning it off makes the whole page see-through. */
+body.native, body.native #stage, body.native #player { background: transparent; }
+body.native #player .frame { display: none; }
+#player .subs { position: absolute; left: 160px; right: 160px; bottom: 90px; text-align: center; font-size: 44px; line-height: 58px; font-weight: 600;
+  text-shadow: 0 0 6px #000, 0 2px 3px #000, 0 0 2px #000; }
+#player .subs span { display: inline-block; }
+#player .subs.size1 { font-size: 54px; line-height: 70px; }
+#player .subs.size2 { font-size: 36px; line-height: 48px; }
+#player .subs.bg1 span { background: rgba(0, 0, 0, 0.7); padding: 4px 16px; border-radius: 8px; text-shadow: none; }
+
+#trailer { position: fixed; left: 0; top: 0; width: 1920px; height: 1080px; background: #000; z-index: 50; display: none; }
+#trailer.on { display: block; }
+#trailer iframe { width: 100%; height: 100%; border: 0; }
+.btn.round.done { color: #30d158; }
+.btn.round.done.focus { color: #0a7d2c; }

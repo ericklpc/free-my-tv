@@ -89,8 +89,17 @@ public class HomeActivity extends Activity {
         if (appsCache != null) rebuildApps();   // without one, the page's first apps() builds it
         web.loadUrl("file:///android_asset/web/index.html");
         web.requestFocus();
-        HomeWatcher.start(this);
+        // The Home button watcher belongs to the home screen app only, not to the player prototype (io.sofa.player).
+        if (isHome()) HomeWatcher.start(this);
+        // The player prototype's native player (firetv/player/, only in ./build.sh --proto): Media3 under the page.
+        try {
+            Class.forName("io.sofa.player.Playback").getMethod("attach", Activity.class, WebView.class).invoke(null, this, web);
+        } catch (ReflectiveOperationException e) {
+            if (!(e instanceof ClassNotFoundException)) Log.w("Sofa", "player", e);   // the home screen has no player
+        }
     }
+
+    private boolean isHome() { return "io.sofa.firetv".equals(getPackageName()); }
 
     /** The TV's apps with their banners, as the page wants them. Slow (it draws every banner): off the UI thread. */
     private String buildApps() {
@@ -219,7 +228,23 @@ public class HomeActivity extends Activity {
             return web.dispatchKeyEvent(new KeyEvent(e.getDownTime(), e.getEventTime(), e.getAction(), KeyEvent.KEYCODE_ENTER,
                     e.getRepeatCount(), e.getMetaState()));
         }
+        // Keys the WebView doesn't pass on as DOM keys: the player prototype (client/proto) reads them here.
+        String name = remoteKey(e.getKeyCode());
+        if (name != null) {
+            if (e.getAction() == KeyEvent.ACTION_DOWN) js("window.FreeMyTV && FreeMyTV.key && FreeMyTV.key('" + name + "')");
+            return true;
+        }
         return super.dispatchKeyEvent(e);
+    }
+
+    private static String remoteKey(int code) {
+        switch (code) {
+            case KeyEvent.KEYCODE_MENU: return "menu";
+            case KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE: return "playpause";
+            case KeyEvent.KEYCODE_MEDIA_FAST_FORWARD: return "ff";
+            case KeyEvent.KEYCODE_MEDIA_REWIND: return "rw";
+            default: return null;
+        }
     }
 
     private void js(final String code) {
