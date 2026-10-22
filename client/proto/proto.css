@@ -73,7 +73,6 @@ body { font-family: 'Inter', 'Helvetica Neue', Roboto, Arial, sans-serif; color:
 
 #rows { position: relative; padding-bottom: 120px; }
 .row { position: relative; height: 610px; margin-bottom: 10px; }
-.row.picks { height: 650px; margin-top: 36px; margin-bottom: 30px; }
 .row h2 { margin: 0 0 6px 80px; font-size: 34px; font-weight: 700; }
 .row .sub { margin: 0 0 16px 80px; font-size: 23px; color: rgba(255, 255, 255, 0.55); height: 28px; }
 .row .track { position: absolute; left: 80px; top: 92px; white-space: nowrap;

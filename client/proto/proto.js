@@ -274,7 +274,7 @@
         art: {backdrop: p.backdrop ? IMG + 'w1280' + p.backdrop : '', poster: p.poster ? IMG + 'w342' + p.poster : ''}};
       return {id: p.id, why: p.why, group: p.group};
     });
-    row.subtitle = 'Curadoria de ' + w.week.split('-').reverse().slice(0, 2).join('/') + ' · só o que já está no seu TorBox';
+    row.subtitle = '';
     function item(p) {
       if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: 'movie', title: p.title, year: p.year, genres: p.genres || [],
         rating: p.rating || '', runtime: p.runtime || 0, cert: '', colors: colorsFor(p.id), desc: p.desc || '',
@@ -1049,7 +1049,7 @@
       for (var i = 0; i < PICKS.length; i++) chips.appendChild(el('span', '', PICKS[i]));
       e.appendChild(chips);
     }
-    e.appendChild(el('div', 'sub', esc(row.subtitle || '')));
+    e.appendChild(el('div', 'sub', row.kind === 'picks' ? '' : esc(row.subtitle || '')));
     var track = el('div', 'track');
     e.appendChild(track);
     $('#rows').appendChild(e);
