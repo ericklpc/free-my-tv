@@ -123,7 +123,7 @@
     return null;
   }
 
-  // Samsung: live TV and (on The Frame) Art Mode right on the shelf, next to the first app, a press or two from start.
+  // Samsung: live TV right on the shelf, next to the first app, a press or two from start. (Art Mode stays on the power key.)
   function glyph(paths) {
     return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" '
       + 'fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>');
@@ -131,13 +131,8 @@
 
   function tvTiles() {
     if (TV.name !== 'tizen') return [];
-    var out = [{id: 'source:TV:1', title: tr('TV ao vivo', 'Live TV', 'TV en vivo'), color: '#E5484D',
+    return [{id: 'source:TV:1', title: tr('TV ao vivo', 'Live TV', 'TV en vivo'), color: '#E5484D',
       icon: glyph('<rect x="5" y="10" width="38" height="26" rx="4"/><path d="M16 42h16M19 4l5 6 5-6"/>')}];
-    if (TV.frame()) {
-      out.push({id: 'art', title: tr('Modo Arte', 'Art Mode', 'Modo Arte'), color: '#B08D57',
-        icon: glyph('<rect x="5" y="7" width="38" height="34" rx="2"/><rect x="11" y="13" width="26" height="22"/><path d="M11 31l8-8 6 6 4-4 8 8"/>')});
-    }
-    return out;
   }
 
   /** Stremio's tile opens Sofá Player instead, when it's there. */
