@@ -2,7 +2,7 @@
 <!-- The Samsung (Tizen) package of the Sofá Player, made by client/proto/build.py (tizen option). -->
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://sofa.local/player" version="1.0.0" viewmodes="maximized">
     <tizen:application id="SofaPlayer.Sofa" package="SofaPlayer" required_version="5.5"/>
-    <name>Sofá</name>
+    <name>Sofá Player</name>
     <author>Erick</author>
     <description>Stremio, TorBox e Trakt no estilo do app TV da Apple.</description>
     <content src="index.html"/>
