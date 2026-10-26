@@ -20,6 +20,7 @@ import android.provider.Settings;
 import android.util.Base64;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.util.Log;
 import android.webkit.ConsoleMessage;
 import android.webkit.JavascriptInterface;
@@ -78,6 +79,9 @@ public class HomeActivity extends Activity {
         });
         web.addJavascriptInterface(new Bridge(), "AndroidTV");
         setContentView(web);
+        // Keep the screen on while Sofá is in front, so Fire OS's own screensaver never covers it: the page runs its
+        // own screensaver instead (web/home.js). After a long idle the page lets the panel sleep (Bridge.keepAwake).
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         IntentFilter changes = new IntentFilter();
         changes.addAction(Intent.ACTION_PACKAGE_ADDED);
         changes.addAction(Intent.ACTION_PACKAGE_REMOVED);
@@ -266,6 +270,14 @@ public class HomeActivity extends Activity {
         @JavascriptInterface public void leave() {
             HomeWatcher.stayOnAmazon = true;
             runOnUiThread(new Runnable() { @Override public void run() { moveTaskToBack(true); } });
+        }
+
+        /** The page's screensaver keeps the panel on; after a long idle it lets Fire OS sleep the screen (on=false). */
+        @JavascriptInterface public void keepAwake(final boolean on) {
+            runOnUiThread(new Runnable() { @Override public void run() {
+                if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } });
         }
 
         @JavascriptInterface public boolean settings() {

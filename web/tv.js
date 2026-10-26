@@ -300,6 +300,11 @@ var TV = (function () {
       if (android && window.AndroidTV.shown) window.AndroidTV.shown();
     },
 
+    /** Fire TV: keep the panel on (so Fire OS's screensaver doesn't cover ours), or let it sleep after a long idle. */
+    keepAwake: function (on) {
+      if (android && window.AndroidTV.keepAwake) try { window.AndroidTV.keepAwake(!!on); } catch (e) {}
+    },
+
     /** Back on the first screen: back to wherever the person came from. */
     back: function () {
       if (android) { window.AndroidTV.leave(); return; }

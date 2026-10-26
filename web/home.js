@@ -917,10 +917,24 @@
     setClass(body, 'night', Data.isNight(Date.now()));
   }
 
-  var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, SAVER_AFTER = 5 * 60000;
+  var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, awake = true;
+  var SAVER_AFTER = 5 * 60000, SLEEP_AFTER = 45 * 60000;   // the screensaver after 5 idle min; then let the panel sleep
+
+  /** What the screensaver shows: first what he's watching and his lists (their art), then the picks. */
+  function saverPhotos() {
+    var out = [], seen = {};
+    function add(bg, title) { if (bg && !seen[bg]) { seen[bg] = 1; out.push({bg: bg, title: title || ''}); } }
+    ['continue', 'movie', 'series'].forEach(function (kind) {
+      Stremio.list(kind).forEach(function (p) { add(Stremio.background(p), p.title); });
+    });
+    Data.showcase().forEach(function (p) {
+      if (p.backdrop && Data.appFor(p.app)) add(Data.image(p.backdrop, 'original'), p.title);
+    });
+    return out;
+  }
 
   function showSaver() {
-    var photos = Data.showcase().filter(function (p) { return p.backdrop && Data.appFor(p.app); });
+    var photos = saverPhotos();
     saverOn = true;
     var s = $('saver');
     s.innerHTML = '';
@@ -936,7 +950,7 @@
       var p = photos.length ? photos[saverIndex++ % photos.length] : null;
       var back = front === a ? b : a;
       if (p) {
-        back.style.backgroundImage = 'url(' + Data.image(p.backdrop, 'original') + ')';
+        back.style.backgroundImage = 'url(' + p.bg + ')';
         back.style.webkitTransform = back.style.transform = 'scale(1.0)';
         clock.lastChild.textContent = p.title;
         setTimeout(function () {
@@ -971,6 +985,7 @@
 
   function poke() {
     idleAt = Date.now();
+    if (!awake) { TV.keepAwake(true); awake = true; }   // woke the panel: keep it on again
     if (saverOn) { hideSaver(); return true; }
     return false;
   }
@@ -1109,6 +1124,8 @@
     Stremio.refresh();
     if (!saverOn && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
+    // After a long idle, stop holding the panel on so Fire OS can sleep the screen; a press wakes and resumes.
+    if (saverOn && awake && Date.now() - idleAt > SLEEP_AFTER) { TV.keepAwake(false); awake = false; }
   }, 30000);
 
   // For the browser preview and tests.
