@@ -528,7 +528,7 @@ def build_info(ids):
 
 
 def entry(d, line, group=''):
-    return {'id': d['external_ids']['imdb_id'], 'tmdb': d['id'], 'group': group, 'title': d.get('title'),
+    return {'id': d['external_ids']['imdb_id'], 'tmdb': d['id'], 'type': 'movie', 'group': group, 'title': d.get('title'),
             'original': d.get('original_title'), 'year': int((d.get('release_date') or '0')[:4] or 0),
             'runtime': d.get('runtime') or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
             'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
@@ -707,42 +707,56 @@ def pick(args):
     idf = rarity(list(cand.values()))
     ranked = sorted((d for d in cand.values() if not d.get('adult') and (d.get('runtime') or 90) >= 60),
                     key=lambda d: -score(d, taste, wish, idf))
-    reason_count = {}
-    groups = {'new': [], 'classic': [], 'mix': []}
     # Each of the app's chips (Lançamentos, Clássicos) gets a full row of its own.
     quota = {'new': 12, 'classic': 12, 'mix': 12}
     def group(d):
         y = int((d.get('release_date') or '0')[:4] or 0)
         return 'new' if y >= THIS_YEAR - 3 else 'classic' if y and y < 1990 else 'mix'
-    checked = 0
-    queue = [d for d in ranked if (d.get('external_ids') or {}).get('imdb_id')]
-    while queue and any(len(groups[g]) < quota[g] for g in groups):
-        batch, queue = queue[:24], queue[24:]
-        batch = [d for d in batch if len(groups[group(d)]) < quota[group(d)]]
-        ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), batch, workers=6)
-        checked += len(batch)
-        for d, good in zip(batch, ok):
-            g, main = group(d), main_reason(d, taste, best, idf)
-            # Variety: at most two picks for the same reason (the same director, the same theme).
-            if good and len(groups[g]) < quota[g] and reason_count.get(main, 0) < 2:
-                groups[g].append(d)
-                reason_count[main] = reason_count.get(main, 0) + 1
-    picks, said = [], {}
-    for g in ('new', 'mix', 'classic'):
-        for d in groups[g]:
-            picks.append({'id': d['external_ids']['imdb_id'], 'tmdb': d['id'], 'group': g, 'title': d.get('title'),
-                          'original': d.get('original_title'), 'year': int((d.get('release_date') or '0')[:4] or 0),
-                          'runtime': d.get('runtime') or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
-                          'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
-                          'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
-                          'why': why(d, taste, best, idf, said), 'score': round(score(d, taste, wish, idf), 3)})
+    st = {'queue': [d for d in ranked if (d.get('external_ids') or {}).get('imdb_id')], 'checked': 0}
+
+    def choose(used):
+        """The best-ranked cached films not used yet, by group: one deck's picks."""
+        groups, reason_count, later = {'new': [], 'classic': [], 'mix': []}, {}, []
+        while st['queue'] and any(len(groups[g]) < quota[g] for g in groups):
+            batch, st['queue'] = st['queue'][:24], st['queue'][24:]
+            later += [d for d in batch if d['id'] not in used and len(groups[group(d)]) >= quota[group(d)]]
+            batch = [d for d in batch if d['id'] not in used and len(groups[group(d)]) < quota[group(d)]]
+            ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), batch, workers=6)
+            st['checked'] += len(batch)
+            for d, good in zip(batch, ok):
+                g, main = group(d), main_reason(d, taste, best, idf)
+                # Variety: at most two picks for the same reason (the same director, the same theme).
+                if good and len(groups[g]) < quota[g] and reason_count.get(main, 0) < 2:
+                    groups[g].append(d)
+                    reason_count[main] = reason_count.get(main, 0) + 1
+        st['queue'] = later + st['queue']                   # what a full group passed over, for the next deck
+        picks, said = [], {}
+        for g in ('new', 'mix', 'classic'):
+            for d in groups[g]:
+                picks.append(dict(entry(d, why(d, taste, best, idf, said), g), score=round(score(d, taste, wish, idf), 3)))
+        return picks, groups
+
     os.makedirs(OUT, exist_ok=True)
     # Two runs a week (Monday, Thursday): each one its own seeds.
     today = datetime.date.today()
     week = today.isocalendar()[1] + (1000 if today.weekday() >= 3 else 0)
     policy = learn()
-    rows = personal_rows(rated, info, taste, best, idf, seen, wish, week, set(p['tmdb'] for p in picks), policy.get('quota'))
-    out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows}
+    # Decks: the home's refresh button moves to the next one on the TV, offline. Same algorithm, other seeds, and
+    # nothing repeats across decks.
+    decks, used = [], set()
+    for k in range(max(1, int(os.environ.get('SOFA_DECKS', '3')))):
+        dp, groups_k = choose(used)
+        used.update(p['tmdb'] for p in dp)
+        dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'))
+        for r in dr:
+            used.update(x['tmdb'] for x in r['items'])
+        decks.append({'picks': dp, 'rows': dr})
+        if k == 0:
+            groups = groups_k
+        print('curation: deck %d: %d picks, %d rows' % (k + 1, len(dp), len(dr)))
+    picks, rows, checked = decks[0]['picks'], decks[0]['rows'], st['checked']
+    out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows,
+           'decks': decks}
     with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
     shown(out)

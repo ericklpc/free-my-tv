@@ -264,8 +264,25 @@
   var H = {zone: 'hero', page: 0, btn: 0, row: 0, idx: [], rows: [], heroTimer: 0, artLayer: 0};
   var HOME = SAMPLE.home;
   // The week's picks (client/curation): they replace the sample ones, with their own why lines.
+  // A run of the curation leaves several decks (same algorithm, other seeds, nothing repeated): the button at the
+  // end of the home moves to the next one. Which one is on is kept per run.
+  var DECK = {week: '', i: 0};
+  try { DECK = JSON.parse(localStorage.getItem('sofa.deck') || 'null') || DECK; } catch (e) {}
+  function decks() { return CFG.picks && CFG.picks.decks || []; }
+  function nextDeck() {
+    var n = decks().length;
+    if (n < 2) { toast('A próxima curadoria sai na segunda'); return; }
+    DECK = {week: CFG.picks.week, i: ((DECK.week === CFG.picks.week ? DECK.i : 0) + 1) % n};
+    try { localStorage.setItem('sofa.deck', JSON.stringify(DECK)); } catch (e) {}
+    toast('Montando uma curadoria nova…');
+    setTimeout(function () { location.reload(); }, 600);
+  }
   (function () {
     var w = CFG.picks, row = null;
+    if (w && decks().length) {
+      var d = decks()[DECK.week === w.week ? DECK.i % decks().length : 0];
+      w = {week: w.week, picks: d.picks, rows: d.rows};
+    }
     for (var i = 0; i < HOME.rows.length; i++) if (HOME.rows[i].kind === 'picks') row = HOME.rows[i];
     if (!w || !w.picks || !w.picks.length || !row) return;
     row.items = w.picks.map(function (p) {
@@ -291,6 +308,7 @@
       if (rest[k]) out.push(rest[k]);
       if (mine[k]) out.push(mine[k]);
     }
+    if (decks().length > 1) out.push({kind: 'action', title: '', items: [{id: '', action: 'deck'}]});
     HOME.rows = out;
     // The hero: the best new pick, the first of this week's rows and a classic (Continue joins in front once the
     // library loads).
@@ -320,7 +338,7 @@
   function ordered(rows) {
     return rows.map(function (r, i) {
       if (r.at == null) r.at = i;                          // its place before any climb
-      return {r: r, k: r.kind === 'continue' ? -1e9 : r.kind === 'picks' ? -1e8 : r.at - 3 * rowScore(r.title)};
+      return {r: r, k: r.kind === 'continue' ? -1e9 : r.kind === 'picks' ? -1e8 : r.kind === 'action' ? 1e9 : r.at - 3 * rowScore(r.title)};
     }).sort(function (a, b) { return a.k - b.k; }).map(function (x) { return x.r; });
   }
   HOME.rows = ordered(HOME.rows);
@@ -554,11 +572,12 @@
     on.style.width = '100%';
   }
 
-  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key'};
-  var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240, key: 84};
+  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key', action: 'action'};
+  var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240, key: 84, action: 0};
 
   function card(kind, item, n) {
     if (kind === 'keys') return el('div', 'card lift key', esc(item.key));
+    if (kind === 'action') return el('div', 'card lift action', '<span class="ico">↻</span>Nova curadoria pra você');
     var t = TITLES[item.id], cls = CARD[kind] || kind;
     var c = el('div', 'card lift ' + cls);
     var pic = el('div', 'pic');
@@ -1140,6 +1159,7 @@
     } else if (k === 'ok') {
       var it = homeItem();
       if (H.zone === 'rows' && HOME.rows[H.row].kind === 'keys') { typeKey(it); return; }
+      if (H.zone === 'rows' && HOME.rows[H.row].kind === 'action') { nextDeck(); return; }
       H.from = H.zone === 'rows' ? HOME.rows[H.row] : null;
       used(H.from, 1);
       if (H.zone === 'hero' && H.btn === 0) { var c = continueOf(it.id); play(it.id, c || {}); return; }
