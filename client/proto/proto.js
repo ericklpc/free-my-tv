@@ -51,16 +51,30 @@
 
   var IMG = 'https://image.tmdb.org/t/p/';
   var art = {}, waiting = {};
-  function get(url, done, ms) {
-    var x = new XMLHttpRequest();
+  // TMDB answers 429 to a burst (the home asks for dozens at once): at most 6 at a time, and a 429 waits and tries again.
+  var tmdbBusy = 0, tmdbQueue = [];
+  function get(url, done, ms, tries) {
+    var tmdb = url.indexOf('api.themoviedb.org') >= 0;
+    if (tmdb && tmdbBusy >= 6) { tmdbQueue.push([url, done, ms, tries]); return; }
+    if (tmdb) tmdbBusy++;
+    var x = new XMLHttpRequest(), over = false;
+    var end = function (o) {
+      if (over) return;
+      over = true;
+      if (tmdb) { tmdbBusy--; var q = tmdbQueue.shift(); if (q) get(q[0], q[1], q[2], q[3]); }
+      if (tmdb && x.status === 429 && (tries || 0) < 3) { setTimeout(function () { get(url, done, ms, (tries || 0) + 1); }, 1500 * ((tries || 0) + 1)); return; }
+      done(o);
+    };
     x.open('GET', url, true);
     x.timeout = ms || 10000;
     x.onreadystatechange = function () {
       if (x.readyState !== 4) return;
-      if (x.status !== 200) { done(null); return; }
-      try { done(JSON.parse(x.responseText)); } catch (e) { done(null); }
+      if (x.status !== 200) { end(null); return; }
+      var o = null;
+      try { o = JSON.parse(x.responseText); } catch (e) {}
+      end(o);
     };
-    x.ontimeout = x.onerror = function () { done(null); };
+    x.ontimeout = x.onerror = function () { end(null); };
     x.send();
   }
   function loadArt(id, done) {
@@ -231,7 +245,7 @@
     var d = defaultEp(id);
     return R[videoId(id, d.s, d.e)];
   }
-  function focusTitle(id) {
+  function focusTitle(id, auto) {
     if (!id || !TITLES[id]) return;                        // a key of the search keyboard
     focusId = id;
     clearTimeout(resolveTimer);
@@ -240,7 +254,7 @@
       resolve(id, function () {
         setTimeout(function () {
           var direct = state.screen === 'home' && (H.zone === 'hero' || (HOME.rows[H.row] && HOME.rows[H.row].kind === 'continue'));
-          if (focusId === id && direct && !S.open && !sheet.open) preload(id, continueOf(id) || {});
+          if (focusId === id && direct && !auto && !S.open && !sheet.open) preload(id, continueOf(id) || {});
         }, 900);
       });
     }, 300);
@@ -534,7 +548,7 @@
     heroDots();
     H.heroTimer = setTimeout(function () {
       if (state.screen === 'home' && H.zone === 'hero' && !S.open && !sheet.open) {
-        H.page = (H.page + 1) % HOME.hero.length; H.btn = 0; renderHero(); focusTitle(heroItem().id);
+        H.page = (H.page + 1) % HOME.hero.length; H.btn = 0; renderHero(); focusTitle(heroItem().id, true);
       }
       heroTick();
     }, 9000);
@@ -914,7 +928,9 @@
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
       toast('Abrindo o trailer…');
       trailerFile(key, function (file) {
-        if (file) playTrailer(id, file); else app(key);
+        if (!file) { app(key); return; }
+        playTrailer(id, file);
+        P.trailerKey = key; P.trailerFail = function () { app(key); };
       });
     }
     // Only when no video file could be found: the TV's YouTube app.
@@ -957,29 +973,52 @@
   var INVIDIOUS = ['https://inv.nadeko.net', 'https://yewtu.be', 'https://invidious.nerdvpn.de', 'https://invidious.privacyredirect.com'];
   var PIPED = ['https://pipedapi.kavin.rocks', 'https://api.piped.private.coffee', 'https://pipedapi.adminforge.de'];
   var TRAILERS = {};
+  // All sources at once, the first MP4 wins; after 5 s without one, the YouTube app.
   function trailerFile(key, done) {
     if (TRAILERS[key]) { done(TRAILERS[key]); return; }
+    var over = false, left = 1 + INVIDIOUS.length + PIPED.length;
+    var timer = setTimeout(function () { finish(null); }, 5000);
+    function finish(url) {
+      if (over) return;
+      over = true; clearTimeout(timer);
+      if (url) TRAILERS[key] = url;
+      done(url);
+    }
+    function one(url) { if (url) finish(url); else if (--left === 0) finish(null); }
     function height(q) { return parseInt(q, 10) || 0; }
-    function found(url) { TRAILERS[key] = url; done(url); }
-    function piped(i) {
-      if (i >= PIPED.length) { done(null); return; }
-      get(PIPED[i] + '/streams/' + key, function (o) {
+    // YouTube's own player API, as the VR app asks it: plain MP4 links, no signature to work out.
+    var x = new XMLHttpRequest();
+    x.open('POST', 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false', true);
+    x.setRequestHeader('Content-Type', 'application/json');
+    x.timeout = 5000;
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      var o = null, best = null;
+      try { o = JSON.parse(x.responseText); } catch (e) {}
+      var f = o && o.streamingData && o.streamingData.formats || [];
+      for (var j = 0; j < f.length; j++)
+        if (f[j].url && /mp4/.test(f[j].mimeType || '') && (!best || (f[j].height || 0) > (best.height || 0))) best = f[j];
+      one(best && best.url);
+    };
+    x.ontimeout = x.onerror = function () { one(null); };
+    x.send(JSON.stringify({videoId: key, contentCheckOk: true, racyCheckOk: true, context: {client: {clientName: 'ANDROID_VR',
+      clientVersion: '1.62.27', deviceMake: 'Oculus', deviceModel: 'Quest 3', androidSdkVersion: 32, osName: 'Android', osVersion: '12L', hl: 'pt', gl: 'BR'}}}));
+    PIPED.forEach(function (host) {
+      get(host + '/streams/' + key, function (o) {
         var best = null, v = o && o.videoStreams || [];
         for (var j = 0; j < v.length; j++)
           if (!v[j].videoOnly && /mp4/i.test(v[j].format || v[j].mimeType || '') && height(v[j].quality) <= 1080 && (!best || height(v[j].quality) > height(best.quality))) best = v[j];
-        if (best) found(best.url); else piped(i + 1);
-      }, 6000);
-    }
-    function invidious(i) {
-      if (i >= INVIDIOUS.length) { piped(0); return; }
-      get(INVIDIOUS[i] + '/api/v1/videos/' + key + '?local=true&fields=formatStreams', function (o) {
+        one(best && best.url);
+      }, 5000);
+    });
+    INVIDIOUS.forEach(function (host) {
+      get(host + '/api/v1/videos/' + key + '?local=true&fields=formatStreams', function (o) {
         var best = null, f = o && o.formatStreams || [];
         for (var j = 0; j < f.length; j++)
           if (/mp4/.test(f[j].type || '') && (!best || height(f[j].resolution || f[j].qualityLabel) > height(best.resolution || best.qualityLabel))) best = f[j];
-        if (best) found(/^https?:/.test(best.url) ? best.url : INVIDIOUS[i] + best.url); else invidious(i + 1);
-      }, 6000);
-    }
-    invidious(0);
+        one(best && (/^https?:/.test(best.url) ? best.url : host + best.url));
+      }, 5000);
+    });
   }
 
   // The trailer in the same player as the film (same controls, subtitles and audio menus), nothing saved or scrobbled.
@@ -1746,7 +1785,7 @@
   }
 
   // The title's page prepares its stream paused behind the page, so OK only presses play (TTFF under a second).
-  var preloadKey = '';
+  var preloadKey = '', preloadTimer = 0, lastKey = 0;
   function preload(id, from) {
     if (!REAL || !window.Player.preload || state.screen === 'player') return;
     var t = TITLES[id], s = from.s || 0, e = from.e || 0;
@@ -1757,13 +1796,21 @@
     var key = st.url + '@' + Math.round(startMs / 5000);
     if (key === preloadKey) return;
     preloadKey = key;
-    withSubs(st, function () {
+    // Opening AVPlay holds the TV's page for a moment: wait until the remote has been still for a second.
+    clearTimeout(preloadTimer);
+    var go = function () {
       if (preloadKey !== key || state.screen === 'player') return;
-      console.log('[player] preload ' + videoId(id, s, e) + ' · ' + Ranking.label(st));
-      window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || [], matchRate: SET.rate === 1, uhd: st.res >= 2160}));
-    });
+      if (now() - lastKey < 1000) { preloadTimer = setTimeout(go, 1000 - (now() - lastKey)); return; }
+      withSubs(st, function () {
+        if (preloadKey !== key || state.screen === 'player') return;
+        console.log('[player] preload ' + videoId(id, s, e) + ' · ' + Ranking.label(st));
+        window.Player.preload(JSON.stringify({url: st.url, startMs: Math.round(startMs), subtitles: st.subs || [], matchRate: SET.rate === 1, uhd: st.res >= 2160}));
+      });
+    };
+    preloadTimer = setTimeout(go, 1200);
   }
   function unpreload() {
+    clearTimeout(preloadTimer);
     if (!preloadKey) return;
     preloadKey = '';
     if (REAL) window.Player.stop();
@@ -1846,6 +1893,8 @@
 
   // The stream broke: the next one takes over at the same position, without the person doing anything.
   function fallback(why) {
+    // A trailer whose file doesn't play: the YouTube app after all.
+    if (P.trailer) { var f = P.trailerFail; P.trailerFail = null; delete TRAILERS[P.trailerKey]; stopPlayer(); if (f) f(); return; }
     var i = P.list.indexOf(P.stream), next = P.list[i + 1];
     if (!next) { toast(why + ' e não há outra fonte'); stopPlayer(); return; }
     P.stream = next; loadSubs(next, P.id, P.s, P.e);
@@ -2297,7 +2346,7 @@
   }
 
   function key(k) {
-    M.clicks++;
+    M.clicks++; lastKey = now();
     if (trailerOpen()) { if (k === 'back' || k === 'ok') closeTrailer(); return; }
     if (sheet.open) sheetKey(k);
     else if (S.open) sideKey(k);
