@@ -928,24 +928,12 @@
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
       toast('Abrindo o trailer…');
       trailerFile(key, function (file) {
-        if (!file) { app(key); return; }
+        if (!file) { inline(key); return; }
         playTrailer(id, file);
-        P.trailerKey = key; P.trailerFail = function () { app(key); };
+        P.trailerKey = key; P.trailerFail = function () { inline(key); };
       });
     }
-    // Only when no video file could be found: the TV's YouTube app.
-    function app(key) {
-      var url = 'https://www.youtube.com/watch?v=' + key;
-      if (window.AndroidTV && (window.AndroidTV.launch('com.amazon.firetv.youtube', url) || window.AndroidTV.launch('com.google.android.youtube.tv', url))) return;
-      try {
-        var ctl = new tizen.ApplicationControl('http://tizen.org/appcontrol/operation/view', null, null, null,
-          [new tizen.ApplicationControlData('PAYLOAD', [JSON.stringify({values: 'v=' + key})])]);
-        tizen.application.launchAppControl(ctl, '111299001912', function () {}, function () { inline(key); });
-        return;
-      } catch (e) {}
-      inline(key);
-    }
-    // No YouTube app: on the page itself, Back closes it.
+    // YouTube's own embedded player, on the page itself: Back closes it.
     function inline(key) {
       var f = $('#trailer');
       f.innerHTML = '<iframe allow="autoplay; fullscreen" src="https://www.youtube-nocookie.com/embed/' + key + '?autoplay=1&rel=0&playsinline=1"></iframe>';
@@ -973,10 +961,10 @@
   var INVIDIOUS = ['https://inv.nadeko.net', 'https://yewtu.be', 'https://invidious.nerdvpn.de', 'https://invidious.privacyredirect.com'];
   var PIPED = ['https://pipedapi.kavin.rocks', 'https://api.piped.private.coffee', 'https://pipedapi.adminforge.de'];
   var TRAILERS = {};
-  // All sources at once, the first MP4 wins; after 5 s without one, the YouTube app.
+  // All sources at once, the first MP4 wins; after 5 s without one, YouTube's own player on the page.
   function trailerFile(key, done) {
     if (TRAILERS[key]) { done(TRAILERS[key]); return; }
-    var over = false, left = 1 + INVIDIOUS.length + PIPED.length;
+    var over = false, left = INVIDIOUS.length + PIPED.length;
     var timer = setTimeout(function () { finish(null); }, 5000);
     function finish(url) {
       if (over) return;
@@ -986,23 +974,6 @@
     }
     function one(url) { if (url) finish(url); else if (--left === 0) finish(null); }
     function height(q) { return parseInt(q, 10) || 0; }
-    // YouTube's own player API, as the VR app asks it: plain MP4 links, no signature to work out.
-    var x = new XMLHttpRequest();
-    x.open('POST', 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false', true);
-    x.setRequestHeader('Content-Type', 'application/json');
-    x.timeout = 5000;
-    x.onreadystatechange = function () {
-      if (x.readyState !== 4) return;
-      var o = null, best = null;
-      try { o = JSON.parse(x.responseText); } catch (e) {}
-      var f = o && o.streamingData && o.streamingData.formats || [];
-      for (var j = 0; j < f.length; j++)
-        if (f[j].url && /mp4/.test(f[j].mimeType || '') && (!best || (f[j].height || 0) > (best.height || 0))) best = f[j];
-      one(best && best.url);
-    };
-    x.ontimeout = x.onerror = function () { one(null); };
-    x.send(JSON.stringify({videoId: key, contentCheckOk: true, racyCheckOk: true, context: {client: {clientName: 'ANDROID_VR',
-      clientVersion: '1.62.27', deviceMake: 'Oculus', deviceModel: 'Quest 3', androidSdkVersion: 32, osName: 'Android', osVersion: '12L', hl: 'pt', gl: 'BR'}}}));
     PIPED.forEach(function (host) {
       get(host + '/streams/' + key, function (o) {
         var best = null, v = o && o.videoStreams || [];
