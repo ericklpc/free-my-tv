@@ -1960,12 +1960,19 @@
     $('#player .bar .head').style.left = (pct * 100) + '%';
     $('#player .times .at').textContent = clock(pos) + (P.scrub ? (P.scrub.dir > 0 ? '  ▸▸' : '  ◂◂') : P.paused ? '  ❚❚' : '');
     $('#player .times .left').textContent = '-' + clock(P.dur - pos);
-    var pills = $('#player .pills');
-    if (!pills.children.length) {
-      pills.appendChild(el('span', 'btn lift', 'Legendas'));
-      pills.appendChild(el('span', 'btn lift', 'Áudio'));
-      pills.appendChild(el('span', 'btn lift', 'Fontes'));
+    var pills = $('#player .pills'), want = pillNames();
+    if (pills.children.length !== want.length) {
+      pills.innerHTML = '';
+      for (var i = 0; i < want.length; i++) pills.appendChild(el('span', 'btn lift', want[i]));
+      P.pill = Math.min(P.pill, want.length - 1);
     }
+  }
+
+  // A show with more to come gets a fourth button: on to the next episode.
+  function pillNames() {
+    var n = ['Legendas', 'Áudio', 'Fontes'];
+    if (P.s && P.t && P.t.seasons && hasNext()) n.push('Próximo episódio  ▶▶');
+    return n;
   }
 
   function paintPlayer() {
@@ -2059,11 +2066,12 @@
       else if (k === 'down') { osd(false); openTabs(); return; }
     } else {
       if (k === 'left' && P.pill > 0) P.pill--;
-      else if (k === 'right' && P.pill < 2) P.pill++;
+      else if (k === 'right' && P.pill < pillNames().length - 1) P.pill++;
       else if (k === 'down') P.zone = 'bar';
       else if (k === 'ok') {
         if (P.pill === 0) openSheet('Legendas', subsItems());
         else if (P.pill === 1) openSheet('Áudio', audioItems());
+        else if (P.pill === 3) { P.zone = 'bar'; P.pill = 0; osd(false); nextEpisode(); return; }
         else openPlayerSources();
         return;
       }
@@ -2138,6 +2146,7 @@
     P.tabs = true; P.tab = 0;
     $('#player .tabs').className = 'tabs on';
     paintTabs();
+    tabsIdle();
   }
   function paintTabs() {
     var names = P.s ? ['Info', 'Episódios'] : ['Info'], heads = $('#player .tabs .heads'), body = $('#player .tabs .body');
@@ -2158,7 +2167,16 @@
     }
     hud();
   }
+  // The panel under the timeline goes away by itself after a few seconds without a key, like the rest of the controls.
+  function tabsIdle() {
+    clearTimeout(P.tabsTimer);
+    P.tabsTimer = setTimeout(function () {
+      if (!P.tabs || sheet.open || state.screen !== 'player') return;
+      P.tabs = false; $('#player .tabs').className = 'tabs'; osd(false); hud(); paintPlayer();
+    }, 6000);
+  }
   function tabsKey(k) {
+    tabsIdle();
     var max = P.s ? 1 : 0;
     if (k === 'left' && P.tab > 0) P.tab--;
     else if (k === 'right' && P.tab < max) P.tab++;
