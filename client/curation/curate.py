@@ -583,7 +583,7 @@ def proper(d):
     return (d.get('runtime') or 0) >= 70 and not g & {10402, 10770} and not d.get('adult')
 
 
-def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=None):
+def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=None, titles=None):
     """Seeds from his taste (5★ films, directors, themes, countries), rotating with the week. Each kind tries more
     seeds than it needs, in its own order, and keeps the first that fill a row."""
     ranked = sorted(((v, f) for f, v in taste.items() if v > 0 and f in best), reverse=True)
@@ -636,6 +636,8 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=
         for title, ids, seed in gen():
             if got == want:
                 break
+            if titles is not None and title in titles:          # an earlier deck has this row already
+                continue
             row = make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken)
             if row:
                 rows.append(row)
@@ -743,11 +745,12 @@ def pick(args):
     policy = learn()
     # Decks: the home's refresh button moves to the next one on the TV, offline. Same algorithm, other seeds, and
     # nothing repeats across decks.
-    decks, used = [], set()
+    decks, used, titles = [], set(), set()
     for k in range(max(1, int(os.environ.get('SOFA_DECKS', '3')))):
         dp, groups_k = choose(used)
         used.update(p['tmdb'] for p in dp)
-        dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'))
+        dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'), titles)
+        titles.update(r['title'] for r in dr)
         for r in dr:
             used.update(x['tmdb'] for x in r['items'])
         decks.append({'picks': dp, 'rows': dr})
