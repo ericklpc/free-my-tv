@@ -813,6 +813,7 @@
   var POS = {};
   try { POS = JSON.parse(localStorage.getItem('sofa.pos') || '{}'); } catch (e) {}
   function rememberPos() {
+    if (P.trailer) return;
     if (!P.id || !P.started || P.pos < 10) return;
     POS[P.id] = {pos: Math.round(P.pos), s: P.s, e: P.e, dur: Math.round(P.dur), at: Date.now()};
     var ids = Object.keys(POS).sort(function (a, b) { return POS[b].at - POS[a].at; });
@@ -830,6 +831,7 @@
 
   // The position goes back to the library every 30 s, on pause and on leaving, like Stremio's own player does.
   function saveProgress() {
+    if (P.trailer) return;
     if (!REAL || !P.started || !(CFG.stremioAuthKey || '').trim()) return;
     var t = P.t, imdb = /^tt\d+$/.test(P.id) ? P.id : t.imdb;
     if (!imdb || !(P.dur > 0)) return;
@@ -910,6 +912,13 @@
     var t = TITLES[id];
     function open(key) {
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
+      toast('Abrindo o trailer…');
+      trailerFile(key, function (file) {
+        if (file) playTrailer(id, file); else app(key);
+      });
+    }
+    // Only when no video file could be found: the TV's YouTube app.
+    function app(key) {
       var url = 'https://www.youtube.com/watch?v=' + key;
       if (window.AndroidTV && (window.AndroidTV.launch('com.amazon.firetv.youtube', url) || window.AndroidTV.launch('com.google.android.youtube.tv', url))) return;
       try {
@@ -943,6 +952,60 @@
       if (v.length) open(v[0].key); else cinemeta();
     });
   }
+  // The trailer's video file, through YouTube front-ends that hand out a playable MP4 (served by them, so it plays
+  // from any address): Invidious first, then Piped. The best single file with picture and sound, up to 1080p.
+  var INVIDIOUS = ['https://inv.nadeko.net', 'https://yewtu.be', 'https://invidious.nerdvpn.de', 'https://invidious.privacyredirect.com'];
+  var PIPED = ['https://pipedapi.kavin.rocks', 'https://api.piped.private.coffee', 'https://pipedapi.adminforge.de'];
+  var TRAILERS = {};
+  function trailerFile(key, done) {
+    if (TRAILERS[key]) { done(TRAILERS[key]); return; }
+    function height(q) { return parseInt(q, 10) || 0; }
+    function found(url) { TRAILERS[key] = url; done(url); }
+    function piped(i) {
+      if (i >= PIPED.length) { done(null); return; }
+      get(PIPED[i] + '/streams/' + key, function (o) {
+        var best = null, v = o && o.videoStreams || [];
+        for (var j = 0; j < v.length; j++)
+          if (!v[j].videoOnly && /mp4/i.test(v[j].format || v[j].mimeType || '') && height(v[j].quality) <= 1080 && (!best || height(v[j].quality) > height(best.quality))) best = v[j];
+        if (best) found(best.url); else piped(i + 1);
+      }, 6000);
+    }
+    function invidious(i) {
+      if (i >= INVIDIOUS.length) { piped(0); return; }
+      get(INVIDIOUS[i] + '/api/v1/videos/' + key + '?local=true&fields=formatStreams', function (o) {
+        var best = null, f = o && o.formatStreams || [];
+        for (var j = 0; j < f.length; j++)
+          if (/mp4/.test(f[j].type || '') && (!best || height(f[j].resolution || f[j].qualityLabel) > height(best.resolution || best.qualityLabel))) best = f[j];
+        if (best) found(/^https?:/.test(best.url) ? best.url : INVIDIOUS[i] + best.url); else invidious(i + 1);
+      }, 6000);
+    }
+    invidious(0);
+  }
+
+  // The trailer in the same player as the film (same controls, subtitles and audio menus), nothing saved or scrobbled.
+  function playTrailer(id, url) {
+    var t = TITLES[id];
+    clearTimeout(P.spin); P.scrub = null; P.seek = null; P.moved = null;
+    P.trailer = true;
+    P.id = id; P.t = t; P.s = 0; P.e = 0; P.dur = 150; P.pos = 0; P.savedAt = 0; P.segs = null;
+    P.paused = false; P.started = false; P.zone = 'bar'; P.pill = 0; P.tabs = false; P.nextCount = 0;
+    show('player');
+    $('#player .frame').className = 'frame';
+    $('#player .skip').className = 'skip';
+    $('#player .next').className = 'next';
+    $('#player .tabs').className = 'tabs';
+    osd(false);
+    setFocus(null);
+    P.spin = setTimeout(function () { $('#player .spinner').className = 'spinner on'; }, 2000);
+    P.stream = {url: url, trailer: true, res: 720, hdr: [], audio: ['AAC 2.0'], gb: 0, subs: []};
+    P.list = [P.stream];
+    P.rec = {kind: 'trailer', at: now(), id: id, clicks: 0, warm: false, manual: true, kept: true, fallbacks: 0, ttff: 0, real: REAL};
+    episodeLabel();
+    $('#player .osd .kicker').textContent = 'Trailer';
+    if (REAL) { openNative(0); return; }
+    setTimeout(function () { if (state.screen === 'player' && P.trailer) { clearTimeout(P.spin); $('#player .spinner').className = 'spinner'; firstFrame(); } }, 800);
+  }
+
   function trailerOpen() { return $('#trailer').className === 'on'; }
   function closeTrailer() { $('#trailer').className = ''; $('#trailer').innerHTML = ''; }
 
@@ -1014,6 +1077,7 @@
   }
   // start when the picture starts or resumes, pause on pause, stop on leaving (80%+ counts as watched).
   function scrobble(action) {
+    if (P.trailer) return;
     if (!REAL || !trakt || !P.t || !(P.dur > 0)) return;
     var imdb = /^tt\d+$/.test(P.id) ? P.id : P.t.imdb;
     if (!imdb) return;
@@ -1597,6 +1661,7 @@
   function play(id, from, chosen) {
     var t = TITLES[id], t0 = now(), clicks = M.clicks, warm = R[id] && R[id].ready;
     if (H.from) { used(H.from, 2); H.from = null; }       // a play counts for the row it came from
+    P.trailer = false;
     P.id = id; P.t = t; P.s = from && from.s || (t.type === 'series' ? 1 : 0); P.e = from && from.e || (t.type === 'series' ? 1 : 0);
     P.dur = (t.type === 'series' ? 50 : t.runtime) * 60;
     P.pos = from && from.posMs ? from.posMs / 1000 : from && from.progress ? from.progress * P.dur : 0;   // resume without asking (HIG: playing video)
@@ -1991,6 +2056,7 @@
   // A show with more to come gets a fourth button: on to the next episode.
   function pillNames() {
     var n = ['Legendas', 'Áudio', 'Fontes'];
+    if (P.trailer) return ['Legendas', 'Áudio'];
     if (P.s && P.t && P.t.seasons && hasNext()) n.push('Próximo episódio  ▶▶');
     return n;
   }
