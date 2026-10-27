@@ -14,7 +14,7 @@
 // so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
 // ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
 (function () {
-  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false;
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0;
   function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
   if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
   window.onYouTubeIframeAPIReady = function () {
@@ -39,14 +39,27 @@
     setInterval(function () {
       try { send({type: 'time', pos: yt.getCurrentTime(), dur: yt.getDuration()}); } catch (e) {}
     }, 250);
+    // Stuck at the start, or paused by itself (not by the remote): press play again; after two tries, without sound.
+    setInterval(function () {
+      try {
+        var at = yt.getCurrentTime(), st = yt.getPlayerState();
+        still = held || st === 0 || st === 3 || at !== last ? 0 : still + 1;
+        last = at;
+        if (still >= 3 && nudges < 4) {
+          still = 0;
+          if (++nudges > 2) { muted = true; yt.mute(); }
+          yt.playVideo();
+        }
+      } catch (e) {}
+    }, 1000);
   };
   window.addEventListener('message', function (e) {
     var o = null;
     try { o = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (x) {}
     if (!o || !o.cmd || !yt) return;
     try {
-      if (o.cmd === 'play') yt.playVideo();
-      else if (o.cmd === 'pause') yt.pauseVideo();
+      if (o.cmd === 'play') { held = false; yt.playVideo(); }
+      else if (o.cmd === 'pause') { held = true; yt.pauseVideo(); }
       else if (o.cmd === 'seek') yt.seekTo(o.t, true);
     } catch (x) {}
   });
