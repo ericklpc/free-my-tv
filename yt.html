@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Sofá trailer</title>
+<style>html, body, #v { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }</style>
+</head>
+<body>
+<div id="v"></div>
+<script>
+// The Sofá Player's trailers. The app's page is a local file, which YouTube's embed refuses (error 153: no referrer),
+// so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
+// ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
+(function () {
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null;
+  function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
+  if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
+  window.onYouTubeIframeAPIReady = function () {
+    yt = new YT.Player('v', {videoId: key, width: '100%', height: '100%', host: 'https://www.youtube-nocookie.com',
+      playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, playsinline: 1, hl: 'pt', origin: location.origin},
+      events: {
+        onReady: function () { send({type: 'ready', dur: yt.getDuration()}); yt.playVideo(); },
+        onStateChange: function (e) { send({type: 'state', data: e.data}); },
+        onError: function (e) { send({type: 'error', code: e.data}); }
+      }});
+    setInterval(function () {
+      try { send({type: 'time', pos: yt.getCurrentTime(), dur: yt.getDuration()}); } catch (e) {}
+    }, 250);
+  };
+  window.addEventListener('message', function (e) {
+    var o = null;
+    try { o = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (x) {}
+    if (!o || !o.cmd || !yt) return;
+    try {
+      if (o.cmd === 'play') yt.playVideo();
+      else if (o.cmd === 'pause') yt.pauseVideo();
+      else if (o.cmd === 'seek') yt.seekTo(o.t, true);
+    } catch (x) {}
+  });
+  var js = document.createElement('script');
+  js.src = 'https://www.youtube.com/iframe_api';
+  js.onerror = function () { send({type: 'error', code: 'API'}); };
+  document.head.appendChild(js);
+})();
+</script>
+</body>
+</html>
