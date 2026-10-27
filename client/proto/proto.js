@@ -928,14 +928,8 @@
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
       toast('Abrindo o trailer…');
       playTrailer(id, key);
-      // YouTube's player refuses it: its own page, with its controls.
-      P.trailerFail = function () { inline(key); };
-    }
-    // YouTube's own embedded player, on the page itself: Back closes it.
-    function inline(key) {
-      var f = $('#trailer');
-      f.innerHTML = '<iframe allow="autoplay; fullscreen" src="https://www.youtube-nocookie.com/embed/' + key + '?autoplay=1&rel=0&playsinline=1"></iframe>';
-      f.className = 'on';
+      // YouTube refused it (taken down, or not allowed outside YouTube).
+      P.trailerFail = function () { toast('Esse trailer não toca fora do YouTube'); };
     }
     var kind = t.type === 'series' ? 'tv' : 'movie';
     function cinemeta() {
@@ -980,55 +974,53 @@
   }
 
   // YouTube's own player with its controls off, under the Sofá's OSD: it stands in for window.Player (same calls,
-  // same events) while the trailer plays, and Stop gives the real one back.
-  var ytWaiting = null;
-  function youtubeApi(done) {
-    if (window.YT && window.YT.Player) { done(); return; }
-    if (ytWaiting) { ytWaiting.push(done); return; }
-    ytWaiting = [done];
-    window.onYouTubeIframeAPIReady = function () { var q = ytWaiting; ytWaiting = []; for (var i = 0; i < q.length; i++) q[i](); };
-    var js = document.createElement('script');
-    js.src = 'https://www.youtube.com/iframe_api';
-    js.onerror = function () { ytWaiting = null; console.log('[trailer] iframe_api não carregou'); window.Native.player({type: 'error', code: 'YT_API'}); };
-    document.head.appendChild(js);
-  }
+  // same events) while the trailer plays, and Stop gives the real one back. YouTube refuses an embed on a local file
+  // (error 153, no referrer), so it plays inside yt.html (this folder), served over https, driven by postMessage.
+  var YT_PAGE = 'https://ericklpc.github.io/free-my-tv/yt.html';
   function youtubePlayer(key) {
-    var real = window.Player, yt = null, started = false, box = el('div', 'yt', '<div></div>');
+    var real = window.Player, box = el('div', 'yt'), f = document.createElement('iframe'), started = false, ready = false;
+    var at = {pos: 0, dur: 0};
+    f.setAttribute('allow', 'autoplay; encrypted-media');
+    f.src = YT_PAGE + '?v=' + encodeURIComponent(key);
+    box.appendChild(f);
     $('#player').insertBefore(box, $('#player .subs'));
     var emit = function (ev) { if (window.Player === me) window.Native.player(ev); };
-    var call = function (f) { return function () { try { if (yt) f(); } catch (e) {} }; };
+    var cmd = function (o) { try { f.contentWindow.postMessage(JSON.stringify(o), '*'); } catch (e) {} };
+    var fail = function (code) { console.log('[trailer] YouTube recusou ' + key + ': erro ' + code); emit({type: 'error', code: 'YT_' + code}); };
+    var listen = function (e) {
+      if (e.source !== f.contentWindow) return;
+      var o = null;
+      try { o = JSON.parse(e.data); } catch (x) {}
+      if (!o || !o.sofaYt) return;
+      if (o.type === 'ready') { ready = true; at.dur = o.dur; emit({type: 'ready', dur: o.dur * 1000}); }
+      else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; }
+      else if (o.type === 'error') fail(o.code);
+      else if (o.type === 'state') {
+        if (o.data === 1 && !started) { started = true; console.log('[trailer] tocando ' + key); emit({type: 'firstFrame', ms: 0}); }
+        else if (o.data === 3) emit({type: 'buffering'});
+        else if (o.data === 0) emit({type: 'ended'});
+      }
+    };
+    window.addEventListener('message', listen);
+    var timer = setTimeout(function () { if (!ready) fail('TIMEOUT'); }, 15000);
     var me = {
       yt: true,
       open: function () {}, preload: function () {}, warm: function () {}, select: function () {},
-      play: call(function () { yt.playVideo(); }),
-      pause: call(function () { yt.pauseVideo(); }),
-      seekTo: function (ms) { try { if (yt) yt.seekTo(ms / 1000, true); } catch (e) {} },
-      state: function () {
-        try { return JSON.stringify({pos: yt.getCurrentTime() * 1000, dur: yt.getDuration() * 1000}); } catch (e) { return '{}'; }
-      },
+      play: function () { cmd({cmd: 'play'}); },
+      pause: function () { cmd({cmd: 'pause'}); },
+      seekTo: function (ms) { at.pos = ms / 1000; cmd({cmd: 'seek', t: ms / 1000}); },
+      state: function () { return JSON.stringify(ready ? {pos: at.pos * 1000, dur: at.dur * 1000} : {}); },
       stop: function () {
         if (window.Player === me) window.Player = real;
-        try { if (yt) yt.destroy(); } catch (e) {}
+        clearTimeout(timer);
+        window.removeEventListener('message', listen);
+        f.src = 'about:blank';
         if (box.parentNode) box.parentNode.removeChild(box);
       },
       request: function () { return real.request.apply(real, arguments); },
       launch: function () { return real.launch.apply(real, arguments); }
     };
     window.Player = me;
-    youtubeApi(function () {
-      if (window.Player !== me) return;
-      yt = new window.YT.Player(box.firstChild, {videoId: key, width: 1920, height: 1080, host: 'https://www.youtube-nocookie.com',
-        playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, playsinline: 1, modestbranding: 1, hl: 'pt'},
-        events: {
-          onReady: function () { emit({type: 'ready', dur: yt.getDuration() * 1000}); yt.playVideo(); },
-          onStateChange: function (e) {
-            if (e.data === 1 && !started) { started = true; console.log('[trailer] tocando ' + key); emit({type: 'firstFrame', ms: 0}); }
-            else if (e.data === 3) emit({type: 'buffering'});
-            else if (e.data === 0) emit({type: 'ended'});
-          },
-          onError: function (e) { console.log('[trailer] YouTube recusou ' + key + ': erro ' + e.data); emit({type: 'error', code: 'YT_' + e.data}); }
-        }});
-    });
   }
 
   function trailerOpen() { return $('#trailer').className === 'on'; }
