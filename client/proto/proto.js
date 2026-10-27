@@ -923,29 +923,35 @@
 
   // Trailers: YouTube's, from TMDB (in Portuguese when there is one) or Cinemeta; opened in the TV's YouTube app.
   function trailer(id) {
-    var t = TITLES[id];
-    function open(key) {
-      if (!key) { toast('Sem trailer pra ' + t.title); return; }
-      toast('Abrindo o trailer…');
-      playTrailer(id, key);
-      // YouTube refused it (taken down, or not allowed outside YouTube).
-      P.trailerFail = function () { toast('Esse trailer não toca fora do YouTube'); };
+    var t = TITLES[id], tried = 0;
+    // Every candidate in turn: an owner may forbid playing outside YouTube (error 150), the next video often plays.
+    function open(keys, i) {
+      if (i >= keys.length) { toast(i ? 'Esse trailer não toca fora do YouTube' : 'Sem trailer pra ' + t.title); return; }
+      if (!tried++) toast('Abrindo o trailer…');
+      playTrailer(id, keys[i]);
+      P.trailerFail = function () { open(keys, i + 1); };
     }
     var kind = t.type === 'series' ? 'tv' : 'movie';
-    function cinemeta() {
+    function cinemeta(keys) {
       get(CINEMETA + '/meta/' + (t.type === 'series' ? 'series' : 'movie') + '/' + id + '.json', function (o) {
-        var m = o && o.meta || {}, tr = (m.trailerStreams || [])[0] || (m.trailers || [])[0] || {};
-        open(tr.ytId || tr.source);
+        var m = o && o.meta || {}, list = (m.trailerStreams || []).concat(m.trailers || []);
+        for (var i = 0; i < list.length; i++) {
+          var k = list[i].ytId || list[i].source;
+          if (k && keys.indexOf(k) < 0) keys.push(k);
+        }
+        open(keys, 0);
       });
     }
-    if (!t.tmdb || !CFG.tmdbKey) { cinemeta(); return; }
+    if (!t.tmdb || !CFG.tmdbKey) { cinemeta([]); return; }
     get('https://api.themoviedb.org/3/' + kind + '/' + t.tmdb + '/videos?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&include_video_language=pt,en,null&language=pt-BR', function (o) {
-      var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube' && (x.type === 'Trailer' || x.type === 'Teaser'); });
-      v.sort(function (a, b) {
-        function rank(x) { return (x.iso_639_1 === 'pt' ? 0 : 2) + (x.type === 'Trailer' ? 0 : 1) - (x.official ? 0.5 : 0); }
-        return rank(a) - rank(b);
-      });
-      if (v.length) open(v[0].key); else cinemeta();
+      var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube'; });
+      function rank(x) {
+        return (x.type === 'Trailer' ? 0 : x.type === 'Teaser' ? 4 : 8) + (x.iso_639_1 === 'pt' ? 0 : 2) - (x.official ? 0.5 : 0);
+      }
+      v.sort(function (a, b) { return rank(a) - rank(b); });
+      var keys = [];
+      for (var i = 0; i < v.length && keys.length < 6; i++) keys.push(v[i].key);
+      if (keys.length >= 3) open(keys, 0); else cinemeta(keys);
     });
   }
   // The trailer in the same player screen as the film (same OSD and keys), nothing saved or scrobbled.
