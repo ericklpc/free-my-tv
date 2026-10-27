@@ -298,3 +298,5 @@ body.native #player .frame { display: none; }
   background: rgba(255, 255, 255, 0.12); color: rgba(255, 255, 255, 0.85); }
 .card.action .ico { margin-right: 14px; }
 .card.action.focus { background: #fff; color: #000; -webkit-transform: scale(1.06); transform: scale(1.06); }
+#player .yt { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; background: #000; pointer-events: none; }
+#player .yt iframe { width: 1920px; height: 1080px; border: 0; }

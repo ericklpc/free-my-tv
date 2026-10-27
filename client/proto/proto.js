@@ -928,9 +928,10 @@
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
       toast('Abrindo o trailer…');
       trailerFile(key, function (file) {
-        if (!file) { inline(key); return; }
-        playTrailer(id, file);
-        P.trailerKey = key; P.trailerFail = function () { inline(key); };
+        playTrailer(id, file, file ? null : key);
+        P.trailerKey = key;
+        // The MP4 doesn't play: YouTube's player then; YouTube's doesn't either: its own page, with its controls.
+        P.trailerFail = file ? function () { delete TRAILERS[key]; playTrailer(id, null, key); P.trailerKey = key; P.trailerFail = function () { inline(key); }; } : function () { inline(key); };
       });
     }
     // YouTube's own embedded player, on the page itself: Back closes it.
@@ -993,8 +994,9 @@
   }
 
   // The trailer in the same player as the film (same controls, subtitles and audio menus), nothing saved or scrobbled.
-  function playTrailer(id, url) {
+  function playTrailer(id, url, yt) {
     var t = TITLES[id];
+    if (window.Player && window.Player.yt) window.Player.stop();
     clearTimeout(P.spin); P.scrub = null; P.seek = null; P.moved = null;
     P.trailer = true;
     P.id = id; P.t = t; P.s = 0; P.e = 0; P.dur = 150; P.pos = 0; P.savedAt = 0; P.segs = null;
@@ -1012,8 +1014,61 @@
     P.rec = {kind: 'trailer', at: now(), id: id, clicks: 0, warm: false, manual: true, kept: true, fallbacks: 0, ttff: 0, real: REAL};
     episodeLabel();
     $('#player .osd .kicker').textContent = 'Trailer';
+    if (yt && REAL) { unpreload(); youtubePlayer(yt); return; }
     if (REAL) { openNative(0); return; }
     setTimeout(function () { if (state.screen === 'player' && P.trailer) { clearTimeout(P.spin); $('#player .spinner').className = 'spinner'; firstFrame(); } }, 800);
+  }
+
+  // YouTube's own player with its controls off, under the Sofá's OSD: it stands in for window.Player (same calls,
+  // same events) while the trailer plays, and Stop gives the real one back.
+  var ytWaiting = null;
+  function youtubeApi(done) {
+    if (window.YT && window.YT.Player) { done(); return; }
+    if (ytWaiting) { ytWaiting.push(done); return; }
+    ytWaiting = [done];
+    window.onYouTubeIframeAPIReady = function () { var q = ytWaiting; ytWaiting = []; for (var i = 0; i < q.length; i++) q[i](); };
+    var js = document.createElement('script');
+    js.src = 'https://www.youtube.com/iframe_api';
+    js.onerror = function () { ytWaiting = null; window.Native.player({type: 'error', code: 'YT_API'}); };
+    document.head.appendChild(js);
+  }
+  function youtubePlayer(key) {
+    var real = window.Player, yt = null, started = false, box = el('div', 'yt', '<div></div>');
+    $('#player').insertBefore(box, $('#player .subs'));
+    var emit = function (ev) { if (window.Player === me) window.Native.player(ev); };
+    var call = function (f) { return function () { try { if (yt) f(); } catch (e) {} }; };
+    var me = {
+      yt: true,
+      open: function () {}, preload: function () {}, warm: function () {}, select: function () {},
+      play: call(function () { yt.playVideo(); }),
+      pause: call(function () { yt.pauseVideo(); }),
+      seekTo: function (ms) { try { if (yt) yt.seekTo(ms / 1000, true); } catch (e) {} },
+      state: function () {
+        try { return JSON.stringify({pos: yt.getCurrentTime() * 1000, dur: yt.getDuration() * 1000}); } catch (e) { return '{}'; }
+      },
+      stop: function () {
+        if (window.Player === me) window.Player = real;
+        try { if (yt) yt.destroy(); } catch (e) {}
+        if (box.parentNode) box.parentNode.removeChild(box);
+      },
+      request: function () { return real.request.apply(real, arguments); },
+      launch: function () { return real.launch.apply(real, arguments); }
+    };
+    window.Player = me;
+    youtubeApi(function () {
+      if (window.Player !== me) return;
+      yt = new window.YT.Player(box.firstChild, {videoId: key, width: 1920, height: 1080, host: 'https://www.youtube-nocookie.com',
+        playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, playsinline: 1, modestbranding: 1, hl: 'pt'},
+        events: {
+          onReady: function () { emit({type: 'ready', dur: yt.getDuration() * 1000}); yt.playVideo(); },
+          onStateChange: function (e) {
+            if (e.data === 1 && !started) { started = true; emit({type: 'firstFrame', ms: 0}); }
+            else if (e.data === 3) emit({type: 'buffering'});
+            else if (e.data === 0) emit({type: 'ended'});
+          },
+          onError: function (e) { emit({type: 'error', code: 'YT_' + e.data}); }
+        }});
+    });
   }
 
   function trailerOpen() { return $('#trailer').className === 'on'; }
@@ -1865,7 +1920,12 @@
   // The stream broke: the next one takes over at the same position, without the person doing anything.
   function fallback(why) {
     // A trailer whose file doesn't play: the YouTube app after all.
-    if (P.trailer) { var f = P.trailerFail; P.trailerFail = null; delete TRAILERS[P.trailerKey]; stopPlayer(); if (f) f(); return; }
+    if (P.trailer) {
+      var f = P.trailerFail; P.trailerFail = null;
+      stopPlayer();
+      if (f) f();
+      return;
+    }
     var i = P.list.indexOf(P.stream), next = P.list[i + 1];
     if (!next) { toast(why + ' e não há outra fonte'); stopPlayer(); return; }
     P.stream = next; loadSubs(next, P.id, P.s, P.e);
