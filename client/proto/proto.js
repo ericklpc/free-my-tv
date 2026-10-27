@@ -927,12 +927,9 @@
     function open(key) {
       if (!key) { toast('Sem trailer pra ' + t.title); return; }
       toast('Abrindo o trailer…');
-      trailerFile(key, function (file) {
-        playTrailer(id, file, file ? null : key);
-        P.trailerKey = key;
-        // The MP4 doesn't play: YouTube's player then; YouTube's doesn't either: its own page, with its controls.
-        P.trailerFail = file ? function () { delete TRAILERS[key]; playTrailer(id, null, key); P.trailerKey = key; P.trailerFail = function () { inline(key); }; } : function () { inline(key); };
-      });
+      playTrailer(id, key);
+      // YouTube's player refuses it: its own page, with its controls.
+      P.trailerFail = function () { inline(key); };
     }
     // YouTube's own embedded player, on the page itself: Back closes it.
     function inline(key) {
@@ -957,44 +954,8 @@
       if (v.length) open(v[0].key); else cinemeta();
     });
   }
-  // The trailer's video file, through YouTube front-ends that hand out a playable MP4 (served by them, so it plays
-  // from any address): Invidious first, then Piped. The best single file with picture and sound, up to 1080p.
-  var INVIDIOUS = ['https://inv.nadeko.net', 'https://yewtu.be', 'https://invidious.nerdvpn.de', 'https://invidious.privacyredirect.com'];
-  var PIPED = ['https://pipedapi.kavin.rocks', 'https://api.piped.private.coffee', 'https://pipedapi.adminforge.de'];
-  var TRAILERS = {};
-  // All sources at once, the first MP4 wins; after 5 s without one, YouTube's own player on the page.
-  function trailerFile(key, done) {
-    if (TRAILERS[key]) { done(TRAILERS[key]); return; }
-    var over = false, left = INVIDIOUS.length + PIPED.length;
-    var timer = setTimeout(function () { finish(null); }, 5000);
-    function finish(url) {
-      if (over) return;
-      over = true; clearTimeout(timer);
-      if (url) TRAILERS[key] = url;
-      done(url);
-    }
-    function one(url) { if (url) finish(url); else if (--left === 0) finish(null); }
-    function height(q) { return parseInt(q, 10) || 0; }
-    PIPED.forEach(function (host) {
-      get(host + '/streams/' + key, function (o) {
-        var best = null, v = o && o.videoStreams || [];
-        for (var j = 0; j < v.length; j++)
-          if (!v[j].videoOnly && /mp4/i.test(v[j].format || v[j].mimeType || '') && height(v[j].quality) <= 1080 && (!best || height(v[j].quality) > height(best.quality))) best = v[j];
-        one(best && best.url);
-      }, 5000);
-    });
-    INVIDIOUS.forEach(function (host) {
-      get(host + '/api/v1/videos/' + key + '?local=true&fields=formatStreams', function (o) {
-        var best = null, f = o && o.formatStreams || [];
-        for (var j = 0; j < f.length; j++)
-          if (/mp4/.test(f[j].type || '') && (!best || height(f[j].resolution || f[j].qualityLabel) > height(best.resolution || best.qualityLabel))) best = f[j];
-        one(best && (/^https?:/.test(best.url) ? best.url : host + best.url));
-      }, 5000);
-    });
-  }
-
-  // The trailer in the same player as the film (same controls, subtitles and audio menus), nothing saved or scrobbled.
-  function playTrailer(id, url, yt) {
+  // The trailer in the same player screen as the film (same OSD and keys), nothing saved or scrobbled.
+  function playTrailer(id, key) {
     var t = TITLES[id];
     if (window.Player && window.Player.yt) window.Player.stop();
     clearTimeout(P.spin); P.scrub = null; P.seek = null; P.moved = null;
@@ -1009,13 +970,12 @@
     osd(false);
     setFocus(null);
     P.spin = setTimeout(function () { $('#player .spinner').className = 'spinner on'; }, 2000);
-    P.stream = {url: url, trailer: true, res: 720, hdr: [], audio: ['AAC 2.0'], gb: 0, subs: []};
+    P.stream = {url: '', trailer: true, res: 720, hdr: [], audio: ['AAC 2.0'], gb: 0, subs: []};
     P.list = [P.stream];
     P.rec = {kind: 'trailer', at: now(), id: id, clicks: 0, warm: false, manual: true, kept: true, fallbacks: 0, ttff: 0, real: REAL};
     episodeLabel();
     $('#player .osd .kicker').textContent = 'Trailer';
-    if (yt && REAL) { unpreload(); youtubePlayer(yt); return; }
-    if (REAL) { openNative(0); return; }
+    if (REAL) { unpreload(); youtubePlayer(key); return; }
     setTimeout(function () { if (state.screen === 'player' && P.trailer) { clearTimeout(P.spin); $('#player .spinner').className = 'spinner'; firstFrame(); } }, 800);
   }
 
@@ -1029,7 +989,7 @@
     window.onYouTubeIframeAPIReady = function () { var q = ytWaiting; ytWaiting = []; for (var i = 0; i < q.length; i++) q[i](); };
     var js = document.createElement('script');
     js.src = 'https://www.youtube.com/iframe_api';
-    js.onerror = function () { ytWaiting = null; window.Native.player({type: 'error', code: 'YT_API'}); };
+    js.onerror = function () { ytWaiting = null; console.log('[trailer] iframe_api não carregou'); window.Native.player({type: 'error', code: 'YT_API'}); };
     document.head.appendChild(js);
   }
   function youtubePlayer(key) {
@@ -1062,11 +1022,11 @@
         events: {
           onReady: function () { emit({type: 'ready', dur: yt.getDuration() * 1000}); yt.playVideo(); },
           onStateChange: function (e) {
-            if (e.data === 1 && !started) { started = true; emit({type: 'firstFrame', ms: 0}); }
+            if (e.data === 1 && !started) { started = true; console.log('[trailer] tocando ' + key); emit({type: 'firstFrame', ms: 0}); }
             else if (e.data === 3) emit({type: 'buffering'});
             else if (e.data === 0) emit({type: 'ended'});
           },
-          onError: function (e) { emit({type: 'error', code: 'YT_' + e.data}); }
+          onError: function (e) { console.log('[trailer] YouTube recusou ' + key + ': erro ' + e.data); emit({type: 'error', code: 'YT_' + e.data}); }
         }});
     });
   }
