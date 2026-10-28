@@ -929,15 +929,13 @@
     // Every candidate in turn: an owner may forbid playing outside YouTube (error 150), the next video often plays.
     function open(keys, i) {
       if (i >= keys.length) { toast(i ? 'Esse trailer não toca fora do YouTube' : 'Sem trailer pra ' + t.title); return; }
-      if (YT_LOW && youtubeApp(keys[i], 0)) return;
       playTrailer(id, keys[i]);
+      P.trailerKey = keys[i];
       P.trailerFail = function () { open(keys, i + 1); };
     }
   }
-  // Where YouTube's embed only offers 360p (the 2018 Fire TV Stick's WebView), the YouTube app plays it in HD:
-  // found out on the first trailer, then trailers go straight there.
-  var YT_LOW = false;
-  try { YT_LOW = localStorage.getItem('sofa.ytlow') === '1'; } catch (e) {}
+  // The YouTube app, for a trailer in HD where the embed gives 360p only (the 2018 Fire TV Stick's WebView).
+  try { localStorage.removeItem('sofa.ytlow'); } catch (e) {}
   function youtubeApp(key, sec) {
     if (!window.AndroidTV) return false;
     var url = 'https://www.youtube.com/watch?v=' + key + (sec > 2 ? '&t=' + Math.floor(sec) + 's' : '');
@@ -1020,17 +1018,7 @@
       if (!o || !o.sofaYt) return;
       if (o.type === 'ready') { ready = true; at.dur = o.dur; emit({type: 'ready', dur: o.dur * 1000}); }
       else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; if (o.q && o.q !== at.q) { at.q = o.q; console.log('[trailer] qualidade ' + o.q); } }
-      else if (o.type === 'levels') {
-        console.log('[trailer] qualidade ' + o.q + ' de ' + (o.all || []).join(',') + (o.w ? ' · ' + o.w + 'x' + o.h + ' @' + o.dpr : ''));
-        var low = (o.all || []).length && !/large|hd|highres/.test((o.all || []).join(','));
-        if (low && window.AndroidTV && !YT_LOW) {
-          YT_LOW = true;
-          try { localStorage.setItem('sofa.ytlow', '1'); } catch (x) {}
-          var from = at.pos;
-          stopPlayer();
-          if (youtubeApp(key, from)) toast('Abrindo no app do YouTube, que toca em HD nesta TV');
-        }
-      }
+      else if (o.type === 'levels') console.log('[trailer] qualidade ' + o.q + ' de ' + (o.all || []).join(',') + (o.w ? ' · ' + o.w + 'x' + o.h + ' @' + o.dpr : ''));
       else if (o.type === 'error') fail(o.code);
       else if (o.type === 'state') {
         // YouTube draws its own play / pause icon for a moment: the picture shows only once it plays, and a pause shows
@@ -2143,7 +2131,7 @@
   }
   function pillNames() {
     var n = ['Legendas', 'Áudio', 'Fontes'];
-    if (P.trailer) return ['Legendas'];
+    if (P.trailer) return window.AndroidTV ? ['Legendas', 'Ver em HD no YouTube'] : ['Legendas'];
     if (P.s && P.t && P.t.seasons && hasNext()) n.push('Próximo episódio  ▶▶');
     return n;
   }
@@ -2243,6 +2231,7 @@
       else if (k === 'down') P.zone = 'bar';
       else if (k === 'ok') {
         if (P.pill === 0) openSheet('Legendas', P.trailer ? trailerSubs() : subsItems());
+        else if (P.trailer) { var key = P.trailerKey, from = P.pos; stopPlayer(); youtubeApp(key, from); }
         else if (P.pill === 1) openSheet('Áudio', audioItems());
         else if (P.pill === 3) { P.zone = 'bar'; P.pill = 0; osd(false); nextEpisode(); return; }
         else openPlayerSources();
