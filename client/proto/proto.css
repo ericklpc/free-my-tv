@@ -300,5 +300,4 @@ body.native #player .frame { display: none; }
 .card.action.focus { background: #fff; color: #000; -webkit-transform: scale(1.06); transform: scale(1.06); }
 #player .yt { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; pointer-events: none; overflow: hidden; opacity: 0; }
 #player .yt.on { opacity: 1; }
-/* Three screens tall: the 16:9 picture sits in the middle third, YouTube's title bar and logo end up off screen. */
-#player .yt iframe { position: absolute; left: 0; top: -1080px; width: 1920px; height: 3240px; border: 0; }
+#player .yt iframe { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; border: 0; }
