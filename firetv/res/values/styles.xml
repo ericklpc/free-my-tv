@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Something on screen the moment Sofá opens: black with its icon, until the page has drawn itself. -->
+    <style name="Splash" parent="@android:style/Theme.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@drawable/splash</item>
+    </style>
+</resources>
