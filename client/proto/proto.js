@@ -1008,6 +1008,7 @@
       if (!o || !o.sofaYt) return;
       if (o.type === 'ready') { ready = true; at.dur = o.dur; emit({type: 'ready', dur: o.dur * 1000}); }
       else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; if (o.q && o.q !== at.q) { at.q = o.q; console.log('[trailer] qualidade ' + o.q); } }
+      else if (o.type === 'levels') console.log('[trailer] qualidade ' + o.q + ' de ' + (o.all || []).join(',') + (o.w ? ' · ' + o.w + 'x' + o.h + ' @' + o.dpr : ''));
       else if (o.type === 'error') fail(o.code);
       else if (o.type === 'state') {
         // YouTube draws its own play / pause icon for a moment: the picture shows only once it plays, and a pause shows

@@ -14,7 +14,7 @@
 // so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
 // ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
 (function () {
-  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0, cc = '';
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0, cc = '', fresh = true;
   function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
   if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
   window.onYouTubeIframeAPIReady = function () {
@@ -31,6 +31,9 @@
         onStateChange: function (e) {
           if (e.data === 1) {
             if (!cc) try { yt.unloadModule('captions'); } catch (x) {}   // YouTube turns them on by itself
+            else if (fresh) try { yt.loadModule('captions'); yt.setOption('captions', 'track', {languageCode: cc}); } catch (x) {}
+            if (fresh) send({type: 'levels', q: yt.getPlaybackQuality(), all: yt.getAvailableQualityLevels()});
+            fresh = false;
             playing = true;
             if (muted) { muted = false; yt.unMute(); setTimeout(function () { if (yt.getPlayerState() !== 1) { yt.mute(); yt.playVideo(); } }, 600); }
           }
@@ -55,13 +58,19 @@
         }
       } catch (e) {}
     }, 1000);
+    setTimeout(function () { try { send({type: 'levels', q: yt.getPlaybackQuality(), all: yt.getAvailableQualityLevels(), w: innerWidth, h: innerHeight, dpr: devicePixelRatio}); } catch (e) {} }, 20000);
   };
   window.addEventListener('message', function (e) {
     var o = null;
     try { o = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (x) {}
     if (!o || !o.cmd || !yt) return;
     try {
-      if (o.cmd === 'play') { held = false; yt.playVideo(); }
+      // Back from a pause: load it again where it was, as at the start. A plain play leaves YouTube's pause icon on
+      // the picture and turns its subtitles back on.
+      if (o.cmd === 'play') {
+        if (held) { held = false; fresh = true; yt.loadVideoById({videoId: key, startSeconds: yt.getCurrentTime()}); }
+        else yt.playVideo();
+      }
       else if (o.cmd === 'pause') { held = true; yt.pauseVideo(); }
       else if (o.cmd === 'seek') yt.seekTo(o.t, true);
       else if (o.cmd === 'cc') {
