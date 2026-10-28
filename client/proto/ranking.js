@@ -1,6 +1,6 @@
 /*
  * Picks the stream to play from what AIOStreams returns, for what this TV can actually play.
- * AIOStreams already sorts (cached first, Erick's SEL setup); this pass only removes what the TV can't play and
+ * AIOStreams already sorts (cached first, your own setup); this pass only removes what the TV can't play and
  * reorders for this screen and this Wi-Fi. The Android app will port this file as it is.
  *  1. Out: not cached in the debrid, AV1, Dolby Vision without an HDR10 base layer (profile 5), 3D, and anything
  *     above the Wi-Fi's budget.

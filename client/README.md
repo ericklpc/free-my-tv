@@ -1,6 +1,16 @@
 # Sofá Player
 
-Erick's own client for Stremio content, in the Apple TV app's language: the Sofá web UI (`web/`'s rules: ES5, no
+**Quer o seu?** Cole o [PROMPT.md](PROMPT.md) no Claude Code com este repositório aberto, ou siga aqui:
+
+1. JDK 17, Android SDK (build-tools 34, platform 34) e adb; para Samsung, as ferramentas Tizen (`tizen`/`sdb`).
+2. `cp config.example.properties config.properties` e preencha com as **suas** chaves: `tmdb_key`, `stremio_auth_key`,
+   `aiostreams_url`, `trakt_client_id`/`trakt_client_secret` (opcional), `profile_name`. Esse arquivo nunca vai pro git.
+3. Trailers: publique `client/proto/yt.html` em https (GitHub Pages de um fork seu) e ponha a URL em `trailer_page`.
+4. Fire TV: `cd firetv && ./build.sh --proto`, depois `adb install -r Sofa-Player.apk`.
+   Samsung: `python3 client/proto/build.py --tizen --sign <seu perfil>` e `tizen install` / `tz install`.
+5. Curadoria (opcional): `SOFA_LETTERBOXD=<sua exportação do Letterboxd> SOFA_TV=<ip:5555> client/curation/weekly.sh`.
+
+A client for Stremio content, in the Apple TV app's language: the Sofá web UI (`web/`'s rules: ES5, no
 CSS variables, only transform and opacity animate) on top of a native Media3 player on the Fire TV.
 
 ## What the TV can play (measured over adb, 2026-10-21)
@@ -20,7 +30,7 @@ the flow around it is the real one: pre-resolving the stream when a title keeps 
 automatic fallback when a stream breaks (Interstellar's first pick does, on purpose), one-button sources menu (Menu),
 subtitles by priority with the release-matched one first, skip intro, next episode with the same `bingeGroup`, and
 the measurements (clicks from Home to the first frame, TTFF, first choice kept) logged in the browser.
-The picks' one-line reasons are placeholders until the curation runs on Erick's Letterboxd export.
+The picks' one-line reasons are placeholders until the curation runs on your Letterboxd export.
 
 - In a browser: `python3 client/proto/build.py --serve`, then http://127.0.0.1:8766. Keys: arrows, Enter (OK),
   Esc (Back), M (Menu), P (play/pause), F/R (±5 min).

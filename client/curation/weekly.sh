@@ -1,13 +1,13 @@
 #!/bin/bash
-# Monday and Thursday runs on Erick's Mac (launchd, see sofa.curation.plist): this week's picks, the Trakt list, a new Sofá Player
+# Monday and Thursday runs on your Mac (launchd, see sofa.curation.plist): this week's picks, the Trakt list, a new Sofá Player
 # with them, installed on the Fire TV only when nothing is playing there. Logs to ~/Library/Logs/sofa-curation.log.
 set -uo pipefail
 cd "$(dirname "$0")/../.."
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 JAVA_HOME="${JAVA_HOME:-$(brew --prefix openjdk@17 2>/dev/null)/libexec/openjdk.jdk/Contents/Home}"
 export JAVA_HOME PATH="$JAVA_HOME/bin:$PATH"
-TV="${SOFA_TV:-192.168.15.22:5555}"
-LETTERBOXD="${SOFA_LETTERBOXD:-$HOME/sofa-tv/survey/letterboxd}"
+TV="${SOFA_TV:?set SOFA_TV to your Fire TV, e.g. 192.168.1.20:5555}"
+LETTERBOXD="${SOFA_LETTERBOXD:?set SOFA_LETTERBOXD to your Letterboxd export folder}"
 
 echo "== $(date) =="
 python3 client/curation/curate.py --letterboxd "$LETTERBOXD" || { echo "curation failed"; exit 1; }

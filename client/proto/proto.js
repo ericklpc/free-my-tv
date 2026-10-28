@@ -174,7 +174,7 @@
 
   // MARK: - Pre-resolving: when a title keeps focus for a moment, ask AIOStreams and pick the stream, before OK
 
-  // Real mode: the Fire TV app with the native player (window.Player) and Erick's AIOStreams link in the build.
+  // Real mode: the Fire TV app with the native player (window.Player) and your AIOStreams link in the build.
   // Otherwise the streams are the sample ones and playback is simulated.
   // The manifest link or the configure page's: both work.
   var AIO = (CFG.aioUrl || '').trim().replace(/\/$/, '').replace(/\/(manifest\.json|configure)$/, '');
@@ -334,7 +334,7 @@
     HOME.hero = hero;
   })();
 
-  // MARK: - The home's order: rows Erick opens and plays from climb, a little each time, and the climb fades
+  // MARK: - The home's order: rows you open and play from climb, a little each time, and the climb fades
   // in about two weeks (Continue and the picks stay on top).
 
   var ROWS = {};
@@ -622,7 +622,7 @@
   }
 
   // MARK: - Dynamic lists: Stremio's own catalogs (Cinemeta, IMDb-based), TMDB's charts for Brazil, and the
-  // catalogs of the addons installed in Erick's Stremio account (Trakt, Letterboxd, the TorBox library)
+  // catalogs of the addons installed in your Stremio account (Trakt, Letterboxd, the TorBox library)
 
   var CINEMETA = 'https://v3-cinemeta.strem.io';
   var TMDB_GENRES = {28: 'Ação', 12: 'Aventura', 16: 'Animação', 35: 'Comédia', 80: 'Crime', 99: 'Documentário', 18: 'Drama',
@@ -711,7 +711,7 @@
     }
   }
 
-  // The catalogs of the addons in Erick's account, after the built-in rows (Cinemeta's are there already).
+  // The catalogs of the addons in your account, after the built-in rows (Cinemeta's are there already).
   var ADDONS = [];
   function loadAddons() {
     var key = (CFG.stremioAuthKey || '').trim();
@@ -1012,7 +1012,7 @@
   // YouTube's own player with its controls off, under the Sofá's OSD: it stands in for window.Player (same calls,
   // same events) while the trailer plays, and Stop gives the real one back. YouTube refuses an embed on a local file
   // (error 153, no referrer), so it plays inside yt.html (this folder), served over https, driven by postMessage.
-  var YT_PAGE = 'https://ericklpc.github.io/free-my-tv/yt.html';
+  var YT_PAGE = CFG.trailerPage || 'https://ericklpc.github.io/free-my-tv/yt.html';
   function youtubePlayer(key) {
     var real = window.Player, box = el('div', 'yt'), f = document.createElement('iframe'), started = false, ready = false, reveal = 0;
     var at = {pos: 0, dur: 0};
@@ -1346,7 +1346,8 @@
   function closeSide() { S.open = false; $('#side').className = 'hidden'; paintHome(); }
   function renderSide() {
     var p = $('#side .panel');
-    p.innerHTML = '<div class="who"><span class="avatar">E</span><span class="name">Erick<i>Perfil</i></span></div>';
+    var who = CFG.profileName || 'Você';
+    p.innerHTML = '<div class="who"><span class="avatar">' + esc(who.charAt(0).toUpperCase()) + '</span><span class="name">' + esc(who) + '<i>Perfil</i></span></div>';
     var focusEl = null;
     for (var i = 0; i < S.items.length; i++) {
       var it = S.items[i];

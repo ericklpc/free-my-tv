@@ -1,7 +1,7 @@
 /*
  * Sample data for the prototype: real titles (TMDB and IMDb ids) with made-up progress, picks and streams.
  * With a TMDB key in config.properties the art (backdrops, title logos in Portuguese, episode stills) comes from
- * TMDB; without it each title gets a gradient in its own colors. The streams follow what Erick's AIOStreams returns
+ * TMDB; without it each title gets a gradient in its own colors. The streams follow what an AIOStreams setup returns
  * (resolution, cached, codec, HDR, audio, size, bitrate) for the ranking to work on.
  */
 var SAMPLE = (function () {
@@ -116,7 +116,7 @@ var SAMPLE = (function () {
      desc: 'Cassian Andor, um ladrão sem causa, vira a primeira faísca da rebelião contra o Império.'});
 
   // Rows in the order the Apple TV app's Home uses: what you're in the middle of first, then picks, then charts
-  // and themed collections. Each `why` is the weekly pick's one-line case, written from Erick's ratings.
+  // and themed collections. Each `why` is the weekly pick's one-line case, written from your ratings.
   var HOME = {
     hero: [
       {id: 'tt27503384', kicker: 'Curadoria da semana', why: 'Wenders de novo com a mesma calma de Paris, Texas, que você deu 5★.'},

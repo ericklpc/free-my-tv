@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Erick's weekly picks: films he hasn't seen, close to his taste, already cached in his debrid.
+"""Your weekly picks: films you haven't seen, close to your taste, already cached in your debrid.
 
-    python3 client/curation/curate.py --letterboxd ~/sofa-tv/survey/letterboxd        # this week's picks
+    python3 client/curation/curate.py --letterboxd ~/letterboxd-export        # this week's picks
     python3 client/curation/curate.py --letterboxd ... --backtest                     # how well the model guesses
     python3 client/curation/curate.py --trakt-login                                   # once: lets it write the Trakt list
 
