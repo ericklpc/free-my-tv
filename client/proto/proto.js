@@ -923,9 +923,12 @@
 
   // Trailers: YouTube's, from TMDB (in Portuguese when there is one) or Cinemeta; opened in the TV's YouTube app.
   function trailer(id) {
-    var t = TITLES[id], tried = 0;
-    toast('Abrindo o trailer…');
-    trailerKeys(id, function (keys) { open(keys, 0); });
+    var t = TITLES[id], btn = $('#detail .buttons').children[1];
+    if (btn) btn.textContent = 'Carregando…';
+    trailerKeys(id, function (keys) {
+      if (btn) btn.textContent = 'Trailer';
+      if (state.screen === 'detail' && D.id === id) open(keys, 0);    // not if he left the page meanwhile
+    });
     // Every candidate in turn: an owner may forbid playing outside YouTube (error 150), the next video often plays.
     function open(keys, i) {
       if (i >= keys.length) { toast(i ? 'Esse trailer não toca fora do YouTube' : 'Sem trailer pra ' + t.title); return; }
@@ -948,9 +951,15 @@
   // The YouTube videos to try for a title, best first; asked for when its page opens, so OK starts right away.
   var TRAILER_KEYS = {};
   function trailerKeys(id, cb) {
-    var t = TITLES[id];
-    if (TRAILER_KEYS[id]) { cb(TRAILER_KEYS[id]); return; }
-    function done(keys) { TRAILER_KEYS[id] = keys; cb(keys); }
+    var t = TITLES[id], asked = TRAILER_KEYS[id];
+    if (asked && asked.keys) { cb(asked.keys); return; }
+    if (asked) { asked.wait.push(cb); return; }             // already on its way (asked when the page opened)
+    asked = TRAILER_KEYS[id] = {wait: [cb]};
+    function done(keys) {
+      var w = asked.wait;
+      if (keys.length) asked.keys = keys; else delete TRAILER_KEYS[id];   // nothing found: ask again next time
+      for (var i = 0; i < w.length; i++) w[i](keys);
+    }
     // As Stremio does: Cinemeta's trailer first (usually a recent HD upload), then TMDB's as spares for error 150.
     var kind = t.type === 'series' ? 'tv' : 'movie', keys = [], waiting = 2;
     function add(k) { if (k && keys.indexOf(k) < 0) keys.push(k); }
@@ -960,7 +969,7 @@
       var m = o && o.meta || {}, list = (m.trailerStreams || []).concat(m.trailers || []);
       for (var i = 0; i < list.length; i++) cm.push(list[i].ytId || list[i].source);
       end();
-    });
+    }, 6000);
     if (!t.tmdb || !CFG.tmdbKey) { end(); return; }
     get('https://api.themoviedb.org/3/' + kind + '/' + t.tmdb + '/videos?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&include_video_language=pt,en,null&language=pt-BR', function (o) {
       var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube'; });
