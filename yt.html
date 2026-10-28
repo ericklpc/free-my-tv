@@ -14,7 +14,7 @@
 // so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
 // ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
 (function () {
-  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0, cc = '', fresh = true;
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0, cc = '', fresh = true, at0 = 0;
   function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
   if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
   window.onYouTubeIframeAPIReady = function () {
@@ -68,11 +68,11 @@
       // Back from a pause: load it again where it was, as at the start. A plain play leaves YouTube's pause icon on
       // the picture and turns its subtitles back on.
       if (o.cmd === 'play') {
-        if (held) { held = false; fresh = true; yt.loadVideoById({videoId: key, startSeconds: yt.getCurrentTime()}); }
+        if (held) { held = false; fresh = true; yt.loadVideoById({videoId: key, startSeconds: at0}); }
         else yt.playVideo();
       }
-      else if (o.cmd === 'pause') { held = true; yt.pauseVideo(); }
-      else if (o.cmd === 'seek') yt.seekTo(o.t, true);
+      else if (o.cmd === 'pause') { held = true; yt.pauseVideo(); at0 = yt.getCurrentTime(); }
+      else if (o.cmd === 'seek') { at0 = o.t; yt.seekTo(o.t, true); }
       else if (o.cmd === 'cc') {
         cc = o.lang || '';
         if (!o.lang) yt.unloadModule('captions');
