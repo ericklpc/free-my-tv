@@ -924,13 +924,21 @@
   // Trailers: YouTube's, from TMDB (in Portuguese when there is one) or Cinemeta; opened in the TV's YouTube app.
   function trailer(id) {
     var t = TITLES[id], tried = 0;
+    toast('Abrindo o trailer…');
+    trailerKeys(id, function (keys) { open(keys, 0); });
     // Every candidate in turn: an owner may forbid playing outside YouTube (error 150), the next video often plays.
     function open(keys, i) {
       if (i >= keys.length) { toast(i ? 'Esse trailer não toca fora do YouTube' : 'Sem trailer pra ' + t.title); return; }
-      if (!tried++) toast('Abrindo o trailer…');
       playTrailer(id, keys[i]);
       P.trailerFail = function () { open(keys, i + 1); };
     }
+  }
+  // The YouTube videos to try for a title, best first; asked for when its page opens, so OK starts right away.
+  var TRAILER_KEYS = {};
+  function trailerKeys(id, cb) {
+    var t = TITLES[id];
+    if (TRAILER_KEYS[id]) { cb(TRAILER_KEYS[id]); return; }
+    function done(keys) { TRAILER_KEYS[id] = keys; cb(keys); }
     var kind = t.type === 'series' ? 'tv' : 'movie';
     function cinemeta(keys) {
       get(CINEMETA + '/meta/' + (t.type === 'series' ? 'series' : 'movie') + '/' + id + '.json', function (o) {
@@ -939,7 +947,7 @@
           var k = list[i].ytId || list[i].source;
           if (k && keys.indexOf(k) < 0) keys.push(k);
         }
-        open(keys, 0);
+        done(keys);
       });
     }
     if (!t.tmdb || !CFG.tmdbKey) { cinemeta([]); return; }
@@ -951,7 +959,7 @@
       v.sort(function (a, b) { return rank(a) - rank(b); });
       var keys = [];
       for (var i = 0; i < v.length && keys.length < 6; i++) keys.push(v[i].key);
-      if (keys.length >= 3) open(keys, 0); else cinemeta(keys);
+      if (keys.length >= 3) done(keys); else cinemeta(keys);
     });
   }
   // The trailer in the same player screen as the film (same OSD and keys), nothing saved or scrobbled.
@@ -984,7 +992,7 @@
   // (error 153, no referrer), so it plays inside yt.html (this folder), served over https, driven by postMessage.
   var YT_PAGE = 'https://ericklpc.github.io/free-my-tv/yt.html';
   function youtubePlayer(key) {
-    var real = window.Player, box = el('div', 'yt'), f = document.createElement('iframe'), started = false, ready = false;
+    var real = window.Player, box = el('div', 'yt'), f = document.createElement('iframe'), started = false, ready = false, reveal = 0;
     var at = {pos: 0, dur: 0};
     f.setAttribute('allow', 'autoplay; encrypted-media');
     f.src = YT_PAGE + '?v=' + encodeURIComponent(key);
@@ -1002,6 +1010,11 @@
       else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; }
       else if (o.type === 'error') fail(o.code);
       else if (o.type === 'state') {
+        // YouTube draws its own play / pause icon for a moment: the picture shows only once it plays, and a pause shows
+        // the title's art under the OSD, as the film does.
+        clearTimeout(reveal);
+        if (o.data === 1) reveal = setTimeout(function () { box.className = 'yt on'; }, 400);
+        else if (o.data !== 3) box.className = 'yt';
         if (o.data === 1 && !started) { started = true; console.log('[trailer] tocando ' + key); emit({type: 'firstFrame', ms: 0}); }
         else if (o.data === 3) emit({type: 'buffering'});
         else if (o.data === 0) emit({type: 'ended'});
@@ -1013,12 +1026,12 @@
       yt: true,
       open: function () {}, preload: function () {}, warm: function () {}, select: function () {},
       play: function () { cmd({cmd: 'play'}); },
-      pause: function () { cmd({cmd: 'pause'}); },
+      pause: function () { clearTimeout(reveal); box.className = 'yt'; cmd({cmd: 'pause'}); },
       seekTo: function (ms) { at.pos = ms / 1000; cmd({cmd: 'seek', t: ms / 1000}); },
       state: function () { return JSON.stringify(ready ? {pos: at.pos * 1000, dur: at.dur * 1000} : {}); },
       stop: function () {
         if (window.Player === me) window.Player = real;
-        clearTimeout(timer);
+        clearTimeout(timer); clearTimeout(reveal);
         window.removeEventListener('message', listen);
         f.src = 'about:blank';
         if (box.parentNode) box.parentNode.removeChild(box);
@@ -1427,6 +1440,7 @@
     else if (t.type === 'series') loadSeasons(id, function () {});
     buildDetailRows();
     resolve(id);
+    setTimeout(function () { if (D.id === id && state.screen === 'detail') trailerKeys(id, function () {}); }, 1500);
     renderPick();
     paintDetail();
     focusTitle(id);
