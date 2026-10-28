@@ -939,7 +939,10 @@
   function youtubeApp(key, sec) {
     if (!window.AndroidTV) return false;
     var url = 'https://www.youtube.com/watch?v=' + key + (sec > 2 ? '&t=' + Math.floor(sec) + 's' : '');
-    return window.AndroidTV.launch('com.amazon.firetv.youtube', url) || window.AndroidTV.launch('com.google.android.youtube.tv', url);
+    // SmartTube first when he installed it himself (its Back comes back here), then YouTube's app.
+    var apps = ['com.teamsmart.videomanager.tv', 'com.liskovsoft.smarttubetv.beta', 'com.amazon.firetv.youtube', 'com.google.android.youtube.tv'];
+    for (var i = 0; i < apps.length; i++) if (window.AndroidTV.launch(apps[i], url)) return true;
+    return false;
   }
   // The YouTube videos to try for a title, best first; asked for when its page opens, so OK starts right away.
   var TRAILER_KEYS = {};
