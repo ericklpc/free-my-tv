@@ -963,8 +963,10 @@
     if (!t.tmdb || !CFG.tmdbKey) { cinemeta([]); return; }
     get('https://api.themoviedb.org/3/' + kind + '/' + t.tmdb + '/videos?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&include_video_language=pt,en,null&language=pt-BR', function (o) {
       var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube'; });
+      // Trailers first, in Portuguese, official, then the sharpest and newest upload (an old 480p one looks bad).
       function rank(x) {
-        return (x.type === 'Trailer' ? 0 : x.type === 'Teaser' ? 4 : 8) + (x.iso_639_1 === 'pt' ? 0 : 2) - (x.official ? 0.5 : 0);
+        return (x.type === 'Trailer' ? 0 : x.type === 'Teaser' ? 4 : 8) + (x.iso_639_1 === 'pt' ? 0 : 2) - (x.official ? 0.5 : 0) -
+          (x.size >= 1080 ? 1 : x.size >= 720 ? 0.5 : 0) - (x.published_at || '').slice(0, 4) / 10000;
       }
       v.sort(function (a, b) { return rank(a) - rank(b); });
       var keys = [];

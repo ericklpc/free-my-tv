@@ -64,8 +64,6 @@ public class HomeActivity extends Activity {
         s.setAllowFileAccessFromFileURLs(true);
         s.setAllowUniversalAccessFromFileURLs(true);
         s.setMediaPlaybackRequiresUserGesture(false);
-        // A TV, not a phone's in-app browser: as "Mobile ... wv" YouTube's embed offers trailers at 360p only.
-        s.setUserAgentString(s.getUserAgentString().replace("; wv", "").replace(" Mobile", ""));
         // The page is a 1920 × 1080 stage (<meta name="viewport" content="width=1920">). Fire TV runs at 2x density:
         // without these the WebView shows only the top-left quarter of it.
         s.setUseWideViewPort(true);
