@@ -43,7 +43,8 @@
     setInterval(function () {
       try {
         var at = yt.getCurrentTime(), st = yt.getPlayerState();
-        still = held || st === 0 || st === 3 || at !== last ? 0 : still + 1;
+        // Only when it isn't playing: a nudge on a playing video can make YouTube load it again from the start.
+        still = held || st === 0 || st === 1 || st === 3 || at !== last ? 0 : still + 1;
         last = at;
         if (still >= 3 && nudges < 4) {
           still = 0;
