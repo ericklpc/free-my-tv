@@ -929,6 +929,7 @@
     // Every candidate in turn: an owner may forbid playing outside YouTube (error 150), the next video often plays.
     function open(keys, i) {
       if (i >= keys.length) { toast(i ? 'Esse trailer não toca fora do YouTube' : 'Sem trailer pra ' + t.title); return; }
+      if (!i && youtubeApp(keys[0], 0, true)) return;      // SmartTube, when installed, plays it in HD
       playTrailer(id, keys[i]);
       P.trailerKey = keys[i];
       P.trailerFail = function () { open(keys, i + 1); };
@@ -936,12 +937,12 @@
   }
   // The YouTube app, for a trailer in HD where the embed gives 360p only (the 2018 Fire TV Stick's WebView).
   try { localStorage.removeItem('sofa.ytlow'); } catch (e) {}
-  function youtubeApp(key, sec) {
+  function youtubeApp(key, sec, smartTubeOnly) {
     if (!window.AndroidTV) return false;
     var url = 'https://www.youtube.com/watch?v=' + key + (sec > 2 ? '&t=' + Math.floor(sec) + 's' : '');
     // SmartTube first when he installed it himself (its Back comes back here), then YouTube's app.
     var apps = ['com.teamsmart.videomanager.tv', 'com.liskovsoft.smarttubetv.beta', 'com.amazon.firetv.youtube', 'com.google.android.youtube.tv'];
-    for (var i = 0; i < apps.length; i++) if (window.AndroidTV.launch(apps[i], url)) return true;
+    for (var i = 0; i < (smartTubeOnly ? 2 : apps.length); i++) if (window.AndroidTV.launch(apps[i], url)) return true;
     return false;
   }
   // The YouTube videos to try for a title, best first; asked for when its page opens, so OK starts right away.
