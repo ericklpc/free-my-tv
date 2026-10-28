@@ -14,12 +14,12 @@
 // so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
 // ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
 (function () {
-  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, last = -1, still = 0, nudges = 0, cc = '', fresh = true, at0 = 0;
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, cc = '', fresh = true, at0 = 0;
   function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
   if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
   window.onYouTubeIframeAPIReady = function () {
-    yt = new YT.Player('v', {videoId: key, width: '100%', height: '100%', host: 'https://www.youtube-nocookie.com',
-      playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, playsinline: 1, hl: 'pt', vq: 'hd1080', cc_load_policy: 0, origin: location.origin},
+    yt = new YT.Player('v', {videoId: key, width: '100%', height: '100%',
+      playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, modestbranding: 1, playsinline: 1, hl: 'pt', cc_load_policy: 0, origin: location.origin},
       events: {
         onReady: function () {
           send({type: 'ready', dur: yt.getDuration()});
@@ -44,20 +44,6 @@
     setInterval(function () {
       try { send({type: 'time', pos: yt.getCurrentTime(), dur: yt.getDuration(), q: yt.getPlaybackQuality()}); } catch (e) {}
     }, 250);
-    // Stuck at the start, or paused by itself (not by the remote): press play again; after two tries, without sound.
-    setInterval(function () {
-      try {
-        var at = yt.getCurrentTime(), st = yt.getPlayerState();
-        // Only when it isn't playing: a nudge on a playing video can make YouTube load it again from the start.
-        still = held || st === 0 || st === 1 || st === 3 || at !== last ? 0 : still + 1;
-        last = at;
-        if (still >= 3 && nudges < 4) {
-          still = 0;
-          if (++nudges > 2) { muted = true; yt.mute(); }
-          yt.playVideo();
-        }
-      } catch (e) {}
-    }, 1000);
     setTimeout(function () { try { send({type: 'levels', q: yt.getPlaybackQuality(), all: yt.getAvailableQualityLevels(), w: innerWidth, h: innerHeight, dpr: devicePixelRatio}); } catch (e) {} }, 20000);
   };
   window.addEventListener('message', function (e) {
