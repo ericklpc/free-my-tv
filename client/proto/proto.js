@@ -951,31 +951,30 @@
     var t = TITLES[id];
     if (TRAILER_KEYS[id]) { cb(TRAILER_KEYS[id]); return; }
     function done(keys) { TRAILER_KEYS[id] = keys; cb(keys); }
-    var kind = t.type === 'series' ? 'tv' : 'movie';
-    function cinemeta(keys) {
-      get(CINEMETA + '/meta/' + (t.type === 'series' ? 'series' : 'movie') + '/' + id + '.json', function (o) {
-        var m = o && o.meta || {}, list = (m.trailerStreams || []).concat(m.trailers || []);
-        for (var i = 0; i < list.length; i++) {
-          var k = list[i].ytId || list[i].source;
-          if (k && keys.indexOf(k) < 0) keys.push(k);
-        }
-        done(keys);
-      });
-    }
-    if (!t.tmdb || !CFG.tmdbKey) { cinemeta([]); return; }
+    // As Stremio does: Cinemeta's trailer first (usually a recent HD upload), then TMDB's as spares for error 150.
+    var kind = t.type === 'series' ? 'tv' : 'movie', keys = [], waiting = 2;
+    function add(k) { if (k && keys.indexOf(k) < 0) keys.push(k); }
+    var cm = [], tm = [];
+    function end() { if (--waiting) return; for (var i = 0; i < cm.length; i++) add(cm[i]); for (var j = 0; j < tm.length; j++) add(tm[j]); done(keys); }
+    get(CINEMETA + '/meta/' + (t.type === 'series' ? 'series' : 'movie') + '/' + id + '.json', function (o) {
+      var m = o && o.meta || {}, list = (m.trailerStreams || []).concat(m.trailers || []);
+      for (var i = 0; i < list.length; i++) cm.push(list[i].ytId || list[i].source);
+      end();
+    });
+    if (!t.tmdb || !CFG.tmdbKey) { end(); return; }
     get('https://api.themoviedb.org/3/' + kind + '/' + t.tmdb + '/videos?api_key=' + encodeURIComponent(CFG.tmdbKey) + '&include_video_language=pt,en,null&language=pt-BR', function (o) {
       var v = (o && o.results || []).filter(function (x) { return x.site === 'YouTube'; });
-      // Trailers first, in Portuguese, official, then the sharpest and newest upload (an old 480p one looks bad).
+      // Trailers first, in Portuguese, official, then the sharpest and newest upload.
       function rank(x) {
         return (x.type === 'Trailer' ? 0 : x.type === 'Teaser' ? 4 : 8) + (x.iso_639_1 === 'pt' ? 0 : 2) - (x.official ? 0.5 : 0) -
           (x.size >= 1080 ? 1 : x.size >= 720 ? 0.5 : 0) - (x.published_at || '').slice(0, 4) / 10000;
       }
       v.sort(function (a, b) { return rank(a) - rank(b); });
-      var keys = [];
-      for (var i = 0; i < v.length && keys.length < 6; i++) keys.push(v[i].key);
-      if (keys.length >= 3) done(keys); else cinemeta(keys);
+      for (var i = 0; i < v.length && i < 6; i++) tm.push(v[i].key);
+      end();
     });
   }
+
   // The trailer in the same player screen as the film (same OSD and keys), nothing saved or scrobbled.
   function playTrailer(id, key) {
     var t = TITLES[id];
