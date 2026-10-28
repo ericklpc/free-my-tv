@@ -969,7 +969,7 @@
     clearTimeout(P.spin); P.scrub = null; P.seek = null; P.moved = null;
     P.trailer = true;
     P.id = id; P.t = t; P.s = 0; P.e = 0; P.dur = 150; P.pos = 0; P.savedAt = 0; P.segs = null;
-    P.paused = false; P.started = false; P.zone = 'bar'; P.pill = 0; P.tabs = false; P.nextCount = 0;
+    P.paused = false; P.started = false; P.zone = 'bar'; P.pill = 0; P.tabs = false; P.nextCount = 0; P.ytcc = '';
     show('player');
     $('#player .frame').className = 'frame';
     $('#player .skip').className = 'skip';
@@ -1007,13 +1007,13 @@
       try { o = JSON.parse(e.data); } catch (x) {}
       if (!o || !o.sofaYt) return;
       if (o.type === 'ready') { ready = true; at.dur = o.dur; emit({type: 'ready', dur: o.dur * 1000}); }
-      else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; }
+      else if (o.type === 'time') { at.pos = o.pos; if (o.dur) at.dur = o.dur; if (o.q && o.q !== at.q) { at.q = o.q; console.log('[trailer] qualidade ' + o.q); } }
       else if (o.type === 'error') fail(o.code);
       else if (o.type === 'state') {
         // YouTube draws its own play / pause icon for a moment: the picture shows only once it plays, and a pause shows
         // the title's art under the OSD, as the film does.
         clearTimeout(reveal);
-        if (o.data === 1) reveal = setTimeout(function () { box.className = 'yt on'; }, 400);
+        if (o.data === 1) reveal = setTimeout(function () { box.className = 'yt on'; }, 900);
         else if (o.data !== 3) box.className = 'yt';
         if (o.data === 1 && !started) { started = true; console.log('[trailer] tocando ' + key); emit({type: 'firstFrame', ms: 0}); }
         else if (o.data === 3) emit({type: 'buffering'});
@@ -1027,6 +1027,7 @@
       open: function () {}, preload: function () {}, warm: function () {}, select: function () {},
       play: function () { cmd({cmd: 'play'}); },
       pause: function () { clearTimeout(reveal); box.className = 'yt'; cmd({cmd: 'pause'}); },
+      captions: function (lang) { cmd({cmd: 'cc', lang: lang}); },
       seekTo: function (ms) { at.pos = ms / 1000; cmd({cmd: 'seek', t: ms / 1000}); },
       state: function () { return JSON.stringify(ready ? {pos: at.pos * 1000, dur: at.dur * 1000} : {}); },
       stop: function () {
@@ -2106,9 +2107,20 @@
   }
 
   // A show with more to come gets a fourth button: on to the next episode.
+  // A trailer's subtitles are YouTube's own: off unless picked here.
+  function trailerSubs() {
+    var langs = [['', 'Desligadas'], ['pt', 'Português'], ['en', 'Inglês']], items = [];
+    for (var i = 0; i < langs.length; i++)
+      items.push({a: langs[i][1], chk: (P.ytcc || '') === langs[i][0], act: (function (l) { return function () {
+        P.ytcc = l[0]; closeSheet();
+        if (window.Player && window.Player.captions) window.Player.captions(l[0]);
+        toast(l[0] ? 'Legendas: ' + l[1] : 'Legendas desligadas');
+      }; })(langs[i])});
+    return items;
+  }
   function pillNames() {
     var n = ['Legendas', 'Áudio', 'Fontes'];
-    if (P.trailer) return ['Legendas', 'Áudio'];
+    if (P.trailer) return ['Legendas'];
     if (P.s && P.t && P.t.seasons && hasNext()) n.push('Próximo episódio  ▶▶');
     return n;
   }
@@ -2207,7 +2219,7 @@
       else if (k === 'right' && P.pill < pillNames().length - 1) P.pill++;
       else if (k === 'down') P.zone = 'bar';
       else if (k === 'ok') {
-        if (P.pill === 0) openSheet('Legendas', subsItems());
+        if (P.pill === 0) openSheet('Legendas', P.trailer ? trailerSubs() : subsItems());
         else if (P.pill === 1) openSheet('Áudio', audioItems());
         else if (P.pill === 3) { P.zone = 'bar'; P.pill = 0; osd(false); nextEpisode(); return; }
         else openPlayerSources();
