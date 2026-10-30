@@ -84,7 +84,12 @@ public final class Playback implements Player.Listener {
         web.addJavascriptInterface(p.new Bridge(), "Player");
         activity.getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
             // Leaving (Home, another app): the page saves the position now, in case the app doesn't come back.
-            @Override public void onActivityPaused(Activity a) { if (a == p.activity && p.player != null) { p.player.pause(); p.emit(p.event("leave")); } }
+            @Override public void onActivityPaused(Activity a) {
+                if (a != p.activity || p.player == null) return;
+                // Something came over the film (another app, a screensaver): it pauses and says so in the log.
+                android.util.Log.i("SofaPlayer", "paused: activity left the front while playing=" + p.player.isPlaying());
+                p.player.pause(); p.emit(p.event("leave"));
+            }
             @Override public void onActivityDestroyed(Activity a) { if (a == p.activity) p.release(); }
             @Override public void onActivityCreated(Activity a, Bundle b) {}
             @Override public void onActivityStarted(Activity a) {}
@@ -184,6 +189,7 @@ public final class Playback implements Player.Listener {
 
     private void stop() {
         preloaded = null;
+        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (player != null) { player.release(); player = null; }
         if (surface != null) surface.setVisibility(android.view.View.GONE);
         web.setBackgroundColor(Color.BLACK);
@@ -304,6 +310,12 @@ public final class Playback implements Player.Listener {
             main.postDelayed(this, 500);
         }
     };
+
+    // While a film plays the TV must not think it's idle: no screensaver, no sleep (Fire OS counts only remote presses).
+    @Override public void onIsPlayingChanged(boolean playing) {
+        if (playing) activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        else activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+    }
 
     @Override public void onPlaybackStateChanged(int state) {
         if (state == Player.STATE_BUFFERING) {
