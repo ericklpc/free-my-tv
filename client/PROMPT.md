@@ -64,6 +64,9 @@ Quero que você construa comigo o **Sofá Player**: um app de TV no estilo Apple
 - Um script (Python) que roda 2× por semana no computador: lê meu Letterboxd (RSS público de [@meu_usuario]) e o Trakt, monta fileiras pessoais ("porque você viu X", diretor, tema, país), cada uma com 8–15 títulos, sem repetir títulos nem fileiras entre os "decks".
 - Mede o tempo que eu realmente assisti (biblioteca do Stremio) contra o que foi mostrado, e ajusta a mistura de fileiras aos poucos (no máximo uma fileira por rodada, só com dados suficientes). Comece com 3 "porque" / 3 diretor / 2 tema / 2 país.
 - No fim da home, um botão "Nova curadoria pra você" troca pro próximo deck.
+- Uma fileira "Documentários pra você" (inclui documentários musicais; vai mais fundo no debrid, porque poucos estão em cache).
+- Datas que importam (Halloween, Sexta-feira 13, Natal, virada do ano, Dia dos Namorados, Orgulho LGBT+): uma fileira da data logo abaixo dos escolhidos, ordenada pelo meu gosto, que só aparece nos dias dela e gira a cada rodada pra não repetir os mesmos 15 filmes.
+- Não mostre o que já vi no Stremio (mesmo sem registrar no Letterboxd), e tire por uma rodada o que apareceu em 3 das últimas 4 curadorias sem eu começar.
 
 ## O que NÃO funcionou (não repita)
 - Instâncias públicas de Invidious/Piped: quase todas fora do ar ou com login (uma pedia usuário e senha).

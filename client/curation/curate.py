@@ -2,6 +2,7 @@
 """Your weekly picks: films you haven't seen, close to your taste, already cached in your debrid.
 
     python3 client/curation/curate.py --letterboxd ~/letterboxd-export        # this week's picks
+    python3 client/curation/curate.py --letterboxd ... --dry                          # a preview: writes nothing else
     python3 client/curation/curate.py --letterboxd ... --backtest                     # how well the model guesses
     python3 client/curation/curate.py --trakt-login                                   # once: lets it write the Trakt list
 
@@ -10,7 +11,8 @@ decade), weighted by how far his rating is from his average, liked films a littl
 recommendations for what he rated highest, his watchlist, this year's releases and the classics. Each candidate
 scores by how much of his taste it shares, plus its standing with critics and audiences. Then only what AIOStreams
 finds cached in TorBox, playable on the Fire TV (same rules as ranking.js), makes the list: ten new releases, ten
-classics and ten in between, each with a line on why.
+classics and ten in between, each with a line on why. Below them: a documentary row, a row for the season when a date
+matters (Halloween, Christmas…), and the personal rows.
 
 Writes client/curation/out/picks.json (the Sofá Player's "Pra você" row reads it at build time) and, after
 --trakt-login, the Trakt list "Sofá · Curadoria da semana". Needs tmdb_key and aiostreams_url in config.properties.
@@ -424,8 +426,17 @@ KINDS = ('because', 'director', 'theme', 'country')
 ROWS_TOTAL = 10
 
 
+LIB = []
+
+
 def library():
-    """Stremio's library: {imdb id: (ms watched in all, times finished)}."""
+    """Stremio's library: {imdb id: (ms watched in all, times finished)}. Read once per run."""
+    if not LIB:
+        LIB.append(library_now())
+    return LIB[0]
+
+
+def library_now():
     key = CFG.get('stremio_auth_key', '').strip()
     if not key:
         return None
@@ -441,19 +452,48 @@ def library():
     return out
 
 
+def watched_in_stremio():
+    """Films he watched in the app but didn't log on Letterboxd: finished, or more than an hour in. Not the ones only
+    added to the library."""
+    return set(i for i, (ms, n) in (library() or {}).items() if n or ms > 3600000)
+
+
+def tired():
+    """What the home kept showing and he kept passing over: on the first deck in 3 of the last 4 runs, never 10 min
+    watched since. It sits this run out, so the picks don't come back the same every Monday and Thursday."""
+    lib = library()
+    if lib is None or not os.path.isdir(HISTORY):
+        return set()
+    shows = {}
+    for name in sorted(n for n in os.listdir(HISTORY) if n.endswith('.json'))[-4:]:
+        with open(os.path.join(HISTORY, name), encoding='utf-8') as f:
+            run = json.load(f)
+        before = run.get('library')
+        if before is None:
+            continue
+        for i in set(s_['id'] for s_ in run['slots'] if not s_.get('deck')):
+            if lib.get(i, (0, 0))[0] - (before.get(i) or (0, 0))[0] < 600000:
+                shows[i] = shows.get(i, 0) + 1
+    return set(i for i, n in shows.items() if n >= 3)
+
+
 def shown(out):
-    """What this run puts on the home, and the library as it is now: next run's starting point."""
+    """What this run puts on the home (every deck, the refresh button shows the others), and the library as it is now:
+    next run's starting point."""
     os.makedirs(HISTORY, exist_ok=True)
-    slots = [{'id': p['id'], 'slot': 'pick:' + p['group'], 'pos': i} for i, p in enumerate(out['picks'])]
-    for r in out['rows']:
-        slots += [{'id': x['id'], 'slot': 'row:' + r['kind'], 'row': r['title'], 'pos': i} for i, x in enumerate(r['items'])]
+    slots = []
+    for k, deck in enumerate(out['decks']):
+        slots += [{'id': p['id'], 'slot': 'pick:' + p['group'], 'pos': i, 'deck': k} for i, p in enumerate(deck['picks'])]
+        for r in deck['rows']:
+            slots += [{'id': x['id'], 'slot': 'row:' + r['kind'], 'row': r['title'], 'pos': i, 'deck': k} for i, x in enumerate(r['items'])]
     lib = library()
     with open(os.path.join(HISTORY, datetime.date.today().isoformat() + '.json'), 'w', encoding='utf-8') as f:
         json.dump({'date': datetime.date.today().isoformat(), 'slots': slots, 'library': lib}, f)
 
 
-def learn():
-    """Measures the last run against the library now, logs it, and returns the policy for this run."""
+def learn(dry=False):
+    """Measures the last run against the library now, logs it, and returns the policy for this run (a dry run writes
+    nothing)."""
     policy = {'stats': {}, 'runs': 0}
     if os.path.exists(POLICY):
         with open(POLICY, encoding='utf-8') as f:
@@ -469,7 +509,8 @@ def learn():
         delta = dict((i, (max(0, w - before.get(i, (0, 0))[0]), max(0, n - before.get(i, (0, 0))[1]))) for i, (w, n) in lib.items())
         total = sum(w for w, _ in delta.values()) / 60000.0
         per = {}
-        for s_ in last['slots']:
+        # The kinds learn from the first deck only, the one he sees unless he asks for another (older runs logged only it).
+        for s_ in [x for x in last['slots'] if not x.get('deck')]:
             w, n = delta.get(s_['id'], (0, 0))
             m = per.setdefault(s_['slot'], {'shown': 0, 'started': 0, 'finished': 0, 'minutes': 0.0})
             m['shown'] += 1
@@ -477,12 +518,17 @@ def learn():
             m['finished'] += 1 if n else 0
             m['minutes'] += w / 60000.0
         curated = sum(m['minutes'] for m in per.values())
+        # Comparable with the runs before the season and documentary rows, and everything any deck showed.
+        core = sum(m['minutes'] for k, m in per.items() if k not in ('row:season', 'row:doc'))
+        every = sum(delta.get(i, (0, 0))[0] for i in set(x['id'] for x in last['slots'])) / 60000.0
         line = {'date': datetime.date.today().isoformat(), 'since': last['date'], 'minutes_all': round(total),
                 'minutes_curated': round(curated), 'share_curated': round(curated / total, 3) if total else 0,
+                'share_core': round(core / total, 3) if total else 0, 'minutes_all_decks': round(every),
                 'slots': dict((k, dict(v, minutes=round(v['minutes']))) for k, v in per.items()),
                 'quota': policy.get('quota')}
-        with open(METRICS, 'a', encoding='utf-8') as f:
-            f.write(json.dumps(line, ensure_ascii=False) + '\n')
+        if not dry:
+            with open(METRICS, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(line, ensure_ascii=False) + '\n')
         print('curation: since %s he watched %d min, %d of them from the home\'s picks and rows (%d%%)' % (
             last['date'], total, curated, 100 * line['share_curated']))
         for k, v in sorted(per.items()):
@@ -513,11 +559,144 @@ def learn():
         if best_k != worst_k and weight[best_k] > 1.5 * weight[worst_k] and quota[worst_k] > 1:
             quota[best_k] += 1; quota[worst_k] -= 1
     policy['quota'] = quota
+    policy['history'] = len(runs)
     os.makedirs(OUT, exist_ok=True)
-    with open(POLICY, 'w', encoding='utf-8') as f:
-        json.dump(policy, f, indent=1)
+    if not dry:
+        with open(POLICY, 'w', encoding='utf-8') as f:
+            json.dump(policy, f, indent=1)
     print('curation: rows this run: %s' % ', '.join('%s %d' % (k, quota[k]) for k in KINDS))
     return policy
+
+
+# MARK: - Documentaries and the dates that matter
+
+SKIP = set()                                                # imdb ids kept off the home this run: watched in Stremio, tired
+
+
+def keyword_ids(names_):
+    """TMDB keyword names → ids, by exact name (ids move; a name that isn't there is logged and left out)."""
+    out = []
+    for n in names_:
+        o = tmdb('/search/keyword', query=n) or {}
+        hit = [k['id'] for k in o.get('results', []) if k.get('name', '').lower() == n]
+        if hit:
+            out.append(str(hit[0]))
+        else:
+            print('curation: no TMDB keyword "%s"' % n, file=sys.stderr)
+    return out
+
+
+def easter(y):
+    """Gregorian Easter (Meeus/Jones/Butcher)."""
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = b // 4, b % 4
+    g = (8 * b + 13) // 25
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * l) // 451
+    month = (h + l - 7 * m + 114) // 31
+    return datetime.date(y, month, (h + l - 7 * m + 114) % 31 + 1)
+
+
+# The dates with films of their own. Each row carries its days and the app shows it only then, so a Thursday run doesn't
+# leave Halloween on the home in November. Carnaval (TMDB's "carnival" is mostly funfairs), Consciência Negra (cinema
+# isn't something to tag by keyword) and the Oscars (TMDB has no nominations) are left out on purpose.
+SEASONS = (
+    {'key': 'halloween', 'title': 'Halloween do seu jeito', 'days': lambda y: ((y, 10, 10), (y, 10, 31)), 'genre': 27,
+     'keywords': ('halloween', 'slasher', 'witch', 'haunted house', 'folk horror')},
+    {'key': 'christmas', 'title': 'Clima de Natal', 'days': lambda y: ((y, 12, 1), (y, 12, 25)),
+     'keywords': ('christmas', 'christmas eve', 'santa claus')},
+    {'key': 'newyear', 'title': 'Pra virada do ano', 'days': lambda y: ((y, 12, 26), (y + 1, 1, 1)),
+     'keywords': ("new year's eve", 'new year')},
+    {'key': 'valentine', 'title': 'Pro Dia dos Namorados', 'days': lambda y: ((y, 6, 1), (y, 6, 12)), 'genre': 10749,
+     'keywords': ('first love', 'love at first sight')},
+    {'key': 'pride', 'title': 'Orgulho LGBT+', 'days': lambda y: ((y, 6, 13), (y, 6, 30)),
+     'keywords': ('gay theme', 'lgbt', 'gay', 'lesbian', 'transgender', 'queer')},
+)
+FRIDAY13 = {'key': 'friday13', 'title': 'Sexta-feira 13', 'genre': 27, 'keywords': ('slasher', 'friday the 13th')}
+
+
+def seasons(today):
+    """The dates that touch this run's days (today up to the next run, four days at most), each with its window."""
+    end, out = today + datetime.timedelta(days=4), []
+    for s_ in SEASONS:
+        for y in (today.year - 1, today.year):
+            a, b = (datetime.date(*x) for x in s_['days'](y))
+            if a <= end and b >= today:
+                out.append(dict(s_, start=a, until=b))
+    for n in range(5):
+        day = today + datetime.timedelta(days=n)
+        # On its own day only, and never over a date that's already on the home (a Friday 13 in October is Halloween).
+        if day.day == 13 and day.weekday() == 4 and not any(x['start'] <= day <= x['until'] for x in out):
+            out.append(dict(FRIDAY13, start=day, until=day))
+    return out
+
+
+def rotate(items, turn, size=15):
+    """A window of the list that moves every run, so a month of Christmas isn't the same fifteen films."""
+    if len(items) <= size:
+        return items
+    k = (turn * 7) % len(items)
+    return (items[k:] + items[:k])[:size]
+
+
+def turn_of(today):
+    return today.toordinal() * 2 // 7                       # about one more per run (two a week)
+
+
+def special_row(kind, title, ids, keep, taste, best, idf, seen, wish, taken, turn, depth):
+    """The documentary and season rows: their own filter, his taste for the order, a deeper look in the debrid (fewer of
+    these are cached), and a window that rotates."""
+    ids = [i for i in dict.fromkeys(ids) if i and i not in seen and i not in taken]
+    docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and keep(d)
+            and not d.get('adult') and re.search('[A-Za-z]', d.get('title') or '') and d['external_ids']['imdb_id'] not in SKIP]
+    docs.sort(key=lambda d: -score(d, taste, wish, idf))
+    docs = docs[:depth]
+    ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
+    good = [d for d, c in zip(docs, ok) if c]
+    print('curation: row "%s": %d of %d cached' % (title, len(good), len(docs)))
+    if len(good) < 8:
+        return None
+    said = {}
+    items = [entry(d, why(d, taste, best, idf, said)) for d in rotate(good, turn)]
+    taken.update(x['tmdb'] for x in items)
+    return {'title': title, 'kind': kind, 'items': items}
+
+
+def documentaries(rated, info, taste, best, idf, seen, wish, taken, turn):
+    """Documentaries close to his taste: the well-rated ones, the recent ones, the ones on his themes, and what TMDB
+    recommends from the ones he rated well. Music documentaries too (proper() would drop them)."""
+    ids = list(wish)
+    for page in (1, 2, 3):
+        o = tmdb('/discover/movie', with_genres=99, sort_by='vote_average.desc', page=page, **{'vote_count.gte': 100})
+        ids += [m['id'] for m in (o or {}).get('results', [])]
+    since = (datetime.date.today() - datetime.timedelta(days=3 * 365)).isoformat()
+    ids += discover(with_genres=99, sort_by='popularity.desc', **{'primary_release_date.gte': since, 'vote_count.gte': 20})
+    themes = [f[2:] for v, f in sorted(((v, f) for f, v in taste.items() if f[0] == 'k' and v > 0), reverse=True)[:6]]
+    if themes:
+        ids += discover(with_genres=99, with_keywords='|'.join(themes), sort_by='vote_average.desc', **{'vote_count.gte': 30})
+    for tid, rating, _, _ in rated:
+        d = info.get(tid)
+        if d and rating >= 4 and 99 in [g['id'] for g in d.get('genres', [])]:
+            ids += [m['id'] for k in ('recommendations', 'similar') for m in (d.get(k) or {}).get('results', [])]
+    def keep(d):
+        return 99 in [g['id'] for g in d.get('genres', [])] and ((d.get('runtime') or 60) >= 60)
+    return special_row('doc', 'Documentários pra você', ids, keep, taste, best, idf, seen, wish, taken, turn, 60)
+
+
+def season_row(season, taste, best, idf, seen, wish, taken, turn):
+    kws = keyword_ids(season['keywords'])
+    ids = []
+    if kws:
+        for sort in ('vote_count.desc', 'vote_average.desc'):
+            ids += discover(with_keywords='|'.join(kws), sort_by=sort, **{'vote_count.gte': 50})
+    if season.get('genre'):
+        ids += discover(with_genres=season['genre'], sort_by='vote_average.desc', **{'vote_count.gte': 300})
+    row = special_row('season', season['title'], ids, proper, taste, best, idf, seen, wish, taken, turn, 40)
+    if row:
+        row['from'], row['until'] = season['start'].isoformat(), season['until'].isoformat()
+    return row
 
 
 # MARK: - The run
@@ -583,7 +762,7 @@ def proper(d):
     return (d.get('runtime') or 0) >= 70 and not g & {10402, 10770} and not d.get('adult')
 
 
-def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=None, titles=None):
+def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=None, titles=None, busy=()):
     """Seeds from his taste (5★ films, directors, themes, countries), rotating with the week. Each kind tries more
     seeds than it needs, in its own order, and keeps the first that fill a row."""
     ranked = sorted(((v, f) for f, v in taste.items() if v > 0 and f in best), reverse=True)
@@ -615,7 +794,7 @@ def personal_rows(rated, info, taste, best, idf, seen, wish, week, taken, quota=
         for _, f in ranked:
             if f[0] == 'k':
                 o = tmdb('/keyword/%s' % f[2:]) or {}
-                if o.get('name', '').lower() in KW_PT:
+                if o.get('name', '').lower() in KW_PT and o['name'].lower() not in busy:     # June has its own Pride row
                     found.append((f, KW_PT[o['name'].lower()]))
             if len(found) == 10:
                 break
@@ -659,7 +838,7 @@ def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
     # A film shows once on the home: not in the picks, not in an earlier row.
     ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
     docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)
-            and re.search('[A-Za-z]', d.get('title') or '')]      # no 남극일기 on the home
+            and re.search('[A-Za-z]', d.get('title') or '') and d['external_ids']['imdb_id'] not in SKIP]  # no 남극일기 on the home
     said = {}                                               # in a row too, a reason at most twice
     if kind == 'director':
         # His own films, not anthologies where he made one segment (Paris, Te Amo).
@@ -694,13 +873,14 @@ def make_row(kind, title, ids, seed, taste, best, idf, seen, wish, taken):
     ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
     items = [entry(d, lines[d['id']]) for d, good in zip(docs, ok) if good][:15]
     print('curation: row "%s": %d of %d cached' % (title, len(items), len(docs)))
-    if len(items) < (6 if kind == 'director' else 8):
+    if len(items) < 8:                                      # the app drops shorter rows
         return None
     taken.update(x['tmdb'] for x in items)
     return {'title': title, 'kind': kind, 'items': items}
 
 
 def pick(args):
+    dry = getattr(args, 'dry', False)
     rated, liked, seen, wish = load_history(args.letterboxd)
     info = build_info(set(t for t, _, _, _ in rated))
     taste, best, mean = profile(rated, liked, info)
@@ -722,7 +902,8 @@ def pick(args):
         while st['queue'] and any(len(groups[g]) < quota[g] for g in groups):
             batch, st['queue'] = st['queue'][:24], st['queue'][24:]
             later += [d for d in batch if d['id'] not in used and len(groups[group(d)]) >= quota[group(d)]]
-            batch = [d for d in batch if d['id'] not in used and len(groups[group(d)]) < quota[group(d)]]
+            batch = [d for d in batch if d['id'] not in used and len(groups[group(d)]) < quota[group(d)]
+                     and d['external_ids']['imdb_id'] not in SKIP]
             ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), batch, workers=6)
             st['checked'] += len(batch)
             for d, good in zip(batch, ok):
@@ -742,15 +923,31 @@ def pick(args):
     # Two runs a week (Monday, Thursday): each one its own seeds.
     today = datetime.date.today()
     week = today.isocalendar()[1] + (1000 if today.weekday() >= 3 else 0)
-    policy = learn()
+    policy = learn(dry)
+    watched, tired_ = watched_in_stremio(), tired()
+    SKIP.update(watched | tired_)
+    print('curation: %d films watched in Stremio left out, %d passed over in the last runs sit this one out' % (
+        len(watched), len(tired_)))
+    days = seasons(today)
+    print('curation: dates this run: %s' % (', '.join('%s (%s to %s)' % (x['key'], x['start'], x['until']) for x in days) or 'none'))
+    busy = set(k for x in days if x['key'] == 'pride' for k in x['keywords'])
+    turn = turn_of(today)
     # Decks: the home's refresh button moves to the next one on the TV, offline. Same algorithm, other seeds, and
     # nothing repeats across decks.
     decks, used, titles = [], set(), set()
     for k in range(max(1, int(os.environ.get('SOFA_DECKS', '3')))):
         dp, groups_k = choose(used)
         used.update(p['tmdb'] for p in dp)
-        dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'), titles)
+        # The picks, then the season, the documentaries and the personal rows: each one with films the others don't have.
+        extra = [season_row(x, taste, best, idf, seen, wish, used, turn + k) for x in days]
+        extra.append(documentaries(rated, info, taste, best, idf, seen, wish, used, turn + k))
+        extra = [r for r in extra if r]
+        dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'), titles, busy)
+        short = dict((kind, n - sum(1 for r in dr if r['kind'] == kind)) for kind, n in (policy.get('quota') or {}).items())
+        if any(v > 0 for v in short.values()):
+            print('curation: deck %d short of rows: %s' % (k + 1, ', '.join('%s %d' % x for x in short.items() if x[1] > 0)))
         titles.update(r['title'] for r in dr)
+        dr = extra + dr
         for r in dr:
             used.update(x['tmdb'] for x in r['items'])
         decks.append({'picks': dp, 'rows': dr})
@@ -760,14 +957,17 @@ def pick(args):
     picks, rows, checked = decks[0]['picks'], decks[0]['rows'], st['checked']
     out = {'week': datetime.date.today().isoformat(), 'mean': round(mean, 2), 'checked_in_debrid': checked, 'picks': picks, 'rows': rows,
            'decks': decks}
-    with open(os.path.join(OUT, 'picks.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(OUT, 'picks-preview.json' if dry else 'picks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, ensure_ascii=False, indent=1)
-    shown(out)
+    if not dry:
+        shown(out)
     print('curation: %d picks (%s), %d checked in the debrid, from %d candidates' % (
         len(picks), ', '.join('%d %s' % (len(groups[g]), g) for g in groups), checked, len(ranked)))
     for p in picks:
         print('  [%s] %s (%d) · %s' % (p['group'], p['title'], p['year'], p['why']))
-    if os.path.exists(TRAKT_TOKEN):
+    for r in rows:
+        print('  row [%s] %s: %d' % (r['kind'], r['title'], len(r['items'])))
+    if os.path.exists(TRAKT_TOKEN) and not dry:
         trakt_list(picks)
 
 
@@ -882,6 +1082,7 @@ def main():
     a = argparse.ArgumentParser()
     a.add_argument('--letterboxd', help='the unzipped Letterboxd export')
     a.add_argument('--backtest', action='store_true')
+    a.add_argument('--dry', action='store_true', help='a preview in out/picks-preview.json: no Trakt, no history, no metrics')
     a.add_argument('--rounds', type=int, default=5)
     a.add_argument('--trakt-login', action='store_true')
     args = a.parse_args()

@@ -314,10 +314,14 @@
     }
     // The week's own rows ("Porque você deu 5★ em…", "Mais de…"): they take the place of the sample ones, one after
     // each list from Stremio or TMDB, like Netflix mixes its rows.
-    var mine = (w.rows || []).filter(function (r) { return r.items.length >= 8; }).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
-    if (!mine.length) return;
+    // A date's row (Halloween, Natal…) only on its days, right under the picks.
+    var d0 = new Date(), today = d0.getFullYear() + '-' + ('0' + (d0.getMonth() + 1)).slice(-2) + '-' + ('0' + d0.getDate()).slice(-2);
+    var rows = (w.rows || []).filter(function (r) { return r.items.length >= 8 && (!r.from || (r.from <= today && today <= r.until)); });
+    var season = rows.filter(function (r) { return r.kind === 'season'; }).map(function (r) { return {kind: 'season', title: r.title, items: r.items.map(item)}; });
+    var mine = rows.filter(function (r) { return r.kind !== 'season'; }).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
+    if (!mine.length && !season.length) return;
     var rest = HOME.rows.filter(function (r) { return r.source; }), fixed = HOME.rows.filter(function (r) { return r.kind === 'continue' || r.kind === 'picks'; });
-    var out = fixed.slice();
+    var out = fixed.concat(season);
     for (var k = 0; k < Math.max(rest.length, mine.length); k++) {
       if (rest[k]) out.push(rest[k]);
       if (mine[k]) out.push(mine[k]);
@@ -329,7 +333,8 @@
     var hero = [], first = function (g) { for (var j = 0; j < w.picks.length; j++) if (w.picks[j].group === g) return w.picks[j]; };
     var nw = first('new') || w.picks[0], cl = first('classic');
     hero.push({id: nw.id, kicker: 'Escolhido pra você', why: blurb(TITLES[nw.id], nw.why).text});
-    hero.push({id: mine[0].items[0].id, kicker: mine[0].title, why: blurb(TITLES[mine[0].items[0].id], mine[0].items[0].why).text});
+    var second = season[0] || mine[0];
+    if (second) hero.push({id: second.items[0].id, kicker: second.title, why: blurb(TITLES[second.items[0].id], second.items[0].why).text});
     if (cl) hero.push({id: cl.id, kicker: 'Clássico que você não viu', why: blurb(TITLES[cl.id], cl.why).text});
     HOME.hero = hero;
   })();
@@ -352,7 +357,7 @@
   function ordered(rows) {
     return rows.map(function (r, i) {
       if (r.at == null) r.at = i;                          // its place before any climb
-      return {r: r, k: r.kind === 'continue' ? -1e9 : r.kind === 'picks' ? -1e8 : r.kind === 'action' ? 1e9 : r.at - 3 * rowScore(r.title)};
+      return {r: r, k: r.kind === 'continue' ? -1e9 : r.kind === 'picks' ? -1e8 : r.kind === 'season' ? -1e7 + r.at : r.kind === 'action' ? 1e9 : r.at - 3 * rowScore(r.title)};
     }).sort(function (a, b) { return a.k - b.k; }).map(function (x) { return x.r; });
   }
   HOME.rows = ordered(HOME.rows);
@@ -417,7 +422,7 @@
       return {title: 'Curadoria', hero: pickHero(picks, 'Curadoria da semana'), rows: [
         {kind: 'mine', title: 'Lançamentos', items: g('new')}, {kind: 'mine', title: 'Pra qualquer dia', items: g('mix')},
         {kind: 'mine', title: 'Clássicos que você não viu', items: g('classic')}
-      ].concat(MAIN.rows.filter(function (r) { return r.kind === 'mine'; }), addonRows(null, /letterboxd|boxd/i))};
+      ].concat(MAIN.rows.filter(function (r) { return r.kind === 'mine' || r.kind === 'season'; }), addonRows(null, /letterboxd|boxd/i))};
     }
     if (name === 'library') {
       var mine = function (type) {
@@ -586,7 +591,7 @@
     on.style.width = '100%';
   }
 
-  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key', action: 'action'};
+  var CARD = {continue: 'wide', picks: 'wide', mine: 'wide', season: 'wide', chart: 'chart', poster: 'poster', wide: 'wide', keys: 'key', action: 'action'};
   var STEP = {wide: 588, chart: 420, poster: 290, ep: 460, person: 240, key: 84, action: 0};
 
   function card(kind, item, n) {
@@ -608,7 +613,7 @@
       if (item.next) l2 = 'Próximo · T' + item.s + ' E' + item.e;
       else if (item.s) l2 = 'T' + item.s + ' · E' + item.e + ' · ' + item.left + ' min restantes';
       else l2 = minutes(item.left) + ' restantes';
-    } else if (kind === 'picks' || kind === 'mine') { var bl = blurb(t, item.why); l2 = bl.text; var l3 = bl.foot; }
+    } else if (kind === 'picks' || kind === 'mine' || kind === 'season') { var bl = blurb(t, item.why); l2 = bl.text; var l3 = bl.foot; }
     else if (kind === 'chart' || kind === 'poster') { l1 = ''; }
     else l2 = t.year + ' · ' + t.genres[0];
     if (l1 || l2) c.appendChild(el('div', 'cap', '<div class="l1">' + esc(l1) + '</div><div class="l2' + (l3 != null ? ' syn' : '') + '">' + esc(l2) + '</div>' +
