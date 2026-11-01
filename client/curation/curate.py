@@ -58,10 +58,10 @@ def config():
 CFG = config()
 
 
-def http(url, data=None, headers=None, timeout=40):
+def http(url, data=None, headers=None, timeout=40, tries=4):
     req = urllib.request.Request(url, data=json.dumps(data).encode() if data is not None else None,
                                  headers=dict({'User-Agent': 'sofa-curation', 'Content-Type': 'application/json'}, **(headers or {})))
-    for attempt in range(4):
+    for attempt in range(tries):
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 body = r.read()
@@ -306,6 +306,7 @@ def playable(st):
 
 
 CACHED = {}
+DOWN = {'fails': 0}                                         # AIOStreams not answering: stop asking after a few misses
 
 
 def cached(imdb):
@@ -317,9 +318,16 @@ def cached(imdb):
 
 def cached_now(imdb):
     base = re.sub(r'/(manifest\.json|configure)$', '', CFG.get('aiostreams_url', '').strip().rstrip('/'))
-    if not base or not imdb:
+    if not base or not imdb or DOWN['fails'] >= 12:
         return False
-    status, o = http('%s/stream/movie/%s.json' % (base, imdb), timeout=60)
+    # A short wait and one retry: on 31/10 a stuck server held the whole run (four tries of a minute, per film).
+    status, o = http('%s/stream/movie/%s.json' % (base, imdb), timeout=25, tries=2)
+    if status == 0:
+        DOWN['fails'] += 1
+        if DOWN['fails'] == 12:
+            print('curation: AIOStreams stopped answering: the rest counts as not cached', file=sys.stderr)
+        return False
+    DOWN['fails'] = 0
     return status == 200 and any(playable(s) for s in (o or {}).get('streams', []))
 
 
