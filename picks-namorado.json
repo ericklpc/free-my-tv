@@ -1,7 +1,7 @@
 {
  "week": "2026-11-10",
  "mean": 3.5,
- "checked_in_debrid": 158,
+ "checked_in_debrid": 156,
  "picks": [
   {
    "id": "tt22084616",
@@ -1018,100 +1018,6 @@
    "kind": "season",
    "items": [
     {
-     "id": "tt0093629",
-     "tmdb": 10072,
-     "type": "movie",
-     "group": "",
-     "title": "A Hora do Pesadelo 3: Os Guerreiros dos Sonhos",
-     "original": "A Nightmare on Elm Street 3: Dream Warriors",
-     "year": 1987,
-     "runtime": 96,
-     "genres": [
-      "Terror",
-      "Thriller"
-     ],
-     "rating": "6,7",
-     "desc": "Os últimos dos garotos da Rua Elm agora estão num hospital psiquiátrico, onde Freddy assombra seus sonhos com horrores indescritíveis. Sua única esperança é a pesquisadora do sono e igualmente sobrevivente de Freddy, Nancy Thompson. É ela quem vai os ajudar a lutar contra o psicopata sobrenatural em seu próprio território infernal.",
-     "backdrop": "/euXJlfeYSyrdkOoFQ9gtUG8OOhH.jpg",
-     "poster": "/rl1Iuzu2Vntz86mTHJ5BF0SAty.jpg",
-     "why": "Terror e thriller"
-    },
-    {
-     "id": "tt0094862",
-     "tmdb": 10585,
-     "type": "movie",
-     "group": "",
-     "title": "Brinquedo Assassino",
-     "original": "Child's Play",
-     "year": 1988,
-     "runtime": 87,
-     "genres": [
-      "Terror"
-     ],
-     "rating": "6,8",
-     "desc": "Após a babá do garotinho de seis anos, Andy Barclay, ser violentamente arremessada pela janela, ninguém acredita nele quando diz que \"Chucky\", o boneco que ganhou de aniversário, foi o culpado! Até que as coisas começam a dar errado... mortalmente errado. E quando uma série de terríveis assassinatos leva um detetive de volta ao mesmo brinquedo, ele descobre que o verdadeiro terror tinha apenas começado – o boneco perturbado planeja transferir seu espírito mau para um ser vivo – o pequeno Andy.",
-     "backdrop": "/edghRD7vw1XgWEpMLpGt1VSGB5w.jpg",
-     "poster": "/pdnXDnuAWIc9pwobTQ5XknlcbbS.jpg",
-     "why": "Terror"
-    },
-    {
-     "id": "tt9701940",
-     "tmdb": 591274,
-     "type": "movie",
-     "group": "",
-     "title": "Rua do Medo: 1978 - Parte 2",
-     "original": "Fear Street: 1978",
-     "year": 2021,
-     "runtime": 111,
-     "genres": [
-      "Terror",
-      "Mistério"
-     ],
-     "rating": "7,2",
-     "desc": "Na cidade amaldiçoada de Shadyside, uma onda de assassinatos aterroriza o Acampamento Nightwing, transformando as férias em uma luta pela sobrevivência.",
-     "backdrop": "/oMnJhVFr0xVfxy4HPBt1LDKoFgV.jpg",
-     "poster": "/uicSprflqrrhWykOuJjHQ9lSLJ1.jpg",
-     "why": "Terror e mistério"
-    },
-    {
-     "id": "tt6566576",
-     "tmdb": 591273,
-     "type": "movie",
-     "group": "",
-     "title": "Rua do Medo: 1994 - Parte 1",
-     "original": "Fear Street: 1994",
-     "year": 2021,
-     "runtime": 107,
-     "genres": [
-      "Terror",
-      "Mistério"
-     ],
-     "rating": "6,7",
-     "desc": "Depois de uma série de assassinatos brutais, um grupo de adolescentes enfrenta uma força maligna que aterroriza a cidade há séculos. Bem-vindos a Shadyside.",
-     "backdrop": "/vu5Y8qFqlzcboDbbZIMTAgj0KLb.jpg",
-     "poster": "/kIABUqs2kfFBDa10l2tFxTIKZMH.jpg",
-     "why": "Terror e mistério"
-    },
-    {
-     "id": "tt0120082",
-     "tmdb": 4233,
-     "type": "movie",
-     "group": "",
-     "title": "Pânico 2",
-     "original": "Scream 2",
-     "year": 1997,
-     "runtime": 120,
-     "genres": [
-      "Terror",
-      "Mistério"
-     ],
-     "rating": "6,5",
-     "desc": "Dois anos após o massacre em Woodsboro, Sidney Prescott e Randy Meeks estão tentando refazer suas vidas em uma nova cidade. Estudando no colégio de Windsor, eles vão lidar com uma nova onda de assassinatos quando o terrível psicopata retorna para assombrá-los nas vésperas do lançamento do filme baseado nos seus crimes.",
-     "backdrop": "/lVmcX3hlJqsUGkEOEZkRFiOQdLv.jpg",
-     "poster": "/ylcoIk1WzHp6zCkDeLipFJ3ZJbd.jpg",
-     "why": "Terror e mistério"
-    },
-    {
      "id": "tt11426232",
      "tmdb": 974931,
      "type": "movie",
@@ -1299,6 +1205,98 @@
      "backdrop": "/qbVCChwbGWDAgsCXKZxyjBrRiWx.jpg",
      "poster": "/19yVSPVhMDojcCdGjTj8azzA7uC.jpg",
      "why": "Ação e thriller"
+    },
+    {
+     "id": "tt0080761",
+     "tmdb": 4488,
+     "type": "movie",
+     "group": "",
+     "title": "Sexta-Feira 13",
+     "original": "Friday the 13th",
+     "year": 1980,
+     "runtime": 90,
+     "genres": [
+      "Terror"
+     ],
+     "rating": "6,4",
+     "desc": "O Acampamento Crystal Lake será reaberto. Monitores ansiosos, seus olhos brilhando com nobres ideais, e seus hormônios à flor da pele, estão prontos para liderar as canções e brincadeiras dos hóspedes. Mas há um jogo que não constava na lista de atividades. Alguém resolveu brincar de \"Mate o Monitor.\"",
+     "backdrop": "/llLB2MWIRqWfBHENc5m63RcKR8G.jpg",
+     "poster": "/rdrVW0qN16Ho8BDwmcqW9oLQtn3.jpg",
+     "why": "Terror"
+    },
+    {
+     "id": "tt0329101",
+     "tmdb": 6466,
+     "type": "movie",
+     "group": "",
+     "title": "Freddy vs. Jason",
+     "original": "Freddy vs. Jason",
+     "year": 2003,
+     "runtime": 98,
+     "genres": [
+      "Terror"
+     ],
+     "rating": "6,1",
+     "desc": "Imagine que você está tendo um pesadelo tão real e angustiante que a morte seria um alívio... É assim que os jovens de Elm Street e Crystal Lake sentem-se desde que Freddy Krueger ressuscitou Jason Vorhees. Um medo que tudo assusta, um nervosismo que faz rir. Na rua Elm, tudo está tranquilo. As vítimas potenciais de Freddy, há mais de 10 anos foram isoladas e inibidas de sonhar através do uso de drogas. Assim, a lembrança do maníaco está se apagando e enfraquecendo-o cada vez mais. Desesperado, Freddy decide utilizar-se de outro demônio para reacender sua apavorante memória entre os vivos. Surge então entre os dois uma crescente tensão cujo ápice será um verdadeiro Duelo de Titãs!",
+     "backdrop": "/hCAOQTMRop2fHjsl8n7yNwpkMJn.jpg",
+     "poster": "/qGtIS0hhiMjMBHOOnQcLzvr8OAM.jpg",
+     "why": "Terror"
+    },
+    {
+     "id": "tt0071222",
+     "tmdb": 16938,
+     "type": "movie",
+     "group": "",
+     "title": "Noite do Terror",
+     "original": "Black Christmas",
+     "year": 1974,
+     "runtime": 98,
+     "genres": [
+      "Terror",
+      "Mistério"
+     ],
+     "rating": "6,9",
+     "desc": "Chegou o Natal! As garotas de uma fraternidade fazem planos para o feriado, mas estranhas ligações anônimas começam a incomodá-las. Quando Clare desaparece, elas ligam para a polícia, que não dá muita bola. Enquanto isso, Jess está planejando um aborto, mas seu namorado Peter é radicalmente contra. A polícia finalmente começa a se preocupar quando uma garota de 13 anos é encontrada morta no parque. Eles grampeiam o telefone da fraternidade, mas será que isso será suficiente para impedir a morte das garotas da fraternidade?",
+     "backdrop": "/7nxNnR9yftqVUoFvBdfr2akgu2A.jpg",
+     "poster": "/eMniGyTMofqxSrKoGoWMW40wXdk.jpg",
+     "why": "Terror e mistério"
+    },
+    {
+     "id": "tt27911000",
+     "tmdb": 1034541,
+     "type": "movie",
+     "group": "",
+     "title": "Terrifier 3",
+     "original": "Terrifier 3",
+     "year": 2024,
+     "runtime": 124,
+     "genres": [
+      "Terror"
+     ],
+     "rating": "6,7",
+     "desc": "O palhaço assassino Art está pronto para espalhar o caos sobre os moradores inocentes do Condado de Miles durante uma pacífica véspera de Natal.",
+     "backdrop": "/bHfGHipZ32Oec94FDJO4mWs3aZ5.jpg",
+     "poster": "/tBMH2u9ERs4CWW19ep6sJA9JCLr.jpg",
+     "why": "Terror"
+    },
+    {
+     "id": "tt7144666",
+     "tmdb": 756999,
+     "type": "movie",
+     "group": "",
+     "title": "O Telefone Preto",
+     "original": "The Black Phone",
+     "year": 2022,
+     "runtime": 103,
+     "genres": [
+      "Terror",
+      "Thriller"
+     ],
+     "rating": "7,5",
+     "desc": "Após ser raptado por um assassino de crianças, Finney Shaw começa a receber chamadas de vítimas anteriores do assassino. Elas estão determinadas a garantir que o que lhes aconteceu não aconteça com Finney.",
+     "backdrop": "/AfvIjhDu9p64jKcmohS4hsPG95Q.jpg",
+     "poster": "/aAdnNifQo2qxDYnuDD3blsxinH1.jpg",
+     "why": "Terror e thriller"
     }
    ],
    "from": "2026-11-13",
@@ -1327,62 +1325,6 @@
      "why": "Documentário"
     },
     {
-     "id": "tt22482764",
-     "tmdb": 1031774,
-     "type": "movie",
-     "group": "",
-     "title": "Thriller 40",
-     "original": "Thriller 40",
-     "year": 2023,
-     "runtime": 89,
-     "genres": [
-      "Documentário",
-      "Música"
-     ],
-     "rating": "8,7",
-     "desc": "Documentário dedicado ao álbum mais vendido de todos os tempos, \"Thriller\", de Michael Jackson. Com imagens nunca antes vistas e entrevistas francas, o documentário retrata o momento da carreira de Jackson que o lançou para o megaestrelato.",
-     "backdrop": "/pVyI0faJI6jYIlVxUqhZ1AgBOOC.jpg",
-     "poster": "/5LOKk1Ca1YaCb3EjTEMDJdPbQxN.jpg",
-     "why": "Documentário e música"
-    },
-    {
-     "id": "tt24082438",
-     "tmdb": 1058616,
-     "type": "movie",
-     "group": "",
-     "title": "20 Dias em Mariupol",
-     "original": "20 Days in Mariupol",
-     "year": 2023,
-     "runtime": 94,
-     "genres": [
-      "Documentário",
-      "Guerra"
-     ],
-     "rating": "8,1",
-     "desc": "Quando a invasão russa começa, jornalistas ucranianos presos na cidade de Mariupol lutam para continuar documentando as atrocidades da guerra.",
-     "backdrop": "/986n9SAXsuxpPJzFAWK3azPknX0.jpg",
-     "poster": "/21rFQUyP8SDJhWm6cpAbHdOL5f0.jpg",
-     "why": "Documentário e guerra"
-    },
-    {
-     "id": "tt13315308",
-     "tmdb": 738362,
-     "type": "movie",
-     "group": "",
-     "title": "Um Maluco no Pedaço: A Reunião",
-     "original": "The Fresh Prince of Bel-Air Reunion",
-     "year": 2020,
-     "runtime": 68,
-     "genres": [
-      "Documentário"
-     ],
-     "rating": "8,1",
-     "desc": "Junte-se a Will Smith, Tatyana Ali, Karyn Parsons, Joseph Marcell, Daphne Maxwell Reid, Alfonso Ribeiro e DJ Jazzy Jeff, para uma noite divertida e emocionante cheia de música e dança em homenagem ao show que teve seis temporadas e 148 episódios.",
-     "backdrop": "/hzbrQ8gR26R6BWbrp3HaPCRs08T.jpg",
-     "poster": "/tcKsgTnrjuZLWAJwn8uBZHy5YWy.jpg",
-     "why": "Documentário"
-    },
-    {
      "id": "tt32373637",
      "tmdb": 1094473,
      "type": "movie",
@@ -1400,25 +1342,6 @@
      "backdrop": "/ce51NvJSO5ReNkm3C3YDX5jsH1V.jpg",
      "poster": "/pm4eFHE5hL0YennQkmQftofTEmd.jpg",
      "why": "Documentário e família"
-    },
-    {
-     "id": "tt1977894",
-     "tmdb": 74406,
-     "type": "movie",
-     "group": "",
-     "title": "Queen: Days of Our Lives",
-     "original": "Queen: Days of Our Lives",
-     "year": 2011,
-     "runtime": 89,
-     "genres": [
-      "Música",
-      "Documentário"
-     ],
-     "rating": "8,1",
-     "desc": "A vida e os tempos da banda de rock Queen, contada em duas partes, cobrindo a primeira parte dos anos 1970 e a segunda metade dos anos 1980 e seguintes.",
-     "backdrop": "/dXl3zlrPYA1f3rikYsZIAlC7B6X.jpg",
-     "poster": "/bsWSDe7bJATCJpXIeDB9bjVRXEp.jpg",
-     "why": "Música e documentário"
     },
     {
      "id": "tt33510831",
@@ -1458,99 +1381,6 @@
      "why": "Documentário"
     },
     {
-     "id": "tt1424432",
-     "tmdb": 58496,
-     "type": "movie",
-     "group": "",
-     "title": "Senna",
-     "original": "Senna",
-     "year": 2010,
-     "runtime": 105,
-     "genres": [
-      "Documentário"
-     ],
-     "rating": "8,1",
-     "desc": "Um documentário sobre Ayrton Senna e sua carreira na Fórmula 1, mostrando sua jornada física e espiritual, tanto na pista quanto fora dela; sua busca pela perfeição e sua transformação definitiva de um novato extremamente talentoso, que explodiu na F1 em 1984, ao mito, após o trágico acontecimento de Ímola, em 1994. Produzido com a cooperação da família Senna e da Fórmula One Management, é o primeiro documentário oficial sobre a vida do piloto, com material de arquivo surpreendente e, em grande parte, inédito.",
-     "backdrop": "/vtXCGAkCx5o2p0jn3A1QmdR5u5i.jpg",
-     "poster": "/j0DbcqFzXB6Bk9fqvgcp1iZG8wj.jpg",
-     "why": "Documentário · nota 8,1 no TMDB"
-    },
-    {
-     "id": "tt0090015",
-     "tmdb": 42044,
-     "type": "movie",
-     "group": "",
-     "title": "Shoah",
-     "original": "Shoah",
-     "year": 1985,
-     "runtime": 568,
-     "genres": [
-      "Documentário",
-      "História"
-     ],
-     "rating": "8,2",
-     "desc": "Claude Lanzmann dirigiu este documentário de 9 horas e meia do Holocausto sem usar um único quadro de imagens de arquivo. Ele entrevista sobreviventes, testemunhas e ex-nazistas (a quem ele tinha que filmar secretamente, uma vez que eles só concordaram em ser entrevistados pelo áudio). Seu estilo de entrevista, pedindo os detalhes mais minuciosos é eficaz em somar esses detalhes para dar um retrato horripilante dos eventos do genocídio nazista. Ele também mostra, ou melhor, deixa mostrar alguns de seus assuntos, que o anti-semitismo que causou a morte de 6 milhões de judeus no Holocausto ainda está vivo em muitas pessoas que ainda vivem na Alemanha, Polônia e outros lugares. (e 12 - Estimado 12 Anos)",
-     "backdrop": "/bJolDsqM8vnlusFJdnCi9rg1nX7.jpg",
-     "poster": "/8TrQ0NfguZu61Ojz0glWGWJ1Q98.jpg",
-     "why": "Documentário e história"
-    },
-    {
-     "id": "tt2399533",
-     "tmdb": 126331,
-     "type": "movie",
-     "group": "",
-     "title": "Les Invisibles",
-     "original": "Les Invisibles",
-     "year": 2012,
-     "runtime": 115,
-     "genres": [
-      "Romance",
-      "Documentário"
-     ],
-     "rating": "6,8",
-     "desc": "",
-     "backdrop": "/3Cg3blT41PFiJmcOZFPBwa5ZaET.jpg",
-     "poster": "/8oc5vJgwRiFQumTGk9S7vit0IAF.jpg",
-     "why": "Romance e documentário"
-    },
-    {
-     "id": "tt21340412",
-     "tmdb": 1003180,
-     "type": "movie",
-     "group": "",
-     "title": "Dentro da Mente de um Gato",
-     "original": "Inside the Mind of a Cat",
-     "year": 2022,
-     "runtime": 67,
-     "genres": [
-      "Documentário"
-     ],
-     "rating": "7,2",
-     "desc": "Neste documentário fofo e cativante, profissionais especialistas em gatos exploram a mente dos felinos e revelam suas verdadeiras habilidades.",
-     "backdrop": "/vVxkzboAYykG7hMwga50KN5gNfo.jpg",
-     "poster": "/gTlxP1yJFPB2jegg4ece5iIWfgr.jpg",
-     "why": "Documentário"
-    },
-    {
-     "id": "tt30321133",
-     "tmdb": 1214506,
-     "type": "movie",
-     "group": "",
-     "title": "Will & Harper",
-     "original": "Will & Harper",
-     "year": 2024,
-     "runtime": 114,
-     "genres": [
-      "Documentário",
-      "Comédia"
-     ],
-     "rating": "7,3",
-     "desc": "Harper e Will Ferrell tem uma longa amizade. Mas quando Harper se assume como mulher trans, a dupla faz uma viagem para se conectar e apresentá-la ao país como ela realmente é.",
-     "backdrop": "/p8o3o3oETlAZxfQf10T6vJG8eZq.jpg",
-     "poster": "/1xbYcoEb9gqezNnLgjWcZI5Hlsl.jpg",
-     "why": "Documentário e comédia"
-    },
-    {
      "id": "tt10147546",
      "tmdb": 593691,
      "type": "movie",
@@ -1570,23 +1400,189 @@
      "why": "Documentário e música"
     },
     {
-     "id": "tt31064841",
-     "tmdb": 1236419,
+     "id": "tt1152758",
+     "tmdb": 15584,
      "type": "movie",
      "group": "",
-     "title": "Peça Por Peça: Uma História de Pharrell Williams",
-     "original": "Piece by Piece",
-     "year": 2024,
+     "title": "Dear Zachary: Um Caso Chocante",
+     "original": "Dear Zachary: A Letter to a Son About His Father",
+     "year": 2008,
      "runtime": 94,
      "genres": [
-      "Animação",
+      "Documentário",
+      "Crime"
+     ],
+     "rating": "8,1",
+     "desc": "",
+     "backdrop": "/fCOIOhteWbyvSKLyJrMrvh04U6G.jpg",
+     "poster": "/ymnEAyZEs3EadSfrQWkA4sik5Ac.jpg",
+     "why": "Documentário e crime · nota 8,1 no TMDB"
+    },
+    {
+     "id": "tt11459366",
+     "tmdb": 654754,
+     "type": "movie",
+     "group": "",
+     "title": "Billie Eilish: The World's a Little Blurry",
+     "original": "Billie Eilish: The World's a Little Blurry",
+     "year": 2021,
+     "runtime": 140,
+     "genres": [
+      "Documentário",
       "Música"
      ],
+     "rating": "8,2",
+     "desc": "Este documentário traz um olhar profundamente íntimo sobre a extraordinária adolescente Billie Eilish. O premiado cineasta R.J. Cutler acompanha a artista em turnê, no palco e em casa com sua família durante a gravação do álbum que mudou a sua vida.",
+     "backdrop": "/8ys6VgwZCIQ7nN4Nv4z7GPPuFMv.jpg",
+     "poster": "/qB154OVV04YuqLfmhwKb72lc9U6.jpg",
+     "why": "Documentário e música"
+    },
+    {
+     "id": "tt9617716",
+     "tmdb": 576712,
+     "type": "movie",
+     "group": "",
+     "title": "Everybody’s Everything",
+     "original": "Everybody’s Everything",
+     "year": 2019,
+     "runtime": 115,
+     "genres": [
+      "Documentário"
+     ],
+     "rating": "8,4",
+     "desc": "Este documentário intimista mostra a ascensão do artista Lil Peep, cuja música mesclou diferentes estilos, atraiu inúmeros fãs e acabou por definir sua vida.",
+     "backdrop": "/Amp8FamnKw8jUFptKHOXRL4VseU.jpg",
+     "poster": "/wbMkjkNX8VylPVLmQ2Dp6i5iayY.jpg",
+     "why": "Documentário"
+    },
+    {
+     "id": "tt35003538",
+     "tmdb": 1445363,
+     "type": "movie",
+     "group": "",
+     "title": "EPiC: Elvis Presley in Concert",
+     "original": "EPiC: Elvis Presley in Concert",
+     "year": 2026,
+     "runtime": 96,
+     "genres": [
+      "Música",
+      "Documentário"
+     ],
+     "rating": "8,2",
+     "desc": "Elvis canta e conta a sua história como nunca se viu antes.",
+     "backdrop": "/ttOBvac1oW0OCCfFzZlXh3NeKyl.jpg",
+     "poster": "/u3bvHXu9hldOehUNKir7avnN8cc.jpg",
+     "why": "Música e documentário"
+    },
+    {
+     "id": "tt6323306",
+     "tmdb": 484133,
+     "type": "movie",
+     "group": "",
+     "title": "Nu",
+     "original": "Nude",
+     "year": 2017,
+     "runtime": 89,
+     "genres": [
+      "Documentário"
+     ],
+     "rating": "9,2",
+     "desc": "O documentário explora a função da nudez na arte a partir do olhar do fotógrafo David Bellemere. Contratado pelo fundador do projeto NU Muses para criar um calendário de nu artístico, Bellemere desmembra seu processo criativo.",
+     "backdrop": "/fx1wiibwJPemUMxmnWDCFzEoVeS.jpg",
+     "poster": "/699DbQ8eTecLmzjTLrao9D5bbpq.jpg",
+     "why": "Documentário"
+    },
+    {
+     "id": "tt0844761",
+     "tmdb": 47658,
+     "type": "movie",
+     "group": "",
+     "title": "This Filthy World",
+     "original": "This Filthy World",
+     "year": 2006,
+     "runtime": 86,
+     "genres": [
+      "Documentário",
+      "Comédia"
+     ],
+     "rating": "7,6",
+     "desc": "O monólogo de John Waters celebra a carreira cinematográfica e as obsessões do homem que William Burroughs uma vez chamou de \"O Papa do Trash.\" Waters fala de seus filmes, de suas influências artísticas e de seu fascínio pelo crime, pelo cinema exploitation e pelo mundo da arte contemporânea.",
+     "backdrop": "/k5bAZUer22aXtlZfhjpXNTuzAYB.jpg",
+     "poster": "/eQS4FYQ5ba5urrcLGUEyP7P6ljB.jpg",
+     "why": "Documentário e comédia"
+    },
+    {
+     "id": "tt39018643",
+     "tmdb": 1515899,
+     "type": "movie",
+     "group": "",
+     "title": "Billie Eilish - Hit Me Hard and Soft: The Tour in 3D",
+     "original": "Billie Eilish - Hit Me Hard and Soft: The Tour (Live in 3D)",
+     "year": 2026,
+     "runtime": 114,
+     "genres": [
+      "Música",
+      "Documentário"
+     ],
+     "rating": "8,5",
+     "desc": "Codirigido por Billie Eilish em parceria com o visionário cineasta James Cameron, o longa traz performances ao vivo em 3D de hits como “LUNCH”, “Birds of a Feather” e “CHIHIRO”, além de contar um pouco dos bastidores da turnê do álbum \"HIT ME HARD AND SOFT\".",
+     "backdrop": "/vTk6KQRLomlkMG5xqQIrzvyQB8z.jpg",
+     "poster": "/rGZyH9erzIVnk5R7NEF9V38nCQu.jpg",
+     "why": "Música e documentário"
+    },
+    {
+     "id": "tt5278506",
+     "tmdb": 373072,
+     "type": "movie",
+     "group": "",
+     "title": "Tickled",
+     "original": "Tickled",
+     "year": 2016,
+     "runtime": 91,
+     "genres": [
+      "Documentário"
+     ],
      "rating": "7,2",
-     "desc": "Os blocos LEGO contam a história de vida do cantor, compositor e produtor musical Pharrell Williams, desde sua infância na Virgínia até seu sucesso nas indústrias da música e da moda.",
-     "backdrop": "/oqWTbBixgF8XwqzGeFWMzkNwqAw.jpg",
-     "poster": "/qVyWW9HhYXui6SjF4cTDUPDYCIz.jpg",
-     "why": "Animação e música"
+     "desc": "O jornalista David Farrier se depara com uma misteriosa competição de cócegas online. À medida que se aprofunda, enfrenta uma forte resistência, mas isso não o impede de chegar ao fundo de uma história mais estranha que a ficção.",
+     "backdrop": "/1ZtTi3s6IYtYMpKJbbrCJKfnNib.jpg",
+     "poster": "/qxUbPwyhzNEyUZYOZm6t8yYSQf.jpg",
+     "why": "Documentário"
+    },
+    {
+     "id": "tt27041231",
+     "tmdb": 1096228,
+     "type": "movie",
+     "group": "",
+     "title": "Musk",
+     "original": "Musk",
+     "year": 2026,
+     "runtime": 225,
+     "genres": [
+      "Documentário"
+     ],
+     "rating": "6,2",
+     "desc": "Um olhar incisivo por trás da lenda de Elon Musk, o \"inventor-empreendedor\" mais aclamado do mundo, que exerce enorme influência sobre o mundo em que todos vivemos.",
+     "backdrop": "/1CfHIKczBiAauSRBiNQ90bjLsCM.jpg",
+     "poster": "/kTOeFV92c3QHJ3bEkT660P7BcWN.jpg",
+     "why": "Documentário"
+    },
+    {
+     "id": "tt8637504",
+     "tmdb": 653610,
+     "type": "movie",
+     "group": "",
+     "title": "Revelação",
+     "original": "Disclosure",
+     "year": 2020,
+     "runtime": 108,
+     "genres": [
+      "Documentário"
+     ],
+     "rating": "7,8",
+     "desc": "Neste documentário, nomes influentes da arte e do pensamento transgêneros analisam o impacto de Hollywood na comunidade trans.",
+     "backdrop": "/eQNlRh69W9HVw46znLOhyMe7dsN.jpg",
+     "poster": "/t3Lp9ZCSKXfpfWAdZwAXsje2jRv.jpg",
+     "why": "Documentário"
     }
    ]
   },
@@ -1981,25 +1977,6 @@
      "why": ""
     },
     {
-     "id": "tt26598805",
-     "tmdb": 292741,
-     "type": "series",
-     "group": "",
-     "title": "Noturno",
-     "original": "Nocturne",
-     "year": 2026,
-     "runtime": 0,
-     "genres": [
-      "Crime",
-      "Drama"
-     ],
-     "rating": "7,7",
-     "desc": "Quando uma vítima do notório serial killer Jurek Walter reaparece viva inesperadamente, o detetive Jonah Lynn corre contra o tempo para encontrar a única pessoa que ainda está desaparecida, enquanto sua protegida, Saga Bauer, infiltra-se em segredo para obter respostas do próprio assassino.",
-     "backdrop": "/614k6C9doThoMe6GyH0nTnGgLXt.jpg",
-     "poster": "/lVoPRl5RXH2U7XJUQJnl3z0au89.jpg",
-     "why": ""
-    },
-    {
      "id": "tt0121955",
      "tmdb": 2190,
      "type": "series",
@@ -2038,62 +2015,6 @@
      "why": ""
     },
     {
-     "id": "tt0434665",
-     "tmdb": 30984,
-     "type": "series",
-     "group": "",
-     "title": "Bleach",
-     "original": "BLEACH",
-     "year": 2004,
-     "runtime": 24,
-     "genres": [
-      "Action & Adventure",
-      "Animação"
-     ],
-     "rating": "8,4",
-     "desc": "Ichigo Kurosaki, um adolescente de quinze anos, nunca pediu o dom de ver fantasmas — ele simplesmente nasceu com essa habilidade. Quando sua família é atacada por um Hollow, uma alma perdida e maligna, Ichigo conhece Rukia, uma Ceifeira de Almas que acaba lhe transferindo seus poderes. A partir desse momento, Ichigo passa a dedicar sua vida a proteger os inocentes e ajudar almas atormentadas a encontrar a paz.",
-     "backdrop": "/o0NsbcIvsllg6CJX0FBFY8wWbsn.jpg",
-     "poster": "/dx28DE7EgLy0FatOvnaUg0k9j92.jpg",
-     "why": ""
-    },
-    {
-     "id": "tt31710249",
-     "tmdb": 248830,
-     "type": "series",
-     "group": "",
-     "title": "Stick",
-     "original": "Stick",
-     "year": 2025,
-     "runtime": 0,
-     "genres": [
-      "Comédia",
-      "Drama"
-     ],
-     "rating": "7,3",
-     "desc": "Pryce Cahill estava rumo à elite do golfe quando uma crise em campo arruinou sua carreira. Agora, aposta tudo para treinar Santi, uma promessa adolescente com enorme potencial, e talvez se salvar.",
-     "backdrop": "/2Bt2uXrIOQASBAsni2AGGqCCF14.jpg",
-     "poster": "/D7cxWHBj769OYsX9jpx9eb2Y9q.jpg",
-     "why": ""
-    },
-    {
-     "id": "tt4406178",
-     "tmdb": 81723,
-     "type": "series",
-     "group": "",
-     "title": "A Idade Dourada",
-     "original": "The Gilded Age",
-     "year": 2022,
-     "runtime": 0,
-     "genres": [
-      "Drama"
-     ],
-     "rating": "7,7",
-     "desc": "Após a morte do pai, a jovem Marian Brook se muda para a Nova York de 1882 - uma cidade à beira da modernidade, onde velho e novo se chocam.",
-     "backdrop": "/afUVsProh46h31w2EvL7qyHXrqj.jpg",
-     "poster": "/9o2AsYUGahwHFrler8NGEwFBiBj.jpg",
-     "why": ""
-    },
-    {
      "id": "tt0388629",
      "tmdb": 37854,
      "type": "series",
@@ -2113,44 +2034,6 @@
      "why": ""
     },
     {
-     "id": "tt11743610",
-     "tmdb": 120911,
-     "type": "series",
-     "group": "",
-     "title": "A Lista Terminal",
-     "original": "The Terminal List",
-     "year": 2022,
-     "runtime": 0,
-     "genres": [
-      "Action & Adventure",
-      "Drama"
-     ],
-     "rating": "8,0",
-     "desc": "Depois que todo o seu pelotão das Forças de Operações Especiais da Marinha dos Estados Unidos (Navy SEALs) é emboscado durante uma missão secreta de alto risco, James Reece volta para casa com memórias conflitantes do evento e perguntas sobre sua culpa no acontecimento. No entanto, à medida que novas evidências vêm à tona, Reece descobre que forças obscuras estão trabalhando contra ele, colocando em risco não apenas sua vida, mas também a vida daqueles que ele ama.",
-     "backdrop": "/2qS2LGqsAyT1NEDeIj24Hp2IR10.jpg",
-     "poster": "/3f7lVELRz23j4GOEh3419UyR3XA.jpg",
-     "why": ""
-    },
-    {
-     "id": "tt39328047",
-     "tmdb": 293610,
-     "type": "series",
-     "group": "",
-     "title": "Doctor X: A Máfia do Jaleco Branco",
-     "original": "닥터X: 하얀 마피아의 시대",
-     "year": 2026,
-     "runtime": 0,
-     "genres": [
-      "Mistério",
-      "Drama"
-     ],
-     "rating": "9,1",
-     "desc": "Uma cirurgiã enigmática e brilhante chega a um hospital dominado pelo ego e pela corrupção. Encarando uma oposição brutal, ela resolve casos aparentemente impossíveis.",
-     "backdrop": "/rCFZ9cQQVSa9sAvco2Czcct6aKB.jpg",
-     "poster": "/xFnT1WFf4y9durKpIFiwrI0lvxq.jpg",
-     "why": ""
-    },
-    {
      "id": "tt16358384",
      "tmdb": 153312,
      "type": "series",
@@ -2167,6 +2050,63 @@
      "desc": "Depois de cumprir 25 anos de prisão, Dwight Manfredi é exilado sem cerimônia por seu chefe da máfia para se estabelecer em Oklahoma. Dwight lentamente constrói um novo império criminoso em Tulsa.",
      "backdrop": "/mNHRGO1gFpR2CYZdANe72kcKq7G.jpg",
      "poster": "/y13WOeZ2rz2Ezpws0RJ0I8sQpG4.jpg",
+     "why": ""
+    },
+    {
+     "id": "tt0096697",
+     "tmdb": 456,
+     "type": "series",
+     "group": "",
+     "title": "Os Simpsons",
+     "original": "The Simpsons",
+     "year": 1989,
+     "runtime": 0,
+     "genres": [
+      "Animação",
+      "Comédia"
+     ],
+     "rating": "8,0",
+     "desc": "Uma animação sobre uma típica família dos Estados Unidos. Homer é o pai de família nada saudável ou inteligente, que adora beber cerveja. Marge é a esposa e mãe de família dedicada. Bart é o filho de 10 anos, que não leva a escola a sério e tem orgulho disso. Lisa é a garota de 8 anos, um gênio não apreciado. E Maggie é a bebê que não larga a chupeta.",
+     "backdrop": "/jIArNHIekrCSVgdMbKPAXpPY03Y.jpg",
+     "poster": "/1jGPgDDcmg3Xgs3WO8sfYfbnFoA.jpg",
+     "why": ""
+    },
+    {
+     "id": "tt19231492",
+     "tmdb": 196322,
+     "type": "series",
+     "group": "",
+     "title": "Matéria Escura",
+     "original": "Dark Matter",
+     "year": 2024,
+     "runtime": 0,
+     "genres": [
+      "Sci-Fi & Fantasy",
+      "Drama"
+     ],
+     "rating": "7,8",
+     "desc": "Jason Dessen é sequestrado para uma versão alternativa de sua vida. Em busca de voltar para sua verdadeira família, ele embarca em uma jornada angustiante para salvá-los do inimigo mais terrível que se possa imaginar: ele mesmo.",
+     "backdrop": "/wFEAy4xRes1eeclsu7Z73Vzz7ET.jpg",
+     "poster": "/mAbuZuS4CqlTI6lvWIxPRHppbVs.jpg",
+     "why": ""
+    },
+    {
+     "id": "tt45246384",
+     "tmdb": 303745,
+     "type": "series",
+     "group": "",
+     "title": "Amor Disfarçado",
+     "original": "나의 유죄인간",
+     "year": 2026,
+     "runtime": 0,
+     "genres": [
+      "Comédia",
+      "Drama"
+     ],
+     "rating": "9,1",
+     "desc": "Yoon Yi-jun, herdeiro do Grupo Taekang, é o principal suspeito de um assassinato chocante. Para descobrir a verdade, a detetive Kang Jae-hee se infiltra como seu secretário para vigiá-lo de perto. Quanto mais se aproximam da verdade, mais próximos também ficam. Será que Jae-hee, que esconde sua identidade, e Yi-jun, que guarda um segredo, conseguirão revelar o que realmente sentem um pelo outro?",
+     "backdrop": "/32g5MD6eHPAZ5NAgkNAURb4eupm.jpg",
+     "poster": "/fhYPYQyVopTbPIf4A7FN5Q3lxPR.jpg",
      "why": ""
     }
    ]
@@ -3190,100 +3130,6 @@
      "kind": "season",
      "items": [
       {
-       "id": "tt0093629",
-       "tmdb": 10072,
-       "type": "movie",
-       "group": "",
-       "title": "A Hora do Pesadelo 3: Os Guerreiros dos Sonhos",
-       "original": "A Nightmare on Elm Street 3: Dream Warriors",
-       "year": 1987,
-       "runtime": 96,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "6,7",
-       "desc": "Os últimos dos garotos da Rua Elm agora estão num hospital psiquiátrico, onde Freddy assombra seus sonhos com horrores indescritíveis. Sua única esperança é a pesquisadora do sono e igualmente sobrevivente de Freddy, Nancy Thompson. É ela quem vai os ajudar a lutar contra o psicopata sobrenatural em seu próprio território infernal.",
-       "backdrop": "/euXJlfeYSyrdkOoFQ9gtUG8OOhH.jpg",
-       "poster": "/rl1Iuzu2Vntz86mTHJ5BF0SAty.jpg",
-       "why": "Terror e thriller"
-      },
-      {
-       "id": "tt0094862",
-       "tmdb": 10585,
-       "type": "movie",
-       "group": "",
-       "title": "Brinquedo Assassino",
-       "original": "Child's Play",
-       "year": 1988,
-       "runtime": 87,
-       "genres": [
-        "Terror"
-       ],
-       "rating": "6,8",
-       "desc": "Após a babá do garotinho de seis anos, Andy Barclay, ser violentamente arremessada pela janela, ninguém acredita nele quando diz que \"Chucky\", o boneco que ganhou de aniversário, foi o culpado! Até que as coisas começam a dar errado... mortalmente errado. E quando uma série de terríveis assassinatos leva um detetive de volta ao mesmo brinquedo, ele descobre que o verdadeiro terror tinha apenas começado – o boneco perturbado planeja transferir seu espírito mau para um ser vivo – o pequeno Andy.",
-       "backdrop": "/edghRD7vw1XgWEpMLpGt1VSGB5w.jpg",
-       "poster": "/pdnXDnuAWIc9pwobTQ5XknlcbbS.jpg",
-       "why": "Terror"
-      },
-      {
-       "id": "tt9701940",
-       "tmdb": 591274,
-       "type": "movie",
-       "group": "",
-       "title": "Rua do Medo: 1978 - Parte 2",
-       "original": "Fear Street: 1978",
-       "year": 2021,
-       "runtime": 111,
-       "genres": [
-        "Terror",
-        "Mistério"
-       ],
-       "rating": "7,2",
-       "desc": "Na cidade amaldiçoada de Shadyside, uma onda de assassinatos aterroriza o Acampamento Nightwing, transformando as férias em uma luta pela sobrevivência.",
-       "backdrop": "/oMnJhVFr0xVfxy4HPBt1LDKoFgV.jpg",
-       "poster": "/uicSprflqrrhWykOuJjHQ9lSLJ1.jpg",
-       "why": "Terror e mistério"
-      },
-      {
-       "id": "tt6566576",
-       "tmdb": 591273,
-       "type": "movie",
-       "group": "",
-       "title": "Rua do Medo: 1994 - Parte 1",
-       "original": "Fear Street: 1994",
-       "year": 2021,
-       "runtime": 107,
-       "genres": [
-        "Terror",
-        "Mistério"
-       ],
-       "rating": "6,7",
-       "desc": "Depois de uma série de assassinatos brutais, um grupo de adolescentes enfrenta uma força maligna que aterroriza a cidade há séculos. Bem-vindos a Shadyside.",
-       "backdrop": "/vu5Y8qFqlzcboDbbZIMTAgj0KLb.jpg",
-       "poster": "/kIABUqs2kfFBDa10l2tFxTIKZMH.jpg",
-       "why": "Terror e mistério"
-      },
-      {
-       "id": "tt0120082",
-       "tmdb": 4233,
-       "type": "movie",
-       "group": "",
-       "title": "Pânico 2",
-       "original": "Scream 2",
-       "year": 1997,
-       "runtime": 120,
-       "genres": [
-        "Terror",
-        "Mistério"
-       ],
-       "rating": "6,5",
-       "desc": "Dois anos após o massacre em Woodsboro, Sidney Prescott e Randy Meeks estão tentando refazer suas vidas em uma nova cidade. Estudando no colégio de Windsor, eles vão lidar com uma nova onda de assassinatos quando o terrível psicopata retorna para assombrá-los nas vésperas do lançamento do filme baseado nos seus crimes.",
-       "backdrop": "/lVmcX3hlJqsUGkEOEZkRFiOQdLv.jpg",
-       "poster": "/ylcoIk1WzHp6zCkDeLipFJ3ZJbd.jpg",
-       "why": "Terror e mistério"
-      },
-      {
        "id": "tt11426232",
        "tmdb": 974931,
        "type": "movie",
@@ -3471,6 +3317,98 @@
        "backdrop": "/qbVCChwbGWDAgsCXKZxyjBrRiWx.jpg",
        "poster": "/19yVSPVhMDojcCdGjTj8azzA7uC.jpg",
        "why": "Ação e thriller"
+      },
+      {
+       "id": "tt0080761",
+       "tmdb": 4488,
+       "type": "movie",
+       "group": "",
+       "title": "Sexta-Feira 13",
+       "original": "Friday the 13th",
+       "year": 1980,
+       "runtime": 90,
+       "genres": [
+        "Terror"
+       ],
+       "rating": "6,4",
+       "desc": "O Acampamento Crystal Lake será reaberto. Monitores ansiosos, seus olhos brilhando com nobres ideais, e seus hormônios à flor da pele, estão prontos para liderar as canções e brincadeiras dos hóspedes. Mas há um jogo que não constava na lista de atividades. Alguém resolveu brincar de \"Mate o Monitor.\"",
+       "backdrop": "/llLB2MWIRqWfBHENc5m63RcKR8G.jpg",
+       "poster": "/rdrVW0qN16Ho8BDwmcqW9oLQtn3.jpg",
+       "why": "Terror"
+      },
+      {
+       "id": "tt0329101",
+       "tmdb": 6466,
+       "type": "movie",
+       "group": "",
+       "title": "Freddy vs. Jason",
+       "original": "Freddy vs. Jason",
+       "year": 2003,
+       "runtime": 98,
+       "genres": [
+        "Terror"
+       ],
+       "rating": "6,1",
+       "desc": "Imagine que você está tendo um pesadelo tão real e angustiante que a morte seria um alívio... É assim que os jovens de Elm Street e Crystal Lake sentem-se desde que Freddy Krueger ressuscitou Jason Vorhees. Um medo que tudo assusta, um nervosismo que faz rir. Na rua Elm, tudo está tranquilo. As vítimas potenciais de Freddy, há mais de 10 anos foram isoladas e inibidas de sonhar através do uso de drogas. Assim, a lembrança do maníaco está se apagando e enfraquecendo-o cada vez mais. Desesperado, Freddy decide utilizar-se de outro demônio para reacender sua apavorante memória entre os vivos. Surge então entre os dois uma crescente tensão cujo ápice será um verdadeiro Duelo de Titãs!",
+       "backdrop": "/hCAOQTMRop2fHjsl8n7yNwpkMJn.jpg",
+       "poster": "/qGtIS0hhiMjMBHOOnQcLzvr8OAM.jpg",
+       "why": "Terror"
+      },
+      {
+       "id": "tt0071222",
+       "tmdb": 16938,
+       "type": "movie",
+       "group": "",
+       "title": "Noite do Terror",
+       "original": "Black Christmas",
+       "year": 1974,
+       "runtime": 98,
+       "genres": [
+        "Terror",
+        "Mistério"
+       ],
+       "rating": "6,9",
+       "desc": "Chegou o Natal! As garotas de uma fraternidade fazem planos para o feriado, mas estranhas ligações anônimas começam a incomodá-las. Quando Clare desaparece, elas ligam para a polícia, que não dá muita bola. Enquanto isso, Jess está planejando um aborto, mas seu namorado Peter é radicalmente contra. A polícia finalmente começa a se preocupar quando uma garota de 13 anos é encontrada morta no parque. Eles grampeiam o telefone da fraternidade, mas será que isso será suficiente para impedir a morte das garotas da fraternidade?",
+       "backdrop": "/7nxNnR9yftqVUoFvBdfr2akgu2A.jpg",
+       "poster": "/eMniGyTMofqxSrKoGoWMW40wXdk.jpg",
+       "why": "Terror e mistério"
+      },
+      {
+       "id": "tt27911000",
+       "tmdb": 1034541,
+       "type": "movie",
+       "group": "",
+       "title": "Terrifier 3",
+       "original": "Terrifier 3",
+       "year": 2024,
+       "runtime": 124,
+       "genres": [
+        "Terror"
+       ],
+       "rating": "6,7",
+       "desc": "O palhaço assassino Art está pronto para espalhar o caos sobre os moradores inocentes do Condado de Miles durante uma pacífica véspera de Natal.",
+       "backdrop": "/bHfGHipZ32Oec94FDJO4mWs3aZ5.jpg",
+       "poster": "/tBMH2u9ERs4CWW19ep6sJA9JCLr.jpg",
+       "why": "Terror"
+      },
+      {
+       "id": "tt7144666",
+       "tmdb": 756999,
+       "type": "movie",
+       "group": "",
+       "title": "O Telefone Preto",
+       "original": "The Black Phone",
+       "year": 2022,
+       "runtime": 103,
+       "genres": [
+        "Terror",
+        "Thriller"
+       ],
+       "rating": "7,5",
+       "desc": "Após ser raptado por um assassino de crianças, Finney Shaw começa a receber chamadas de vítimas anteriores do assassino. Elas estão determinadas a garantir que o que lhes aconteceu não aconteça com Finney.",
+       "backdrop": "/AfvIjhDu9p64jKcmohS4hsPG95Q.jpg",
+       "poster": "/aAdnNifQo2qxDYnuDD3blsxinH1.jpg",
+       "why": "Terror e thriller"
       }
      ],
      "from": "2026-11-13",
@@ -3499,62 +3437,6 @@
        "why": "Documentário"
       },
       {
-       "id": "tt22482764",
-       "tmdb": 1031774,
-       "type": "movie",
-       "group": "",
-       "title": "Thriller 40",
-       "original": "Thriller 40",
-       "year": 2023,
-       "runtime": 89,
-       "genres": [
-        "Documentário",
-        "Música"
-       ],
-       "rating": "8,7",
-       "desc": "Documentário dedicado ao álbum mais vendido de todos os tempos, \"Thriller\", de Michael Jackson. Com imagens nunca antes vistas e entrevistas francas, o documentário retrata o momento da carreira de Jackson que o lançou para o megaestrelato.",
-       "backdrop": "/pVyI0faJI6jYIlVxUqhZ1AgBOOC.jpg",
-       "poster": "/5LOKk1Ca1YaCb3EjTEMDJdPbQxN.jpg",
-       "why": "Documentário e música"
-      },
-      {
-       "id": "tt24082438",
-       "tmdb": 1058616,
-       "type": "movie",
-       "group": "",
-       "title": "20 Dias em Mariupol",
-       "original": "20 Days in Mariupol",
-       "year": 2023,
-       "runtime": 94,
-       "genres": [
-        "Documentário",
-        "Guerra"
-       ],
-       "rating": "8,1",
-       "desc": "Quando a invasão russa começa, jornalistas ucranianos presos na cidade de Mariupol lutam para continuar documentando as atrocidades da guerra.",
-       "backdrop": "/986n9SAXsuxpPJzFAWK3azPknX0.jpg",
-       "poster": "/21rFQUyP8SDJhWm6cpAbHdOL5f0.jpg",
-       "why": "Documentário e guerra"
-      },
-      {
-       "id": "tt13315308",
-       "tmdb": 738362,
-       "type": "movie",
-       "group": "",
-       "title": "Um Maluco no Pedaço: A Reunião",
-       "original": "The Fresh Prince of Bel-Air Reunion",
-       "year": 2020,
-       "runtime": 68,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "8,1",
-       "desc": "Junte-se a Will Smith, Tatyana Ali, Karyn Parsons, Joseph Marcell, Daphne Maxwell Reid, Alfonso Ribeiro e DJ Jazzy Jeff, para uma noite divertida e emocionante cheia de música e dança em homenagem ao show que teve seis temporadas e 148 episódios.",
-       "backdrop": "/hzbrQ8gR26R6BWbrp3HaPCRs08T.jpg",
-       "poster": "/tcKsgTnrjuZLWAJwn8uBZHy5YWy.jpg",
-       "why": "Documentário"
-      },
-      {
        "id": "tt32373637",
        "tmdb": 1094473,
        "type": "movie",
@@ -3572,25 +3454,6 @@
        "backdrop": "/ce51NvJSO5ReNkm3C3YDX5jsH1V.jpg",
        "poster": "/pm4eFHE5hL0YennQkmQftofTEmd.jpg",
        "why": "Documentário e família"
-      },
-      {
-       "id": "tt1977894",
-       "tmdb": 74406,
-       "type": "movie",
-       "group": "",
-       "title": "Queen: Days of Our Lives",
-       "original": "Queen: Days of Our Lives",
-       "year": 2011,
-       "runtime": 89,
-       "genres": [
-        "Música",
-        "Documentário"
-       ],
-       "rating": "8,1",
-       "desc": "A vida e os tempos da banda de rock Queen, contada em duas partes, cobrindo a primeira parte dos anos 1970 e a segunda metade dos anos 1980 e seguintes.",
-       "backdrop": "/dXl3zlrPYA1f3rikYsZIAlC7B6X.jpg",
-       "poster": "/bsWSDe7bJATCJpXIeDB9bjVRXEp.jpg",
-       "why": "Música e documentário"
       },
       {
        "id": "tt33510831",
@@ -3630,99 +3493,6 @@
        "why": "Documentário"
       },
       {
-       "id": "tt1424432",
-       "tmdb": 58496,
-       "type": "movie",
-       "group": "",
-       "title": "Senna",
-       "original": "Senna",
-       "year": 2010,
-       "runtime": 105,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "8,1",
-       "desc": "Um documentário sobre Ayrton Senna e sua carreira na Fórmula 1, mostrando sua jornada física e espiritual, tanto na pista quanto fora dela; sua busca pela perfeição e sua transformação definitiva de um novato extremamente talentoso, que explodiu na F1 em 1984, ao mito, após o trágico acontecimento de Ímola, em 1994. Produzido com a cooperação da família Senna e da Fórmula One Management, é o primeiro documentário oficial sobre a vida do piloto, com material de arquivo surpreendente e, em grande parte, inédito.",
-       "backdrop": "/vtXCGAkCx5o2p0jn3A1QmdR5u5i.jpg",
-       "poster": "/j0DbcqFzXB6Bk9fqvgcp1iZG8wj.jpg",
-       "why": "Documentário · nota 8,1 no TMDB"
-      },
-      {
-       "id": "tt0090015",
-       "tmdb": 42044,
-       "type": "movie",
-       "group": "",
-       "title": "Shoah",
-       "original": "Shoah",
-       "year": 1985,
-       "runtime": 568,
-       "genres": [
-        "Documentário",
-        "História"
-       ],
-       "rating": "8,2",
-       "desc": "Claude Lanzmann dirigiu este documentário de 9 horas e meia do Holocausto sem usar um único quadro de imagens de arquivo. Ele entrevista sobreviventes, testemunhas e ex-nazistas (a quem ele tinha que filmar secretamente, uma vez que eles só concordaram em ser entrevistados pelo áudio). Seu estilo de entrevista, pedindo os detalhes mais minuciosos é eficaz em somar esses detalhes para dar um retrato horripilante dos eventos do genocídio nazista. Ele também mostra, ou melhor, deixa mostrar alguns de seus assuntos, que o anti-semitismo que causou a morte de 6 milhões de judeus no Holocausto ainda está vivo em muitas pessoas que ainda vivem na Alemanha, Polônia e outros lugares. (e 12 - Estimado 12 Anos)",
-       "backdrop": "/bJolDsqM8vnlusFJdnCi9rg1nX7.jpg",
-       "poster": "/8TrQ0NfguZu61Ojz0glWGWJ1Q98.jpg",
-       "why": "Documentário e história"
-      },
-      {
-       "id": "tt2399533",
-       "tmdb": 126331,
-       "type": "movie",
-       "group": "",
-       "title": "Les Invisibles",
-       "original": "Les Invisibles",
-       "year": 2012,
-       "runtime": 115,
-       "genres": [
-        "Romance",
-        "Documentário"
-       ],
-       "rating": "6,8",
-       "desc": "",
-       "backdrop": "/3Cg3blT41PFiJmcOZFPBwa5ZaET.jpg",
-       "poster": "/8oc5vJgwRiFQumTGk9S7vit0IAF.jpg",
-       "why": "Romance e documentário"
-      },
-      {
-       "id": "tt21340412",
-       "tmdb": 1003180,
-       "type": "movie",
-       "group": "",
-       "title": "Dentro da Mente de um Gato",
-       "original": "Inside the Mind of a Cat",
-       "year": 2022,
-       "runtime": 67,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "7,2",
-       "desc": "Neste documentário fofo e cativante, profissionais especialistas em gatos exploram a mente dos felinos e revelam suas verdadeiras habilidades.",
-       "backdrop": "/vVxkzboAYykG7hMwga50KN5gNfo.jpg",
-       "poster": "/gTlxP1yJFPB2jegg4ece5iIWfgr.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt30321133",
-       "tmdb": 1214506,
-       "type": "movie",
-       "group": "",
-       "title": "Will & Harper",
-       "original": "Will & Harper",
-       "year": 2024,
-       "runtime": 114,
-       "genres": [
-        "Documentário",
-        "Comédia"
-       ],
-       "rating": "7,3",
-       "desc": "Harper e Will Ferrell tem uma longa amizade. Mas quando Harper se assume como mulher trans, a dupla faz uma viagem para se conectar e apresentá-la ao país como ela realmente é.",
-       "backdrop": "/p8o3o3oETlAZxfQf10T6vJG8eZq.jpg",
-       "poster": "/1xbYcoEb9gqezNnLgjWcZI5Hlsl.jpg",
-       "why": "Documentário e comédia"
-      },
-      {
        "id": "tt10147546",
        "tmdb": 593691,
        "type": "movie",
@@ -3742,23 +3512,189 @@
        "why": "Documentário e música"
       },
       {
-       "id": "tt31064841",
-       "tmdb": 1236419,
+       "id": "tt1152758",
+       "tmdb": 15584,
        "type": "movie",
        "group": "",
-       "title": "Peça Por Peça: Uma História de Pharrell Williams",
-       "original": "Piece by Piece",
-       "year": 2024,
+       "title": "Dear Zachary: Um Caso Chocante",
+       "original": "Dear Zachary: A Letter to a Son About His Father",
+       "year": 2008,
        "runtime": 94,
        "genres": [
-        "Animação",
+        "Documentário",
+        "Crime"
+       ],
+       "rating": "8,1",
+       "desc": "",
+       "backdrop": "/fCOIOhteWbyvSKLyJrMrvh04U6G.jpg",
+       "poster": "/ymnEAyZEs3EadSfrQWkA4sik5Ac.jpg",
+       "why": "Documentário e crime · nota 8,1 no TMDB"
+      },
+      {
+       "id": "tt11459366",
+       "tmdb": 654754,
+       "type": "movie",
+       "group": "",
+       "title": "Billie Eilish: The World's a Little Blurry",
+       "original": "Billie Eilish: The World's a Little Blurry",
+       "year": 2021,
+       "runtime": 140,
+       "genres": [
+        "Documentário",
         "Música"
        ],
+       "rating": "8,2",
+       "desc": "Este documentário traz um olhar profundamente íntimo sobre a extraordinária adolescente Billie Eilish. O premiado cineasta R.J. Cutler acompanha a artista em turnê, no palco e em casa com sua família durante a gravação do álbum que mudou a sua vida.",
+       "backdrop": "/8ys6VgwZCIQ7nN4Nv4z7GPPuFMv.jpg",
+       "poster": "/qB154OVV04YuqLfmhwKb72lc9U6.jpg",
+       "why": "Documentário e música"
+      },
+      {
+       "id": "tt9617716",
+       "tmdb": 576712,
+       "type": "movie",
+       "group": "",
+       "title": "Everybody’s Everything",
+       "original": "Everybody’s Everything",
+       "year": 2019,
+       "runtime": 115,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "8,4",
+       "desc": "Este documentário intimista mostra a ascensão do artista Lil Peep, cuja música mesclou diferentes estilos, atraiu inúmeros fãs e acabou por definir sua vida.",
+       "backdrop": "/Amp8FamnKw8jUFptKHOXRL4VseU.jpg",
+       "poster": "/wbMkjkNX8VylPVLmQ2Dp6i5iayY.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt35003538",
+       "tmdb": 1445363,
+       "type": "movie",
+       "group": "",
+       "title": "EPiC: Elvis Presley in Concert",
+       "original": "EPiC: Elvis Presley in Concert",
+       "year": 2026,
+       "runtime": 96,
+       "genres": [
+        "Música",
+        "Documentário"
+       ],
+       "rating": "8,2",
+       "desc": "Elvis canta e conta a sua história como nunca se viu antes.",
+       "backdrop": "/ttOBvac1oW0OCCfFzZlXh3NeKyl.jpg",
+       "poster": "/u3bvHXu9hldOehUNKir7avnN8cc.jpg",
+       "why": "Música e documentário"
+      },
+      {
+       "id": "tt6323306",
+       "tmdb": 484133,
+       "type": "movie",
+       "group": "",
+       "title": "Nu",
+       "original": "Nude",
+       "year": 2017,
+       "runtime": 89,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "9,2",
+       "desc": "O documentário explora a função da nudez na arte a partir do olhar do fotógrafo David Bellemere. Contratado pelo fundador do projeto NU Muses para criar um calendário de nu artístico, Bellemere desmembra seu processo criativo.",
+       "backdrop": "/fx1wiibwJPemUMxmnWDCFzEoVeS.jpg",
+       "poster": "/699DbQ8eTecLmzjTLrao9D5bbpq.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt0844761",
+       "tmdb": 47658,
+       "type": "movie",
+       "group": "",
+       "title": "This Filthy World",
+       "original": "This Filthy World",
+       "year": 2006,
+       "runtime": 86,
+       "genres": [
+        "Documentário",
+        "Comédia"
+       ],
+       "rating": "7,6",
+       "desc": "O monólogo de John Waters celebra a carreira cinematográfica e as obsessões do homem que William Burroughs uma vez chamou de \"O Papa do Trash.\" Waters fala de seus filmes, de suas influências artísticas e de seu fascínio pelo crime, pelo cinema exploitation e pelo mundo da arte contemporânea.",
+       "backdrop": "/k5bAZUer22aXtlZfhjpXNTuzAYB.jpg",
+       "poster": "/eQS4FYQ5ba5urrcLGUEyP7P6ljB.jpg",
+       "why": "Documentário e comédia"
+      },
+      {
+       "id": "tt39018643",
+       "tmdb": 1515899,
+       "type": "movie",
+       "group": "",
+       "title": "Billie Eilish - Hit Me Hard and Soft: The Tour in 3D",
+       "original": "Billie Eilish - Hit Me Hard and Soft: The Tour (Live in 3D)",
+       "year": 2026,
+       "runtime": 114,
+       "genres": [
+        "Música",
+        "Documentário"
+       ],
+       "rating": "8,5",
+       "desc": "Codirigido por Billie Eilish em parceria com o visionário cineasta James Cameron, o longa traz performances ao vivo em 3D de hits como “LUNCH”, “Birds of a Feather” e “CHIHIRO”, além de contar um pouco dos bastidores da turnê do álbum \"HIT ME HARD AND SOFT\".",
+       "backdrop": "/vTk6KQRLomlkMG5xqQIrzvyQB8z.jpg",
+       "poster": "/rGZyH9erzIVnk5R7NEF9V38nCQu.jpg",
+       "why": "Música e documentário"
+      },
+      {
+       "id": "tt5278506",
+       "tmdb": 373072,
+       "type": "movie",
+       "group": "",
+       "title": "Tickled",
+       "original": "Tickled",
+       "year": 2016,
+       "runtime": 91,
+       "genres": [
+        "Documentário"
+       ],
        "rating": "7,2",
-       "desc": "Os blocos LEGO contam a história de vida do cantor, compositor e produtor musical Pharrell Williams, desde sua infância na Virgínia até seu sucesso nas indústrias da música e da moda.",
-       "backdrop": "/oqWTbBixgF8XwqzGeFWMzkNwqAw.jpg",
-       "poster": "/qVyWW9HhYXui6SjF4cTDUPDYCIz.jpg",
-       "why": "Animação e música"
+       "desc": "O jornalista David Farrier se depara com uma misteriosa competição de cócegas online. À medida que se aprofunda, enfrenta uma forte resistência, mas isso não o impede de chegar ao fundo de uma história mais estranha que a ficção.",
+       "backdrop": "/1ZtTi3s6IYtYMpKJbbrCJKfnNib.jpg",
+       "poster": "/qxUbPwyhzNEyUZYOZm6t8yYSQf.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt27041231",
+       "tmdb": 1096228,
+       "type": "movie",
+       "group": "",
+       "title": "Musk",
+       "original": "Musk",
+       "year": 2026,
+       "runtime": 225,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "6,2",
+       "desc": "Um olhar incisivo por trás da lenda de Elon Musk, o \"inventor-empreendedor\" mais aclamado do mundo, que exerce enorme influência sobre o mundo em que todos vivemos.",
+       "backdrop": "/1CfHIKczBiAauSRBiNQ90bjLsCM.jpg",
+       "poster": "/kTOeFV92c3QHJ3bEkT660P7BcWN.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt8637504",
+       "tmdb": 653610,
+       "type": "movie",
+       "group": "",
+       "title": "Revelação",
+       "original": "Disclosure",
+       "year": 2020,
+       "runtime": 108,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "7,8",
+       "desc": "Neste documentário, nomes influentes da arte e do pensamento transgêneros analisam o impacto de Hollywood na comunidade trans.",
+       "backdrop": "/eQNlRh69W9HVw46znLOhyMe7dsN.jpg",
+       "poster": "/t3Lp9ZCSKXfpfWAdZwAXsje2jRv.jpg",
+       "why": "Documentário"
       }
      ]
     },
@@ -4153,25 +4089,6 @@
        "why": ""
       },
       {
-       "id": "tt26598805",
-       "tmdb": 292741,
-       "type": "series",
-       "group": "",
-       "title": "Noturno",
-       "original": "Nocturne",
-       "year": 2026,
-       "runtime": 0,
-       "genres": [
-        "Crime",
-        "Drama"
-       ],
-       "rating": "7,7",
-       "desc": "Quando uma vítima do notório serial killer Jurek Walter reaparece viva inesperadamente, o detetive Jonah Lynn corre contra o tempo para encontrar a única pessoa que ainda está desaparecida, enquanto sua protegida, Saga Bauer, infiltra-se em segredo para obter respostas do próprio assassino.",
-       "backdrop": "/614k6C9doThoMe6GyH0nTnGgLXt.jpg",
-       "poster": "/lVoPRl5RXH2U7XJUQJnl3z0au89.jpg",
-       "why": ""
-      },
-      {
        "id": "tt0121955",
        "tmdb": 2190,
        "type": "series",
@@ -4210,62 +4127,6 @@
        "why": ""
       },
       {
-       "id": "tt0434665",
-       "tmdb": 30984,
-       "type": "series",
-       "group": "",
-       "title": "Bleach",
-       "original": "BLEACH",
-       "year": 2004,
-       "runtime": 24,
-       "genres": [
-        "Action & Adventure",
-        "Animação"
-       ],
-       "rating": "8,4",
-       "desc": "Ichigo Kurosaki, um adolescente de quinze anos, nunca pediu o dom de ver fantasmas — ele simplesmente nasceu com essa habilidade. Quando sua família é atacada por um Hollow, uma alma perdida e maligna, Ichigo conhece Rukia, uma Ceifeira de Almas que acaba lhe transferindo seus poderes. A partir desse momento, Ichigo passa a dedicar sua vida a proteger os inocentes e ajudar almas atormentadas a encontrar a paz.",
-       "backdrop": "/o0NsbcIvsllg6CJX0FBFY8wWbsn.jpg",
-       "poster": "/dx28DE7EgLy0FatOvnaUg0k9j92.jpg",
-       "why": ""
-      },
-      {
-       "id": "tt31710249",
-       "tmdb": 248830,
-       "type": "series",
-       "group": "",
-       "title": "Stick",
-       "original": "Stick",
-       "year": 2025,
-       "runtime": 0,
-       "genres": [
-        "Comédia",
-        "Drama"
-       ],
-       "rating": "7,3",
-       "desc": "Pryce Cahill estava rumo à elite do golfe quando uma crise em campo arruinou sua carreira. Agora, aposta tudo para treinar Santi, uma promessa adolescente com enorme potencial, e talvez se salvar.",
-       "backdrop": "/2Bt2uXrIOQASBAsni2AGGqCCF14.jpg",
-       "poster": "/D7cxWHBj769OYsX9jpx9eb2Y9q.jpg",
-       "why": ""
-      },
-      {
-       "id": "tt4406178",
-       "tmdb": 81723,
-       "type": "series",
-       "group": "",
-       "title": "A Idade Dourada",
-       "original": "The Gilded Age",
-       "year": 2022,
-       "runtime": 0,
-       "genres": [
-        "Drama"
-       ],
-       "rating": "7,7",
-       "desc": "Após a morte do pai, a jovem Marian Brook se muda para a Nova York de 1882 - uma cidade à beira da modernidade, onde velho e novo se chocam.",
-       "backdrop": "/afUVsProh46h31w2EvL7qyHXrqj.jpg",
-       "poster": "/9o2AsYUGahwHFrler8NGEwFBiBj.jpg",
-       "why": ""
-      },
-      {
        "id": "tt0388629",
        "tmdb": 37854,
        "type": "series",
@@ -4285,44 +4146,6 @@
        "why": ""
       },
       {
-       "id": "tt11743610",
-       "tmdb": 120911,
-       "type": "series",
-       "group": "",
-       "title": "A Lista Terminal",
-       "original": "The Terminal List",
-       "year": 2022,
-       "runtime": 0,
-       "genres": [
-        "Action & Adventure",
-        "Drama"
-       ],
-       "rating": "8,0",
-       "desc": "Depois que todo o seu pelotão das Forças de Operações Especiais da Marinha dos Estados Unidos (Navy SEALs) é emboscado durante uma missão secreta de alto risco, James Reece volta para casa com memórias conflitantes do evento e perguntas sobre sua culpa no acontecimento. No entanto, à medida que novas evidências vêm à tona, Reece descobre que forças obscuras estão trabalhando contra ele, colocando em risco não apenas sua vida, mas também a vida daqueles que ele ama.",
-       "backdrop": "/2qS2LGqsAyT1NEDeIj24Hp2IR10.jpg",
-       "poster": "/3f7lVELRz23j4GOEh3419UyR3XA.jpg",
-       "why": ""
-      },
-      {
-       "id": "tt39328047",
-       "tmdb": 293610,
-       "type": "series",
-       "group": "",
-       "title": "Doctor X: A Máfia do Jaleco Branco",
-       "original": "닥터X: 하얀 마피아의 시대",
-       "year": 2026,
-       "runtime": 0,
-       "genres": [
-        "Mistério",
-        "Drama"
-       ],
-       "rating": "9,1",
-       "desc": "Uma cirurgiã enigmática e brilhante chega a um hospital dominado pelo ego e pela corrupção. Encarando uma oposição brutal, ela resolve casos aparentemente impossíveis.",
-       "backdrop": "/rCFZ9cQQVSa9sAvco2Czcct6aKB.jpg",
-       "poster": "/xFnT1WFf4y9durKpIFiwrI0lvxq.jpg",
-       "why": ""
-      },
-      {
        "id": "tt16358384",
        "tmdb": 153312,
        "type": "series",
@@ -4339,6 +4162,63 @@
        "desc": "Depois de cumprir 25 anos de prisão, Dwight Manfredi é exilado sem cerimônia por seu chefe da máfia para se estabelecer em Oklahoma. Dwight lentamente constrói um novo império criminoso em Tulsa.",
        "backdrop": "/mNHRGO1gFpR2CYZdANe72kcKq7G.jpg",
        "poster": "/y13WOeZ2rz2Ezpws0RJ0I8sQpG4.jpg",
+       "why": ""
+      },
+      {
+       "id": "tt0096697",
+       "tmdb": 456,
+       "type": "series",
+       "group": "",
+       "title": "Os Simpsons",
+       "original": "The Simpsons",
+       "year": 1989,
+       "runtime": 0,
+       "genres": [
+        "Animação",
+        "Comédia"
+       ],
+       "rating": "8,0",
+       "desc": "Uma animação sobre uma típica família dos Estados Unidos. Homer é o pai de família nada saudável ou inteligente, que adora beber cerveja. Marge é a esposa e mãe de família dedicada. Bart é o filho de 10 anos, que não leva a escola a sério e tem orgulho disso. Lisa é a garota de 8 anos, um gênio não apreciado. E Maggie é a bebê que não larga a chupeta.",
+       "backdrop": "/jIArNHIekrCSVgdMbKPAXpPY03Y.jpg",
+       "poster": "/1jGPgDDcmg3Xgs3WO8sfYfbnFoA.jpg",
+       "why": ""
+      },
+      {
+       "id": "tt19231492",
+       "tmdb": 196322,
+       "type": "series",
+       "group": "",
+       "title": "Matéria Escura",
+       "original": "Dark Matter",
+       "year": 2024,
+       "runtime": 0,
+       "genres": [
+        "Sci-Fi & Fantasy",
+        "Drama"
+       ],
+       "rating": "7,8",
+       "desc": "Jason Dessen é sequestrado para uma versão alternativa de sua vida. Em busca de voltar para sua verdadeira família, ele embarca em uma jornada angustiante para salvá-los do inimigo mais terrível que se possa imaginar: ele mesmo.",
+       "backdrop": "/wFEAy4xRes1eeclsu7Z73Vzz7ET.jpg",
+       "poster": "/mAbuZuS4CqlTI6lvWIxPRHppbVs.jpg",
+       "why": ""
+      },
+      {
+       "id": "tt45246384",
+       "tmdb": 303745,
+       "type": "series",
+       "group": "",
+       "title": "Amor Disfarçado",
+       "original": "나의 유죄인간",
+       "year": 2026,
+       "runtime": 0,
+       "genres": [
+        "Comédia",
+        "Drama"
+       ],
+       "rating": "9,1",
+       "desc": "Yoon Yi-jun, herdeiro do Grupo Taekang, é o principal suspeito de um assassinato chocante. Para descobrir a verdade, a detetive Kang Jae-hee se infiltra como seu secretário para vigiá-lo de perto. Quanto mais se aproximam da verdade, mais próximos também ficam. Será que Jae-hee, que esconde sua identidade, e Yi-jun, que guarda um segredo, conseguirão revelar o que realmente sentem um pelo outro?",
+       "backdrop": "/32g5MD6eHPAZ5NAgkNAURb4eupm.jpg",
+       "poster": "/fhYPYQyVopTbPIf4A7FN5Q3lxPR.jpg",
        "why": ""
       }
      ]
@@ -4408,6 +4288,46 @@
      "score": 5.871
     },
     {
+     "id": "tt32333324",
+     "tmdb": 1560520,
+     "type": "movie",
+     "group": "new",
+     "title": "Batman: A Queda do Morcego - Parte 1",
+     "original": "Batman: Knightfall Part 1: Knightfall",
+     "year": 2026,
+     "runtime": 79,
+     "genres": [
+      "Animação",
+      "Ação"
+     ],
+     "rating": "9,1",
+     "desc": "O Asilo Arkham foi destruído, e todos os seus detentos foram soltos em Gotham City. Enquanto corre contra o tempo para capturar alguns de seus maiores inimigos, Batman é levado ao limite de suas capacidades físicas e mentais, rumo a um confronto final contra uma nova ameaça: o homem chamado Bane!",
+     "backdrop": "/caBIySpwuFi2i7ynvHIlnxJLOdN.jpg",
+     "poster": "/kOeLi6uIhAlWchS7ZkgDwWSavYT.jpg",
+     "why": "Animação e ação · nota 9,1 no TMDB",
+     "score": 5.842
+    },
+    {
+     "id": "tt10375624",
+     "tmdb": 614945,
+     "type": "movie",
+     "group": "new",
+     "title": "Mensagens para Isabelle",
+     "original": "Voicemails for Isabelle",
+     "year": 2026,
+     "runtime": 119,
+     "genres": [
+      "Romance",
+      "Comédia"
+     ],
+     "rating": "8,3",
+     "desc": "As mensagens de voz sinceronas de uma jovem para a irmã falecida acabam sendo enviadas para um estranho, que começa a se apaixonar por ela mesmo de longe.",
+     "backdrop": "/2WU6Y6aonzD6uAaCmNnEFlesxxJ.jpg",
+     "poster": "/nf7N5j407xPTOEPG0feJJbKFNRd.jpg",
+     "why": "Romance e comédia · nota 8,3 no TMDB",
+     "score": 5.787
+    },
+    {
      "id": "tt2056785",
      "tmdb": 791523,
      "type": "movie",
@@ -4426,6 +4346,26 @@
      "poster": "/mcuUYNWGJHPEaRumOlgSZCzMRPc.jpg",
      "why": "Animação e aventura",
      "score": 5.773
+    },
+    {
+     "id": "tt10172266",
+     "tmdb": 930094,
+     "type": "movie",
+     "group": "new",
+     "title": "Vermelho, Branco e Sangue Azul",
+     "original": "Red, White & Royal Blue",
+     "year": 2023,
+     "runtime": 118,
+     "genres": [
+      "Comédia",
+      "Romance"
+     ],
+     "rating": "7,9",
+     "desc": "Depois que uma altercação entre Alex, o filho do presidente, e o príncipe Henry da Grã-Bretanha em um evento real se torna assunto de tabloide, sua rivalidade de longa data agora ameaça abrir uma brecha nas relações EUA/Britânica. Quando os rivais são forçados a uma trégua encenada, seu relacionamento gelado começa a derreter e o atrito entre eles desencadeia algo mais profundo do que jamais esperaram.",
+     "backdrop": "/qrnwOY3hpu3oVUUYKRgWJxTtMQ3.jpg",
+     "poster": "/4QpHPh42Kc7wOV6cow8rkHlaPW0.jpg",
+     "why": "Comédia e romance · nota 7,9 no TMDB",
+     "score": 5.715
     },
     {
      "id": "tt15239678",
@@ -4526,66 +4466,6 @@
      "poster": "/6gWmrC2GyDbUM1ET5EBg9lxBi7S.jpg",
      "why": "Ação e fantasia",
      "score": 5.551
-    },
-    {
-     "id": "tt22868844",
-     "tmdb": 812225,
-     "type": "movie",
-     "group": "new",
-     "title": "Black Clover: A Espada do Rei Mago",
-     "original": "映画 ブラッククローバー 魔法帝の剣",
-     "year": 2023,
-     "runtime": 113,
-     "genres": [
-      "Animação",
-      "Fantasia"
-     ],
-     "rating": "8,1",
-     "desc": "Um garoto destemido e sem poderes mágicos luta pelo título de Rei Mago – enfrentando quatro rivais que foram banidos e agora ameaçam destruir o Reino Clover.",
-     "backdrop": "/rogeBJK44LtWynOqzMFmEF30T80.jpg",
-     "poster": "/5KK0FJGdZI7jMhfwyJTg1LGR2z8.jpg",
-     "why": "Animação e fantasia · nota 8,1 no TMDB",
-     "score": 5.411
-    },
-    {
-     "id": "tt1493274",
-     "tmdb": 1245993,
-     "type": "movie",
-     "group": "new",
-     "title": "Ladrões",
-     "original": "Caught Stealing",
-     "year": 2025,
-     "runtime": 107,
-     "genres": [
-      "Crime",
-      "Thriller"
-     ],
-     "rating": "6,8",
-     "desc": "Hank Thompson era um fenômeno do beisebol no colégio, mas agora não pode mais jogar. Mesmo assim, a sua vida vai bem. Ele tem uma namorada incrível, que trabalha como barman em um bar em Nova York e seu time favorito está fazendo uma improvável corrida rumo ao título. Quando seu vizinho, Russ, pede que ele cuide de seu gato por alguns dias, Hank de repente se vê no meio de uma turma nada convencional de gângsteres ameaçadores. Todos querem algo dele — o problema é que ele não faz ideia do quê.",
-     "backdrop": "/41043LV7mfluH8iXEUPVseCDAv5.jpg",
-     "poster": "/l1ezVQbjxqnoTPMOLLKQmdTNen1.jpg",
-     "why": "Crime e thriller",
-     "score": 5.364
-    },
-    {
-     "id": "tt28498219",
-     "tmdb": 1148365,
-     "type": "movie",
-     "group": "new",
-     "title": "Matchbox - O Filme",
-     "original": "Matchbox the Movie",
-     "year": 2026,
-     "runtime": 127,
-     "genres": [
-      "Ação",
-      "Comédia"
-     ],
-     "rating": "7,6",
-     "desc": "Quando um grupo de antigos amigos de infância se reencontra, o encontro toma um rumo inesperado ao se depararem com uma perigosa trama internacional e precisarem salvar o mundo.",
-     "backdrop": "/jdJsnhHfkIi3J7jwfiCFT4gXNx5.jpg",
-     "poster": "/hgPJA0NTmXYpPA3cgh4ZrI1PubL.jpg",
-     "why": "Ação e comédia",
-     "score": 5.335
     },
     {
      "id": "tt0242653",
@@ -5071,193 +4951,6 @@
      "kind": "season",
      "items": [
       {
-       "id": "tt27911000",
-       "tmdb": 1034541,
-       "type": "movie",
-       "group": "",
-       "title": "Terrifier 3",
-       "original": "Terrifier 3",
-       "year": 2024,
-       "runtime": 124,
-       "genres": [
-        "Terror"
-       ],
-       "rating": "6,7",
-       "desc": "O palhaço assassino Art está pronto para espalhar o caos sobre os moradores inocentes do Condado de Miles durante uma pacífica véspera de Natal.",
-       "backdrop": "/bHfGHipZ32Oec94FDJO4mWs3aZ5.jpg",
-       "poster": "/tBMH2u9ERs4CWW19ep6sJA9JCLr.jpg",
-       "why": "Terror"
-      },
-      {
-       "id": "tt0047034",
-       "tmdb": 1678,
-       "type": "movie",
-       "group": "",
-       "title": "Godzilla",
-       "original": "ゴジラ",
-       "year": 1954,
-       "runtime": 98,
-       "genres": [
-        "Thriller",
-        "Terror"
-       ],
-       "rating": "7,6",
-       "desc": "O Japão entra em pânico após vários navios afundarem perto da Ilha de Odo. Uma expedição à ilha liderada pelo Dr. Kyohei Yamane logo descobre algo muito mais devastador do que se imaginava: um monstro de 50 metros de altura chamado Godzilla pelos nativos. Agora, o monstro inicia uma onda de destruição que ameaça destruir não apenas o Japão, mas também o resto do mundo.",
-       "backdrop": "/ub1sIbdSrokPZawY2ljExXZov2j.jpg",
-       "poster": "/t4GngFUz5i3NndhzLGKn5HakQeu.jpg",
-       "why": "Thriller e terror · nota 7,6 no TMDB"
-      },
-      {
-       "id": "tt6535880",
-       "tmdb": 517116,
-       "type": "movie",
-       "group": "",
-       "title": "A Casa do Terror",
-       "original": "Haunt",
-       "year": 2019,
-       "runtime": 92,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "6,7",
-       "desc": "No Halloween, um grupo de amigos encontra uma casa assombrada 'extrema' que promete alimentar-se dos seus medos mais sombrios. A noite torna-se mortal quando eles chegam à terrível conclusão de que alguns pesadelos são reais.",
-       "backdrop": "/dmXsktpfHgTNeLFeo5nVItiXuBr.jpg",
-       "poster": "/pRapSkoVtHeXDPfUP4883njzIJ3.jpg",
-       "why": "Terror e thriller"
-      },
-      {
-       "id": "tt0482606",
-       "tmdb": 10665,
-       "type": "movie",
-       "group": "",
-       "title": "Os Estranhos",
-       "original": "The Strangers",
-       "year": 2008,
-       "runtime": 88,
-       "genres": [
-        "Terror"
-       ],
-       "rating": "6,1",
-       "desc": "Kristen McKay e James Hoyt estão numa remota casa de veraneio, mas o seu descanso é interrompido quando três estranhos invadem o local, mostrando sentir prazer ao aterrorizá-los.",
-       "backdrop": "/y27M2hIwZRRvMAVEadFPP5hCPg1.jpg",
-       "poster": "/l2Z7iL5HIBJ0qeNldI59YmQRSEk.jpg",
-       "why": "Terror"
-      },
-      {
-       "id": "tt0056687",
-       "tmdb": 10242,
-       "type": "movie",
-       "group": "",
-       "title": "O Que Terá Acontecido a Baby Jane?",
-       "original": "What Ever Happened to Baby Jane?",
-       "year": 1962,
-       "runtime": 132,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "7,9",
-       "desc": "A história do diretor Robert Aldrich é um thriller sobre uma veterana atriz de teatro que conheceu a fama na infância e agora inicia um reinado psicótico de terror sobre sua irmã, ex-rainha do cinema nos anos 30 e hoje presa a uma cadeira de rodas.",
-       "backdrop": "/gkXL5ka6ciU4A4KYSvLIAXtvh7k.jpg",
-       "poster": "/5YOJEWsqeYz0EUcB7S1foR2UmVb.jpg",
-       "why": "Terror e thriller · nota 7,9 no TMDB"
-      },
-      {
-       "id": "tt0107692",
-       "tmdb": 14282,
-       "type": "movie",
-       "group": "",
-       "title": "Ninja Scroll: O Filme",
-       "original": "獣兵衛忍風帖",
-       "year": 1993,
-       "runtime": 94,
-       "genres": [
-        "Fantasia",
-        "Animação"
-       ],
-       "rating": "7,8",
-       "desc": "Uma aldeia é devastada por uma epidemia. A kunoichi Kagero escolta uma tropa de soldados enviados para investigar, mas são rapidamente exterminados por Tessai, um dos 8 demônios de Kimon. Kagero é salva da morte pela intervenção de Jubei Kibagami. Este último, um ronin mercenário, é forçado por Dakuan, um agente do governo, a combater cada um dos 8 demônios de Kimon com a ajuda de Kagero. Pouco a pouco, Jubei vai se dando conta de que o líder deles não é outro senão o seu pior inimigo, Himuro Genma, que tem como objetivo tomar o poder no Japão...",
-       "backdrop": "/mOd8oNCNyKOXs58FzdD1pPygWD.jpg",
-       "poster": "/pepgQDbKDMATqQff6xVTgH5rXig.jpg",
-       "why": "Fantasia e animação · nota 7,8 no TMDB"
-      },
-      {
-       "id": "tt10665338",
-       "tmdb": 610253,
-       "type": "movie",
-       "group": "",
-       "title": "Halloween Kills: O Terror Continua",
-       "original": "Halloween Kills",
-       "year": 2021,
-       "runtime": 106,
-       "genres": [
-        "Terror"
-       ],
-       "rating": "6,4",
-       "desc": "Laurie Strode acredita que enfim venceu a luta contra Michael Myers, mas é surpreendida pelo seu retorno. Determinada a pôr um ponto final em seus ataques, ela e outros sobreviventes decidem enfrentá-lo e acabar com o ciclo de uma vez por todas.",
-       "backdrop": "/fuuZFPc8x6gQ8mLGoBp9vrmcQMT.jpg",
-       "poster": "/4NphuHmnuROLqCjAEr5LS7Aage6.jpg",
-       "why": "Terror"
-      },
-      {
-       "id": "tt5308322",
-       "tmdb": 440021,
-       "type": "movie",
-       "group": "",
-       "title": "A Morte Te Dá Parabéns",
-       "original": "Happy Death Day",
-       "year": 2017,
-       "runtime": 96,
-       "genres": [
-        "Comédia",
-        "Terror"
-       ],
-       "rating": "6,7",
-       "desc": "No longa, a personagem Tree Gelbman (Jessica Rothe), é assassinada por uma pessoa mascarada no dia de seu aniversário. Para descobrir o responsável pelo crime, ela ressuscita várias vezes e se vê presa em um ciclo entre vida e morte até conseguir solucionar seu próprio assassinato. Ela só conseguirá escapar de um destino trágico, quando compreender as reais causas de sua morte.",
-       "backdrop": "/9XSEL3EMC2D8k4UcYBn8etgRxPg.jpg",
-       "poster": "/h6vqGpVSYNvemGMb0fbIpJK152n.jpg",
-       "why": "Comédia e terror"
-      },
-      {
-       "id": "tt5022702",
-       "tmdb": 376570,
-       "type": "movie",
-       "group": "",
-       "title": "Hush: A Morte Ouve",
-       "original": "Hush",
-       "year": 2016,
-       "runtime": 81,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "6,7",
-       "desc": "Depois de perder sua audição quando adolescente, Maddie Young viveu uma vida de isolamento totalmente recuada em seu mundo silencioso. Porém, quando o rosto mascarado de um assassino psicótico aparece na janela de sua casa ela deve ultrapassar seus limites físicos e psicológicos para poder sobreviver uma noite.",
-       "backdrop": "/1r7AVAxdG97mgjR47Zm5YOSnnMW.jpg",
-       "poster": "/t1G9OlLHGTPRpnFnB6NHAlOqmHI.jpg",
-       "why": "Terror e thriller"
-      },
-      {
-       "id": "tt8155288",
-       "tmdb": 512196,
-       "type": "movie",
-       "group": "",
-       "title": "A Morte Te Dá Parabéns 2",
-       "original": "Happy Death Day 2U",
-       "year": 2019,
-       "runtime": 100,
-       "genres": [
-        "Comédia",
-        "Terror"
-       ],
-       "rating": "6,3",
-       "desc": "A Colegial Tree Gelbman acorda horrorizada ao saber que está presa em um universo paralelo. Seu namorado Carter está agora com outra pessoa, e seus amigos e colegas parecem ser versões completamente diferentes de si mesmos. Quando Tree descobre que o colega de quarto de Carter está alterando o tempo, ela se vê mais uma vez como alvo de um matador mascarado. Quando o psicopata começa a ir atrás de seu círculo íntimo, Tree logo percebe que ela deve morrer repetidamente para salvar a todos.",
-       "backdrop": "/bU1n7bkDviEqwfKFTbjQ8BFrqEN.jpg",
-       "poster": "/oVZpjvPfP01kIxHGfWMOCtMBdBH.jpg",
-       "why": "Comédia e terror"
-      },
-      {
        "id": "tt1764551",
        "tmdb": 1107166,
        "type": "movie",
@@ -5350,6 +5043,195 @@
        "backdrop": "/brnfCYyz8EMbBrHgmh8sCwBi5i1.jpg",
        "poster": "/QqHtwk0oHYed26zra9WGQGyBSm.jpg",
        "why": "Ação e terror · nota 7,8 no TMDB"
+      },
+      {
+       "id": "tt0758746",
+       "tmdb": 13207,
+       "type": "movie",
+       "group": "",
+       "title": "Sexta-Feira 13",
+       "original": "Friday the 13th",
+       "year": 2009,
+       "runtime": 97,
+       "genres": [
+        "Terror",
+        "Thriller"
+       ],
+       "rating": "5,8",
+       "desc": "Em Crystal Lake, o que começou como o melhor fim semana de suas vidas rapidamente poderia se tornar o último. Um grupo de adolescentes, a quilômetros de distância da civilização estão prestes a descobrir, um a um, que o lago tem um sangrento passado... e está pronto para vingança.",
+       "backdrop": "/xECaVCK8nT1KCKdGg01mQgizuOd.jpg",
+       "poster": "/9tXjmu3J8ad4IpvrjEMS4ZxmsjN.jpg",
+       "why": "Terror e thriller"
+      },
+      {
+       "id": "tt1911644",
+       "tmdb": 158011,
+       "type": "movie",
+       "group": "",
+       "title": "Chamada de Emergência",
+       "original": "The Call",
+       "year": 2013,
+       "runtime": 94,
+       "genres": [
+        "Crime",
+        "Thriller"
+       ],
+       "rating": "6,8",
+       "desc": "Jordan é atendente do sistema de emergência da polícia americana. Determinado dia, atende uma ligação de uma jovem assustada com o fato de que existe um homem tentando invadir sua casa. O caso acaba com o pior final possível e Jordan fica traumatizada. Anos mais tarde, ela se vê diante do mesmo criminoso, que agora ameaça outra garota, Casey. O suspense aumenta quando Jordan percebe que, para salvar a vida da menina, precisará lidar com uma conhecida voz do passado.",
+       "backdrop": "/9jih8et3fkd0Zdo4NHf3cnPj05Z.jpg",
+       "poster": "/nEbXurcoi0u1bp1ZgR4PfXuBpPL.jpg",
+       "why": "Crime e thriller"
+      },
+      {
+       "id": "tt11245972",
+       "tmdb": 646385,
+       "type": "movie",
+       "group": "",
+       "title": "Pânico",
+       "original": "Scream",
+       "year": 2022,
+       "runtime": 114,
+       "genres": [
+        "Terror",
+        "Mistério"
+       ],
+       "rating": "6,7",
+       "desc": "Vinte e cinco anos após uma série de crimes brutais chocar a tranquila Woodsboro, um novo assassino se apropria da máscara de Ghostface e começa a perseguir um grupo de adolescentes para trazer à tona segredos do passado mortal da cidade.",
+       "backdrop": "/ifUfE79O1raUwbaQRIB7XnFz5ZC.jpg",
+       "poster": "/lvskZGlyH9LuGKO8OdBWQWTGlGx.jpg",
+       "why": "Terror e mistério"
+      },
+      {
+       "id": "tt32612507",
+       "tmdb": 1304313,
+       "type": "movie",
+       "group": "",
+       "title": "Maldição da Múmia",
+       "original": "Lee Cronin's The Mummy",
+       "year": 2026,
+       "runtime": 133,
+       "genres": [
+        "Terror",
+        "Mistério"
+       ],
+       "rating": "7,8",
+       "desc": "A filha de um jornalista desaparece num deserto sem deixar rastros, deixando a família dilacerada e em luto. Até que, oito anos mais tarde, a jovem garota reaparece, deixando todos chocados. O problema é que esse encontro aparentemente feliz se transforma em um pesadelo de proporções gigantes.",
+       "backdrop": "/xugEpZk9YQ0DIz1aFvH5HGkqpZK.jpg",
+       "poster": "/fI6XBw8k5CWNwxLEYZwpjA89TPg.jpg",
+       "why": "Terror e mistério · nota 7,8 no TMDB"
+      },
+      {
+       "id": "tt0117571",
+       "tmdb": 4232,
+       "type": "movie",
+       "group": "",
+       "title": "Pânico",
+       "original": "Scream",
+       "year": 1996,
+       "runtime": 111,
+       "genres": [
+        "Crime",
+        "Terror"
+       ],
+       "rating": "7,4",
+       "desc": "Após uma série de mortes misteriosas, um grupo de amigos são ameaçados por um assassino. Em uma mistura de emoções fortes e muitos sustos, aqui a única coisa que se pode ter certeza é que todos são vítimas e todos são suspeitos.",
+       "backdrop": "/4w6nQYAY0eb7B0VVRDXilXcgAUV.jpg",
+       "poster": "/cJj2gYzkPFSqYGGOhfLgeANlXkB.jpg",
+       "why": "Crime e terror"
+      },
+      {
+       "id": "tt1262416",
+       "tmdb": 41446,
+       "type": "movie",
+       "group": "",
+       "title": "Pânico 4",
+       "original": "Scream 4",
+       "year": 2011,
+       "runtime": 111,
+       "genres": [
+        "Terror",
+        "Mistério"
+       ],
+       "rating": "6,5",
+       "desc": "Faz muitos anos que o assassino Ghostface deixou um rastro mortal pela cidade de Woodsboro. A fim de superar o trauma desses terríveis acontecimentos, Sidney Prescott escreveu um livro de auto-ajuda. Ela retorna à Woodsboro para lançar seu livro e reencontra os velhos amigos Gale Weathers e o Xerife Dewey. No entanto, a chegada de Sidney também provoca o retorno de Ghostface, colocando Sidney e todos que ama em perigo.",
+       "backdrop": "/c5EmNhLQsTTKAyUHULnKYQjlloz.jpg",
+       "poster": "/nN1cs0SxMjJqwuRAdyuXrevLOGh.jpg",
+       "why": "Terror e mistério"
+      },
+      {
+       "id": "tt8760708",
+       "tmdb": 536554,
+       "type": "movie",
+       "group": "",
+       "title": "M3GAN",
+       "original": "M3GAN",
+       "year": 2022,
+       "runtime": 102,
+       "genres": [
+        "Ficção científica",
+        "Terror"
+       ],
+       "rating": "7,0",
+       "desc": "Uma brilhante roboticista de uma empresa de brinquedos usa inteligência artificial para desenvolver M3GAN, uma boneca realista programada para se relacionar emocionalmente com sua sobrinha recém-órfã. Mas quando a programação da boneca funciona muito bem, ela se torna superprotetora de sua nova amiga... com resultados aterrorizantes.",
+       "backdrop": "/qd4EKTuudkws9lW76Dn9C0tnuVA.jpg",
+       "poster": "/jhVq80tb4v2SbIJHfsvlVo5E3Oi.jpg",
+       "why": "Ficção científica e terror"
+      },
+      {
+       "id": "tt0175142",
+       "tmdb": 4247,
+       "type": "movie",
+       "group": "",
+       "title": "Todo Mundo em Pânico",
+       "original": "Scary Movie",
+       "year": 2000,
+       "runtime": 91,
+       "genres": [
+        "Comédia"
+       ],
+       "rating": "6,4",
+       "desc": "Depois do assassinato de uma bela colega de classe, um grupo de adolescentes desorientados descobre que há um assassino entre eles. A heroína Cindy Campbell e a sua turma de amigos mauricinhos e patricinhas, tentam se proteger do perigo... Mas uma reporter irritante, Gail Hailstorm, simplesmente não os deixa em paz! Parece familiar? Talvez sim, mas essa história repleta de reviravoltas e surpresas horripilantes e humor ultrajante extrapola no gênero de horror e ação.",
+       "backdrop": "/m5dA4JZsj78EBTa2D6imWOAebwB.jpg",
+       "poster": "/daorfyZdHkI44vuf3DVDbmJkYQI.jpg",
+       "why": "Comédia"
+      },
+      {
+       "id": "tt29644189",
+       "tmdb": 1197137,
+       "type": "movie",
+       "group": "",
+       "title": "O Telefone Preto 2",
+       "original": "Black Phone 2",
+       "year": 2025,
+       "runtime": 114,
+       "genres": [
+        "Terror",
+        "Thriller"
+       ],
+       "rating": "6,6",
+       "desc": "Quatro anos após escapar de The Grabber, Finney Blake luta com sua vida após o cativeiro. Quando sua irmã Gwen começa a receber ligações em sonhos do telefone preto e a ter visões perturbadoras de três garotos sendo perseguidos em um acampamento de inverno conhecido como Alpine Lake, os irmãos se determinam a desvendar o mistério e confrontar um assassino que se tornou mais poderoso na morte e mais significativo para eles do que qualquer um poderia imaginar.",
+       "backdrop": "/6zKjoOOb3OZnZuiHtQZn4Kd69Gq.jpg",
+       "poster": "/p3epSUdF9qSWWHTBlA3mJ0w2i2Y.jpg",
+       "why": "Terror e thriller"
+      },
+      {
+       "id": "tt0164052",
+       "tmdb": 9383,
+       "type": "movie",
+       "group": "",
+       "title": "O Homem Sem Sombra",
+       "original": "Hollow Man",
+       "year": 2000,
+       "runtime": 112,
+       "genres": [
+        "Ação",
+        "Ficção científica"
+       ],
+       "rating": "6,0",
+       "desc": "Em um laboratório militar ultrassecreto, um grupo de cientistas descobre a fórmula da invisibilidade. Ansioso por analisar os efeitos em um ser humano, o líder da equipe, Sebastian Craine, testa em si mesmo. Entretanto, a equipe ainda não tinha descoberto o antídoto para a fórmula e precisa encontrar algo que impeça o cada vez mais rápido processo de invisibilidade pelo qual passa o corpo de Craine. Aos poucos a intoxicação o afeta e ele comece a acreditar que seus colegas são uma ameaça.",
+       "backdrop": "/g6UIASElC5M6jwtV4TZlz1sok3h.jpg",
+       "poster": "/vrDwv0pphH1cw0vXBDkCYglhRNr.jpg",
+       "why": "Ação e ficção científica"
       }
      ],
      "from": "2026-11-13",
@@ -5359,6 +5241,267 @@
      "title": "Documentários pra você",
      "kind": "doc",
      "items": [
+      {
+       "id": "tt21819250",
+       "tmdb": 1022256,
+       "type": "movie",
+       "group": "",
+       "title": "Selena Gomez: Minha Mente e Eu",
+       "original": "Selena Gomez: My Mind & Me",
+       "year": 2022,
+       "runtime": 95,
+       "genres": [
+        "Documentário",
+        "Música"
+       ],
+       "rating": "8,4",
+       "desc": "Selena Gomez alcançou uma fama inimaginável após anos estando sob os holofotes. Porém, ao alcançar um novo patamar, uma reviravolta inesperada a joga na escuridão. Este documentário exclusivo e íntimo cobre seis anos de sua jornada rumo à uma nova luz.",
+       "backdrop": "/u3MWQCdHyCK7IADtat4sVmBXd9U.jpg",
+       "poster": "/t5nOw2JTw8DDksT6DpZbx3NVdAT.jpg",
+       "why": "Documentário e música · nota 8,4 no TMDB"
+      },
+      {
+       "id": "tt39316472",
+       "tmdb": 1612018,
+       "type": "movie",
+       "group": "",
+       "title": "Jackass: O Último é o Melhor",
+       "original": "Jackass: Best and Last",
+       "year": 2026,
+       "runtime": 92,
+       "genres": [
+        "Ação",
+        "Comédia"
+       ],
+       "rating": "7,3",
+       "desc": "johnny knoxville e toda turma estão de volta para uma última jornada, trazendo novas acrobacias, bobagens inéditas e os momentos mais icônicos de uma geração de caos. celebre com seus amigos mais bobos e gargalhem mais do que nunca… pela última vez.",
+       "backdrop": "/dUbP1HNdI0aCq1zgRJw28PWSqmk.jpg",
+       "poster": "/pU9949BZVMUmZtiEiJyN76bFaLA.jpg",
+       "why": "Ação e comédia"
+      },
+      {
+       "id": "tt3327994",
+       "tmdb": 359364,
+       "type": "movie",
+       "group": "",
+       "title": "Humano: Uma Viagem Pela Vida",
+       "original": "Human",
+       "year": 2015,
+       "runtime": 191,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "8,4",
+       "desc": "Com testemunhos e imagens aéreas exclusivas, o introspectivo documentário aborda quem nós somos hoje em dia. Não só como comunidade, mas como indivíduos. Através das guerras, descriminações e desigualdades, confrontamos a realidade que também contempla discursos de solidariedade. Uma reflexão do futuro que queremos para nós, seres humanos, e o planeta.",
+       "backdrop": "/c0gtBfDyOrba9e5wnFjrxn8rxQr.jpg",
+       "poster": "/trJpgBNXxlAfUdMfeipC9XZS8oJ.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt36163614",
+       "tmdb": 1642859,
+       "type": "movie",
+       "group": "",
+       "title": "Iron Maiden: Burning Ambition",
+       "original": "Iron Maiden: Burning Ambition",
+       "year": 2026,
+       "runtime": 106,
+       "genres": [
+        "Documentário",
+        "Música"
+       ],
+       "rating": "8,5",
+       "desc": "O longa explora como o Iron Maiden ajudou a moldar um movimento cultural, desafiando visões convencionais sobre o rock e o impacto mais amplo do heavy metal na sociedade e na cultura.",
+       "backdrop": "/52t7nT1f117FW6gdG32DrQKxpU1.jpg",
+       "poster": "/1bWtTKl9HHxQJf1fQ32Q6kXqEqo.jpg",
+       "why": "Documentário e música"
+      },
+      {
+       "id": "tt3674140",
+       "tmdb": 265297,
+       "type": "movie",
+       "group": "",
+       "title": "O Sal da Terra",
+       "original": "Le sel de la terre",
+       "year": 2014,
+       "runtime": 110,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "8,1",
+       "desc": "Nos últimos 40 anos, o fotógrafo Sebastião Salgado tem viajado através dos continentes, aos passos de uma humanidade sempre em mutação. Ele testemunhou alguns dos principais eventos da nossa história recente; conflitos internacionais, a fome e o êxodo. Ele agora embarca na descoberta de territórios imaculados, da flora e da fauna selvagem e de paisagens grandiosas como parte de um enorme projeto fotográfico. Uma homenagem à beleza do planeta.",
+       "backdrop": "/lqtzWKCpejXdKb22cav5bB6MqSR.jpg",
+       "poster": "/co47qUCNSa3LIPWwNcqq0PGhnJJ.jpg",
+       "why": "Documentário · nota 8,1 no TMDB"
+      },
+      {
+       "id": "tt44766123",
+       "tmdb": 1755291,
+       "type": "movie",
+       "group": "",
+       "title": "NAZA",
+       "original": "NAZA",
+       "year": 2026,
+       "runtime": 117,
+       "genres": [
+        "Documentário",
+        "Guerra"
+       ],
+       "rating": "8,0",
+       "desc": "Filmado à noite dos telhados de Tel Aviv, este documentário investigativo examina as vítimas civis das operações militares de Israel em Gaza e os sistemas por trás dos assassinatos seletivos de palestinos.",
+       "backdrop": "/qkuEfYYOZTW6ymbZMeyJeYQaMd7.jpg",
+       "poster": "/cbxiZ1l21KUATu2KKQQ8J8fJhpe.jpg",
+       "why": "Documentário e guerra"
+      },
+      {
+       "id": "tt31510396",
+       "tmdb": 1251636,
+       "type": "movie",
+       "group": "",
+       "title": "O Centésimo Batalhão",
+       "original": "The Bloody Hundredth",
+       "year": 2024,
+       "runtime": 63,
+       "genres": [
+        "Guerra",
+        "Documentário"
+       ],
+       "rating": "7,2",
+       "desc": "Os aviadores reais que inspiraram Mestres do Ar contam os eventos angustiantes e transformadores do Centésimo Grupo de Bombardeiros.",
+       "backdrop": "/4m8yq8vEVGVcmOxO39j1Yz8ry1s.jpg",
+       "poster": "/3d4fgseStWVCuDxF2GsN8Iz923O.jpg",
+       "why": "Guerra e documentário"
+      },
+      {
+       "id": "tt7286916",
+       "tmdb": 489471,
+       "type": "movie",
+       "group": "",
+       "title": "Escalando Dawn Wall",
+       "original": "The Dawn Wall",
+       "year": 2017,
+       "runtime": 101,
+       "genres": [
+        "Documentário",
+        "Aventura"
+       ],
+       "rating": "8,0",
+       "desc": "Em janeiro de 2015, Tommy Caldwell e Kevin Jorgeson escalaram até o topo do El Capitan, no Parque Nacional de Yosemite. The Dawn Wall é um documentário especial sobre os 19 dias de escalada, os anos de esforço e a inspiradora jornada de vida dos alpinistas.",
+       "backdrop": "/ipXrm6SEjfNkD8FKfj9VLUE9fUU.jpg",
+       "poster": "/bZQCNGb1II5eWASBhEgJBGxOPUM.jpg",
+       "why": "Documentário e aventura"
+      },
+      {
+       "id": "tt42863533",
+       "tmdb": 1699155,
+       "type": "movie",
+       "group": "",
+       "title": "Instinto Materno",
+       "original": "Maternal Instinct",
+       "year": 2026,
+       "runtime": 97,
+       "genres": [
+        "Documentário",
+        "Crime"
+       ],
+       "rating": "7,2",
+       "desc": "A polícia aborda uma mulher que diz ter acabado de dar à luz. Mas o bebê e o sangue não são dela. Mentiras sinistras vêm à tona neste documentário sobre um crime real.",
+       "backdrop": "/oGD1dZvojZssnd9Ua6RUalEEHQu.jpg",
+       "poster": "/2eqYzlkd9pH2ygGB7cD8fWANZvS.jpg",
+       "why": "Documentário e crime"
+      },
+      {
+       "id": "tt10851618",
+       "tmdb": 726887,
+       "type": "movie",
+       "group": "",
+       "title": "Pódio para Todos",
+       "original": "Rising Phoenix",
+       "year": 2020,
+       "runtime": 105,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "8,1",
+       "desc": "Atletas de elite, dirigentes e ativistas refletem sobre os Jogos Paralímpicos e o seu impacto global na forma como vemos a deficiência, diversidade e excelência.",
+       "backdrop": "/7OJ2FUlCQKILEfPZXzqKWp3mbUA.jpg",
+       "poster": "/zkfbyDnh2uW8mvLEQFCsTWy3NQY.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt13524234",
+       "tmdb": 768141,
+       "type": "movie",
+       "group": "",
+       "title": "Folklore: Sessões no Long Pond Studio",
+       "original": "Folklore: The Long Pond Studio Sessions",
+       "year": 2020,
+       "runtime": 106,
+       "genres": [
+        "Música",
+        "Documentário"
+       ],
+       "rating": "8,4",
+       "desc": "Um show intimista em que Taylor Swift apresenta cada música de seu álbum 'folklore' em ordem, enquanto revela o significado e as histórias por trás de todas as 17 faixas pela primeira vez.",
+       "backdrop": "/xndolqiw6jMhDDkkw1UPuD1xfrT.jpg",
+       "poster": "/xiDEWVRcgD5PieGjrZ73ONEBoLc.jpg",
+       "why": "Música e documentário"
+      },
+      {
+       "id": "tt36462227",
+       "tmdb": 1462776,
+       "type": "movie",
+       "group": "",
+       "title": "A Grã-Bretanha e a Blitz",
+       "original": "Britain and the Blitz",
+       "year": 2025,
+       "runtime": 77,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "7,2",
+       "desc": "Este documentário imersivo dá vida a um período da história mundial com filmagens de arquivo restauradas e relatos sobre a Grã-Bretanha durante a Blitz.",
+       "backdrop": "/op2XbWQihseP69gfrXkbh7Ah94W.jpg",
+       "poster": "/6vB4qFbQe67KfaJ9Ne6zItt3gVX.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt1494191",
+       "tmdb": 189215,
+       "type": "movie",
+       "group": "",
+       "title": "A História Não Contada dos EUA",
+       "original": "The Untold History Of The United States",
+       "year": 2012,
+       "runtime": 585,
+       "genres": [
+        "Documentário",
+        "História"
+       ],
+       "rating": "8,2",
+       "desc": "",
+       "backdrop": "/25NYGcwtMSB14gzfKFKmvstavbF.jpg",
+       "poster": "/qGiBpv3qKlJtBHA17xymVdN3U44.jpg",
+       "why": "Documentário e história"
+      },
+      {
+       "id": "tt37024060",
+       "tmdb": 1452541,
+       "type": "movie",
+       "group": "",
+       "title": "Torre Greenfell: A Verdade por Trás do Desastre",
+       "original": "Grenfell: Uncovered",
+       "year": 2025,
+       "runtime": 101,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "7,3",
+       "desc": "Sobreviventes, testemunhas e especialistas contam a história do incêndio trágico que atingiu uma torre residencial em Londres e a investigação do incidente.",
+       "backdrop": "/v6ebrYpYebaM3jPClvJR0IwtO9h.jpg",
+       "poster": "/8jSNNh3tfQPyZxihqCUSSEt0rK2.jpg",
+       "why": "Documentário"
+      },
       {
        "id": "tt8430054",
        "tmdb": 680813,
@@ -5377,265 +5520,6 @@
        "backdrop": "/CKGSEnFTpcxPJM5TzTFUJz53s.jpg",
        "poster": "/92sguHEFTZm5bvvTYRoGksFrasb.jpg",
        "why": "Documentário e animação · nota 7,7 no TMDB"
-      },
-      {
-       "id": "tt5275892",
-       "tmdb": 377462,
-       "type": "movie",
-       "group": "",
-       "title": "O.J.: Made in America",
-       "original": "O.J.: Made in America",
-       "year": 2016,
-       "runtime": 467,
-       "genres": [
-        "Documentário",
-        "Crime"
-       ],
-       "rating": "8,4",
-       "desc": "",
-       "backdrop": "/a9jBEm8wb4XJIvAdFJlAVgVxbB5.jpg",
-       "poster": "/nFmg2G4IJ0x9mALXkYFN8Gw0Dw5.jpg",
-       "why": "Documentário e crime"
-      },
-      {
-       "id": "tt38984577",
-       "tmdb": 1584619,
-       "type": "movie",
-       "group": "",
-       "title": "Assassinato em Mônaco",
-       "original": "Murder in Monaco",
-       "year": 2025,
-       "runtime": 90,
-       "genres": [
-        "Crime",
-        "Documentário"
-       ],
-       "rating": "6,5",
-       "desc": "Mônaco, 1999. Um dos homens mais ricos do mundo morre em sua casa. Este documentário examina o misterioso assassinato do bilionário Edmond Safra.",
-       "backdrop": "/iSrSl6YQZ5Xbqup8vTxHbu88eOb.jpg",
-       "poster": "/9OV7yINJmiq7XDp0uxVb9jtV9tm.jpg",
-       "why": "Crime e documentário"
-      },
-      {
-       "id": "tt1152758",
-       "tmdb": 15584,
-       "type": "movie",
-       "group": "",
-       "title": "Dear Zachary: Um Caso Chocante",
-       "original": "Dear Zachary: A Letter to a Son About His Father",
-       "year": 2008,
-       "runtime": 94,
-       "genres": [
-        "Documentário",
-        "Crime"
-       ],
-       "rating": "8,1",
-       "desc": "",
-       "backdrop": "/fCOIOhteWbyvSKLyJrMrvh04U6G.jpg",
-       "poster": "/ymnEAyZEs3EadSfrQWkA4sik5Ac.jpg",
-       "why": "Documentário e crime · nota 8,1 no TMDB"
-      },
-      {
-       "id": "tt1533089",
-       "tmdb": 324314,
-       "type": "movie",
-       "group": "",
-       "title": "Tab Hunter Confidential",
-       "original": "Tab Hunter Confidential",
-       "year": 2015,
-       "runtime": 91,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "7,2",
-       "desc": "",
-       "backdrop": "/qvbYCarP35cK1a50lPXnguBNkyT.jpg",
-       "poster": "/cxW0ZWf3YBBPshn2XguUsD5ZonF.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt11459366",
-       "tmdb": 654754,
-       "type": "movie",
-       "group": "",
-       "title": "Billie Eilish: The World's a Little Blurry",
-       "original": "Billie Eilish: The World's a Little Blurry",
-       "year": 2021,
-       "runtime": 140,
-       "genres": [
-        "Documentário",
-        "Música"
-       ],
-       "rating": "8,2",
-       "desc": "Este documentário traz um olhar profundamente íntimo sobre a extraordinária adolescente Billie Eilish. O premiado cineasta R.J. Cutler acompanha a artista em turnê, no palco e em casa com sua família durante a gravação do álbum que mudou a sua vida.",
-       "backdrop": "/8ys6VgwZCIQ7nN4Nv4z7GPPuFMv.jpg",
-       "poster": "/qB154OVV04YuqLfmhwKb72lc9U6.jpg",
-       "why": "Documentário e música"
-      },
-      {
-       "id": "tt0310793",
-       "tmdb": 1430,
-       "type": "movie",
-       "group": "",
-       "title": "Tiros em Columbine",
-       "original": "Bowling for Columbine",
-       "year": 2002,
-       "runtime": 120,
-       "genres": [
-        "Documentário",
-        "Drama"
-       ],
-       "rating": "7,5",
-       "desc": "Documentário que investiga a fascinação dos americanos pelas armas de fogo. Michael Moore, diretor e narrador do filme, questiona a origem dessa cultura bélica e busca respostas visitando pequenas cidades dos Estados Unidos, onde a maior parte dos moradores guarda uma arma em casa. Entre essas cidades está Littleton, no Colorado, onde fica o colégio Columbine. Lá os adolescentes Dylan Klebold e Eric Harris pegaram as armas dos pais e mataram 14 estudantes e um professor no refeitório. Michael Moore também faz uma visita ao ator Charlton Heston, presidente da Associação Americana do Rifle.",
-       "backdrop": "/70uUnpfe7en9x011UjpZoub101l.jpg",
-       "poster": "/u78e1u4bowv6ZIhcmIedVEgFdRf.jpg",
-       "why": "Documentário e drama"
-      },
-      {
-       "id": "tt1787837",
-       "tmdb": 81716,
-       "type": "movie",
-       "group": "",
-       "title": "We Were Here",
-       "original": "We Were Here",
-       "year": 2011,
-       "runtime": 90,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "6,9",
-       "desc": "",
-       "backdrop": "/5g38B5dvD5ys4UWSwwun45NxQx4.jpg",
-       "poster": "/64HVJ79MxUlaqr6THC9DGbwf9dR.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt9617716",
-       "tmdb": 576712,
-       "type": "movie",
-       "group": "",
-       "title": "Everybody’s Everything",
-       "original": "Everybody’s Everything",
-       "year": 2019,
-       "runtime": 115,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "8,4",
-       "desc": "Este documentário intimista mostra a ascensão do artista Lil Peep, cuja música mesclou diferentes estilos, atraiu inúmeros fãs e acabou por definir sua vida.",
-       "backdrop": "/Amp8FamnKw8jUFptKHOXRL4VseU.jpg",
-       "poster": "/wbMkjkNX8VylPVLmQ2Dp6i5iayY.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt11394200",
-       "tmdb": 653579,
-       "type": "movie",
-       "group": "",
-       "title": "Bem-vindo à Chechênia",
-       "original": "Welcome to Chechnya",
-       "year": 2020,
-       "runtime": 107,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "7,0",
-       "desc": "Este trabalho investigativo searing sombras um grupo de ativistas arriscando perigo inimaginável para enfrentar o programa anti-LGBTQ em curso na república repressiva e fechada russa. O acesso irrestrito e uma abordagem notável para proteger o anonimato expõe essa atrocidade subnotada — e um extraordinário grupo de pessoas que enfrentam o mal.",
-       "backdrop": "/csuz4zkcyckKn5dVVRkOhCmkWJs.jpg",
-       "poster": "/qxVyHL9cMG1WEdXNsGQGjgHjvDq.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt5275838",
-       "tmdb": 373349,
-       "type": "movie",
-       "group": "",
-       "title": "Mapplethorpe: Look at the Pictures",
-       "original": "Mapplethorpe: Look at the Pictures",
-       "year": 2016,
-       "runtime": 105,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "6,9",
-       "desc": "",
-       "backdrop": "/faHLBtaO8zJgaI3N6yanstNkkmk.jpg",
-       "poster": "/9sA1JDTwZ8vqbsRzY0O9C70eJB8.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt35003538",
-       "tmdb": 1445363,
-       "type": "movie",
-       "group": "",
-       "title": "EPiC: Elvis Presley in Concert",
-       "original": "EPiC: Elvis Presley in Concert",
-       "year": 2026,
-       "runtime": 96,
-       "genres": [
-        "Música",
-        "Documentário"
-       ],
-       "rating": "8,2",
-       "desc": "Elvis canta e conta a sua história como nunca se viu antes.",
-       "backdrop": "/ttOBvac1oW0OCCfFzZlXh3NeKyl.jpg",
-       "poster": "/u3bvHXu9hldOehUNKir7avnN8cc.jpg",
-       "why": "Música e documentário"
-      },
-      {
-       "id": "tt6323306",
-       "tmdb": 484133,
-       "type": "movie",
-       "group": "",
-       "title": "Nu",
-       "original": "Nude",
-       "year": 2017,
-       "runtime": 89,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "9,2",
-       "desc": "O documentário explora a função da nudez na arte a partir do olhar do fotógrafo David Bellemere. Contratado pelo fundador do projeto NU Muses para criar um calendário de nu artístico, Bellemere desmembra seu processo criativo.",
-       "backdrop": "/fx1wiibwJPemUMxmnWDCFzEoVeS.jpg",
-       "poster": "/699DbQ8eTecLmzjTLrao9D5bbpq.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt45368240",
-       "tmdb": 1765072,
-       "type": "movie",
-       "group": "",
-       "title": "Tudo Pode Ser Visto",
-       "original": "You Can See Everything",
-       "year": 2026,
-       "runtime": 174,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "8,9",
-       "desc": "Trinta e quatro dias antes de ser enviada para a prisão, a notória fundadora do Vale do Silício, Elizabeth Holmes, convida uma equipe de filmagem cética para documentar cada passo seu. O que começa como um retrato íntimo de uma criminosa enigmática se transforma em uma jornada alucinante de três anos rumo ao abismo.",
-       "backdrop": "/nhIL3O4W9h5V5JbNQm7yjoDk3So.jpg",
-       "poster": "/mnu5cNfijdbuU4iWrV2Lg7AfM0J.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt2124803",
-       "tmdb": 84286,
-       "type": "movie",
-       "group": "",
-       "title": "How to Survive a Plague",
-       "original": "How to Survive a Plague",
-       "year": 2012,
-       "runtime": 109,
-       "genres": [
-        "Documentário",
-        "História"
-       ],
-       "rating": "6,8",
-       "desc": "",
-       "backdrop": "/m85Ns8BthzdQYlUPEjwy8KOvvtG.jpg",
-       "poster": "/azlN2LO5OtJVeSokkK408xMtt1n.jpg",
-       "why": "Documentário e história"
       }
      ]
     },
@@ -5935,6 +5819,86 @@
   {
    "picks": [
     {
+     "id": "tt22868844",
+     "tmdb": 812225,
+     "type": "movie",
+     "group": "new",
+     "title": "Black Clover: A Espada do Rei Mago",
+     "original": "映画 ブラッククローバー 魔法帝の剣",
+     "year": 2023,
+     "runtime": 113,
+     "genres": [
+      "Animação",
+      "Fantasia"
+     ],
+     "rating": "8,1",
+     "desc": "Um garoto destemido e sem poderes mágicos luta pelo título de Rei Mago – enfrentando quatro rivais que foram banidos e agora ameaçam destruir o Reino Clover.",
+     "backdrop": "/rogeBJK44LtWynOqzMFmEF30T80.jpg",
+     "poster": "/5KK0FJGdZI7jMhfwyJTg1LGR2z8.jpg",
+     "why": "Animação e fantasia · nota 8,1 no TMDB",
+     "score": 5.411
+    },
+    {
+     "id": "tt1493274",
+     "tmdb": 1245993,
+     "type": "movie",
+     "group": "new",
+     "title": "Ladrões",
+     "original": "Caught Stealing",
+     "year": 2025,
+     "runtime": 107,
+     "genres": [
+      "Crime",
+      "Thriller"
+     ],
+     "rating": "6,8",
+     "desc": "Hank Thompson era um fenômeno do beisebol no colégio, mas agora não pode mais jogar. Mesmo assim, a sua vida vai bem. Ele tem uma namorada incrível, que trabalha como barman em um bar em Nova York e seu time favorito está fazendo uma improvável corrida rumo ao título. Quando seu vizinho, Russ, pede que ele cuide de seu gato por alguns dias, Hank de repente se vê no meio de uma turma nada convencional de gângsteres ameaçadores. Todos querem algo dele — o problema é que ele não faz ideia do quê.",
+     "backdrop": "/41043LV7mfluH8iXEUPVseCDAv5.jpg",
+     "poster": "/l1ezVQbjxqnoTPMOLLKQmdTNen1.jpg",
+     "why": "Crime e thriller",
+     "score": 5.364
+    },
+    {
+     "id": "tt28498219",
+     "tmdb": 1148365,
+     "type": "movie",
+     "group": "new",
+     "title": "Matchbox - O Filme",
+     "original": "Matchbox the Movie",
+     "year": 2026,
+     "runtime": 127,
+     "genres": [
+      "Ação",
+      "Comédia"
+     ],
+     "rating": "7,6",
+     "desc": "Quando um grupo de antigos amigos de infância se reencontra, o encontro toma um rumo inesperado ao se depararem com uma perigosa trama internacional e precisarem salvar o mundo.",
+     "backdrop": "/jdJsnhHfkIi3J7jwfiCFT4gXNx5.jpg",
+     "poster": "/hgPJA0NTmXYpPA3cgh4ZrI1PubL.jpg",
+     "why": "Ação e comédia",
+     "score": 5.335
+    },
+    {
+     "id": "tt15671028",
+     "tmdb": 884605,
+     "type": "movie",
+     "group": "new",
+     "title": "Que Horas Eu Te Pego?",
+     "original": "No Hard Feelings",
+     "year": 2023,
+     "runtime": 103,
+     "genres": [
+      "Comédia",
+      "Romance"
+     ],
+     "rating": "6,7",
+     "desc": "Uma jovem falida é contratada para namorar um adolescente introvertido e socialmente desajeitado, que está se preparando para a faculdade.",
+     "backdrop": "/rRcNmiH55Tz0ugUsDUGmj8Bsa4V.jpg",
+     "poster": "/Ab2IX5DuY1ZAyFNGXh1MeUOzIGB.jpg",
+     "why": "Comédia e romance",
+     "score": 5.224
+    },
+    {
      "id": "tt36586020",
      "tmdb": 1400837,
      "type": "movie",
@@ -6092,84 +6056,6 @@
      "poster": "/wgO649swkzsI58q3ikpxYNvkwv7.jpg",
      "why": "Terror e fantasia",
      "score": 4.399
-    },
-    {
-     "id": "tt28814949",
-     "tmdb": 1160164,
-     "type": "movie",
-     "group": "new",
-     "title": "TAYLOR SWIFT | THE ERAS TOUR",
-     "original": "TAYLOR SWIFT | THE ERAS TOUR",
-     "year": 2023,
-     "runtime": 170,
-     "genres": [
-      "Música"
-     ],
-     "rating": "8,2",
-     "desc": "A cantora e ícone pop Taylor Swift faz um show que mostra por que ela é um fenômeno cultural. No espetáculo, a artista apresenta canções de todas as fases de sua carreira.",
-     "backdrop": "/4Wvvkkz3S4hZSrLTqYWRFjPoug9.jpg",
-     "poster": "/jf3YO8hOqGHCupsREf5qymYq1n.jpg",
-     "why": "Música · nota 8,2 no TMDB",
-     "score": 4.399
-    },
-    {
-     "id": "tt28535715",
-     "tmdb": 1255833,
-     "type": "movie",
-     "group": "new",
-     "title": "Dentro da Baleia",
-     "original": "Whalefall",
-     "year": 2026,
-     "runtime": 106,
-     "genres": [
-      "Thriller"
-     ],
-     "rating": "6,6",
-     "desc": "Um jovem mergulhador resolveu buscar os restos mortais do seu pai em alto mar, mas no meio dessa triste aventura é capturado por uma baleia cachalote de 25 metros e 60 toneladas. Restando apenas uma hora de oxigênio, ele terá que fazer de tudo para encontrar uma forma de ir embora e seguir a sua vida, mas para isso terá que enfrentar uma grande jornada física e emocional para que ele consiga redescobrir a sua vontade de viver após a vivência do luto.",
-     "backdrop": "/shW2jHkQLZVv4Fko2rJDqTGU0gx.jpg",
-     "poster": "/66fDoNVCtPrP6jIqMpV1sUEcciw.jpg",
-     "why": "Thriller",
-     "score": 4.37
-    },
-    {
-     "id": "tt34956443",
-     "tmdb": 980477,
-     "type": "movie",
-     "group": "new",
-     "title": "Ne Zha 2: O Renascer da Alma",
-     "original": "哪吒之魔童闹海",
-     "year": 2025,
-     "runtime": 144,
-     "genres": [
-      "Animação",
-      "Ação"
-     ],
-     "rating": "8,2",
-     "desc": "Após uma grande catástrofe, as almas de Ne Zha e Ao Bing são salvas, mas seus corpos enfrentam a ruína. Para lhes dar uma nova vida, Taiyi Zhenren recorre à mística lótus de sete cores em uma ousada tentativa de reconstruí-los e mudar seus destinos.",
-     "backdrop": "/gd9kxeEEONj5SECs4GA8Ddn3czI.jpg",
-     "poster": "/wJnb4ikygiVuYLuvj4b4Jpvudn1.jpg",
-     "why": "Animação e ação · nota 8,2 no TMDB",
-     "score": 4.33
-    },
-    {
-     "id": "tt29611136",
-     "tmdb": 1195803,
-     "type": "movie",
-     "group": "new",
-     "title": "Wicker",
-     "original": "Wicker",
-     "year": 2026,
-     "runtime": 105,
-     "genres": [
-      "Romance",
-      "Fantasia"
-     ],
-     "rating": "7,5",
-     "desc": "",
-     "backdrop": "/xVh1ypMoVkMf5IB7y3hnRplJ14c.jpg",
-     "poster": "/6FcBZOKvyrLCKGCyBG0ySCR4okt.jpg",
-     "why": "Romance e fantasia",
-     "score": 4.193
     },
     {
      "id": "tt2948372",
@@ -6654,287 +6540,286 @@
      "kind": "season",
      "items": [
       {
-       "id": "tt0073195",
-       "tmdb": 578,
+       "id": "tt0087800",
+       "tmdb": 377,
        "type": "movie",
        "group": "",
-       "title": "Tubarão",
-       "original": "Jaws",
-       "year": 1975,
-       "runtime": 124,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "7,7",
-       "desc": "Um terrível ataque a banhistas é o sinal de que a praia da pequena cidade de Amity virou refeitório de um gigantesco tubarão branco, que começa a se alimentar dos turistas. Embora o prefeito queira esconder os fatos da mídia, o xerife local pede ajuda a um ictiologista e a um pescador veterano para caçar o animal. Mas a missão vai ser mais complicada do que eles imaginavam.",
-       "backdrop": "/i1yf91svRHX45l9BXL8rVFzLoPH.jpg",
-       "poster": "/iD2XVowFgHngYGamCAdq2T44gMr.jpg",
-       "why": "Terror e thriller · nota 7,7 no TMDB"
-      },
-      {
-       "id": "tt0065761",
-       "tmdb": 27431,
-       "type": "movie",
-       "group": "",
-       "title": "O Gato de Nove Caudas",
-       "original": "Il gatto a nove code",
-       "year": 1971,
-       "runtime": 112,
-       "genres": [
-        "Terror",
-        "Mistério"
-       ],
-       "rating": "6,7",
-       "desc": "Um repórter de jornal e um jornalista aposentado e cego tentam resolver uma série de assassinatos ligados a projetos experimentais de pesquisa ultra secreta de uma empresa farmacêutica e, ao fazê-lo, tornam-se alvos do assassino.",
-       "backdrop": "/5yunPf3vpOMYon7HBJtrwZNs1YG.jpg",
-       "poster": "/4BL0IPvzgrEQmdOOsGDN47GG3Fy.jpg",
-       "why": "Terror e mistério"
-      },
-      {
-       "id": "tt28662887",
-       "tmdb": 1165466,
-       "type": "movie",
-       "group": "",
-       "title": "Hora do Massacre",
-       "original": "Wake Up",
-       "year": 2024,
-       "runtime": 83,
-       "genres": [
-        "Terror",
-        "Thriller"
-       ],
-       "rating": "6,7",
-       "desc": "Na tentativa de chamar atenção para a crise ambiental, um grupo de jovens ativistas decide invadir e vandalizar uma loja de móveis. No entanto, o protesto rapidamente se transforma em um verdadeiro massacre quando se veem presos lá dentro com um segurança com uma obsessão doentia por caça. Conforme a violência e o terror tomam conta da noite, os adolescentes se veem em uma luta desesperada por sobrevivência contra um assassino implacável e perturbador.",
-       "backdrop": "/5PuM2lWFRVLZbyzErGVd8qHi55p.jpg",
-       "poster": "/zlJ6LEmeiJmdNT9BStqlSzEpepF.jpg",
-       "why": "Terror e thriller"
-      },
-      {
-       "id": "tt27802490",
-       "tmdb": 838209,
-       "type": "movie",
-       "group": "",
-       "title": "Exhuma",
-       "original": "파묘",
-       "year": 2024,
-       "runtime": 133,
-       "genres": [
-        "Mistério",
-        "Terror"
-       ],
-       "rating": "7,6",
-       "desc": "Depois de sofrer uma série de eventos paranormais, uma família rica que vive em Los Angeles convoca uma jovem dupla de xamãs em ascensão, Hwa Rim e Bong Gil, para salvar o recém-nascido da família. Assim que eles chegam, Hwa Rim sente que uma sombra escura de seu ancestral se apoderou da família em um chamado 'Chamado Grave'. Para exumar o túmulo e socorrer o ancestral, Hwa Rim busca a ajuda do geomante de primeira linha Sang Deok e do agente funerário Yeong Geun. Para sua consternação, os quatro encontram o túmulo em um local sombrio em uma vila remota na Coreia. Sem saber das consequências, a exumação é realizada, desencadeando uma força malévola enterrada por baixo.",
-       "backdrop": "/kYWk8TW5TkpCWkB0mkUm72N0lb8.jpg",
-       "poster": "/tw0i3kkmOTjDjGFZTLHKhoeXVvA.jpg",
-       "why": "Mistério e terror · nota 7,6 no TMDB"
-      },
-      {
-       "id": "tt0013442",
-       "tmdb": 653,
-       "type": "movie",
-       "group": "",
-       "title": "Nosferatu: Uma Sinfonia de Horror",
-       "original": "Nosferatu, eine Symphonie des Grauens",
-       "year": 1922,
-       "runtime": 94,
-       "genres": [
-        "Terror",
-        "Fantasia"
-       ],
-       "rating": "7,6",
-       "desc": "Hutter, agente imobiliário, viaja até os Montes Cárpatos para vender um castelo no Mar Báltico cujo proprietário é o excêntrico conde Graf Orlock, que na verdade é um milenar vampiro que, buscando poder, se muda para Bremen, Alemanha, espalhando o terror na região. Curiosamente quem pode reverter esta situação é Ellen, a esposa de Hutter, pois Orlock está atraído por ela.",
-       "backdrop": "/cA9iGtvjRGJHzDBfrq48l0eyCvA.jpg",
-       "poster": "/zEzQTngP7F4qVmLDCWg5Hby6cgX.jpg",
-       "why": "Terror e fantasia · nota 7,6 no TMDB"
-      },
-      {
-       "id": "tt13560574",
-       "tmdb": 760104,
-       "type": "movie",
-       "group": "",
-       "title": "X: A Marca da Morte",
-       "original": "X",
-       "year": 2022,
-       "runtime": 106,
+       "title": "A Hora do Pesadelo",
+       "original": "A Nightmare on Elm Street",
+       "year": 1984,
+       "runtime": 91,
        "genres": [
         "Terror"
        ],
-       "rating": "6,7",
-       "desc": "Em 1979, um grupo de jovens cineastas se propôs a fazer um filme adulto na zona rural do Texas, mas quando seus solitários e idosos anfitriões os pegam em flagrante, o elenco se vê lutando por suas vidas.",
-       "backdrop": "/o375tDNib7tihlkWdtLW1fQhNL1.jpg",
-       "poster": "/4BarWJRYFB5fN7LsJI9U2ul79hB.jpg",
+       "rating": "7,4",
+       "desc": "Um grupo de adolescentes tem pesadelos horríveis, onde são atacados por um homem deformado com garras de aço. Ele apenas aparece durante o sono e, para escapar, é preciso acordar. Os crimes vão ocorrendo seguidamente, até que se descobre que o ser misterioso é na verdade Freddy Krueger, um homem que molestou crianças na rua Elm e que foi queimado vivo pela vizinhança. Agora Krueger pode retornar para se vingar daqueles que o mataram, através do sono.",
+       "backdrop": "/nzSjTiecdosBfwMGAdpt9CxltCI.jpg",
+       "poster": "/8cXxfVhSdTL1tC5ivC0mX74QQyI.jpg",
        "why": "Terror"
       },
       {
-       "id": "tt0263488",
-       "tmdb": 8922,
+       "id": "tt0134084",
+       "tmdb": 4234,
        "type": "movie",
        "group": "",
-       "title": "Olhos Famintos",
-       "original": "Jeepers Creepers",
-       "year": 2001,
-       "runtime": 91,
+       "title": "Pânico 3",
+       "original": "Scream 3",
+       "year": 2000,
+       "runtime": 116,
        "genres": [
         "Terror",
         "Mistério"
        ],
-       "rating": "6,5",
-       "desc": "Ao voltarem para casa por uma estrada sem movimento, os irmãos Trish e Darry veem um vulto atirando o que parece ser um corpo embrulhado. Parando para investigar, eles descobrem centenas de corpos mutilados, pendurados embaixo de uma antiga igreja.",
-       "backdrop": "/m0yTFeh8vrsMP0fQDdYGSh4xthX.jpg",
-       "poster": "/jPiaAL3hOAexYnw5JMCwJT0xjgm.jpg",
+       "rating": "6,0",
+       "desc": "Assassinatos levam uma jovem, um repórter e um ex-policial ao set de um filme de horror inspirado por acontecimentos aterrorizantes aos quais eles sobreviveram.",
+       "backdrop": "/AbFWty0o5nKGo4iLJaGRgqFtC8W.jpg",
+       "poster": "/i3ZYPL2p8Q4dwcxsaMN0xCYrxqA.jpg",
        "why": "Terror e mistério"
       },
       {
-       "id": "tt0489062",
-       "tmdb": 50787,
+       "id": "tt9177882",
+       "tmdb": 539517,
        "type": "movie",
        "group": "",
-       "title": "Em Pedaços",
-       "original": "Going to Pieces: The Rise and Fall of the Slasher Film",
-       "year": 2006,
-       "runtime": 88,
+       "title": "Constantine: Cidade de Demônios",
+       "original": "Constantine: City of Demons - The Movie",
+       "year": 2018,
+       "runtime": 90,
        "genres": [
-        "Documentário",
-        "Terror"
+        "Fantasia",
+        "Animação"
        ],
-       "rating": "6,8",
-       "desc": "Este olhar histórico e crítico em filmes slasher, que inclui dezenas de clipes, começa com Halloween, Sexta-Feira 13, e Baile de Formatura. Diretores, roteiristas, produtores e criadores de efeitos especiais comentam sobre a produção e o sucesso dos filmes. Durante os anos, os filmes ficam mais baixos, os orçamentos ficam menores, e seu apelo diminui. Então, A Hora do Pesadelo revive o gênero. Pulando para o final dos anos 90, quando Pânico traz humor e estrelas de TV para a mistura.",
-       "backdrop": "/zC0fwAHdQnR7lb1xOc370U95jh5.jpg",
-       "poster": "/yztO70IoLnK5bRhRUn8gJ7meiGN.jpg",
-       "why": "Documentário e terror"
+       "rating": "7,7",
+       "desc": "Uma década depois de um trágico acidente, o homem de família Chas e o místico detetive John Constantine pretendem curar Trish, a filha de Chas, de um misterioso coma sobrenatural. Com a ajuda de sócios poderosos, eles buscam a salvação.",
+       "backdrop": "/dPPjBf74W1j8va6KvDGePaJcqm7.jpg",
+       "poster": "/el92WyplBfo6yFtOTmkoYeauLrf.jpg",
+       "why": "Fantasia e animação · nota 7,7 no TMDB"
       },
       {
-       "id": "tt7914416",
-       "tmdb": 513434,
+       "id": "tt0096734",
+       "tmdb": 11974,
        "type": "movie",
        "group": "",
-       "title": "Plano-Sequência dos Mortos",
-       "original": "カメラを止めるな！",
-       "year": 2017,
-       "runtime": 96,
+       "title": "Meus Vizinhos São um Terror",
+       "original": "The 'Burbs",
+       "year": 1989,
+       "runtime": 101,
        "genres": [
         "Comédia",
         "Terror"
        ],
-       "rating": "7,6",
-       "desc": "Uma equipe de filmagem está gravando uma história de terror em uma estação abandonada de tratamento de água, supostamente usada para experimentos humanos pelos militares. Assim que o diretor começa a intimidar e pedir mais sangue artificial, eles são surpreendidos por um apocalipse zumbi de verdade.",
-       "backdrop": "/oslUsPw3PUhDVK7a5soTvCAuaO7.jpg",
-       "poster": "/wFbAxK10CiJA1XxgJaEc16UeHTb.jpg",
-       "why": "Comédia e terror · nota 7,6 no TMDB"
+       "rating": "6,8",
+       "desc": "Quando os Klopek, uma inusitada família se muda para a casa ao lado da de Ray Peterson (Tom Hanks) várias situações estranhas começam a surgir e moradores a desaparecer. Restará a Ray e ao resto da população local, descobrir quem são essas pessoas e seus envolvimentos nos atuais acontecimentos.",
+       "backdrop": "/pyeknyOKRLBd4ROOeYL6kV103ov.jpg",
+       "poster": "/8zcC3YIyajlm2A4sYp4WHNiI1An.jpg",
+       "why": "Comédia e terror"
       },
       {
-       "id": "tt0450278",
-       "tmdb": 1690,
+       "id": "tt0216651",
+       "tmdb": 15999,
        "type": "movie",
        "group": "",
-       "title": "O Albergue",
-       "original": "Hostel",
-       "year": 2006,
-       "runtime": 94,
-       "genres": [
-        "Terror"
-       ],
-       "rating": "6,0",
-       "desc": "Os melhores amigos Josh e Paxton decidem passar um verão viajando como mochileiros pela Europa. Em Amsterdã, eles conhecem Oli, um viajante da Islândia. Os três decidem investigar um boato sobre um albergue na Eslováquia repleto de mulheres sensuais e acabam sendo envolvidos em um jogo mortal.",
-       "backdrop": "/dF6GNQ0TnZkr1t4wBt36Xc0Pccd.jpg",
-       "poster": "/lF0qaRHBa86mOHomjunVg31fJMz.jpg",
-       "why": "Terror"
-      },
-      {
-       "id": "tt7144666",
-       "tmdb": 756999,
-       "type": "movie",
-       "group": "",
-       "title": "O Telefone Preto",
-       "original": "The Black Phone",
-       "year": 2022,
+       "title": "Vampire Hunter D: Bloodlust",
+       "original": "バンパイアハンターD",
+       "year": 2001,
        "runtime": 103,
+       "genres": [
+        "Animação",
+        "Fantasia"
+       ],
+       "rating": "7,7",
+       "desc": "Nascido de mãe humana e pai vampiro, \"D\" vive entre a luz e a escuridão num mundo à beira do abismo. \"D\" é contratado para rastrear Meier Link, um vampiro poderoso que sequestrou uma garota humana, Charlotte Elbourne. As ordens de \"D\" são claras: encontre Charlotte a qualquer custo e traga-a de volta. Mas, pela primeira vez, “D” enfrenta concorrentes sérios, os Irmãos Markus, também contratados para o mesmo fim. \"D\" deve interceptar Meier e superar adversários poderosos em uma corrida mortal contra o tempo.",
+       "backdrop": "/lwkwVTNdNeG0a1FT06wr1Ylm1OV.jpg",
+       "poster": "/dy5etDBvbIwCvuUD7sIMlvAvCX0.jpg",
+       "why": "Animação e fantasia · nota 7,7 no TMDB"
+      },
+      {
+       "id": "tt0080661",
+       "tmdb": 11033,
+       "type": "movie",
+       "group": "",
+       "title": "Vestida para Matar",
+       "original": "Dressed to Kill",
+       "year": 1980,
+       "runtime": 105,
+       "genres": [
+        "Thriller",
+        "Mistério"
+       ],
+       "rating": "6,9",
+       "desc": "Um terapeuta de Manhattan, o Dr. Robert Elliott, enfrenta o momento mais aterrorizante de sua vida, quando um assassino psicopata começa a atacar as mulheres de sua vida - usando uma navalha roubada de seu escritório. Desesperado para encontrar o assassino antes que outra pessoa seja ferida, Elliott logo se vê envolvido em um mundo de escusos e perturbadores desejos.",
+       "backdrop": "/8UZfEjAlFq1iUiAkHMkJViq4ZO0.jpg",
+       "poster": "/3wlVVkyxACA2yB4mxZZYS05kXnH.jpg",
+       "why": "Thriller e mistério"
+      },
+      {
+       "id": "tt0093629",
+       "tmdb": 10072,
+       "type": "movie",
+       "group": "",
+       "title": "A Hora do Pesadelo 3: Os Guerreiros dos Sonhos",
+       "original": "A Nightmare on Elm Street 3: Dream Warriors",
+       "year": 1987,
+       "runtime": 96,
        "genres": [
         "Terror",
         "Thriller"
        ],
-       "rating": "7,5",
-       "desc": "Após ser raptado por um assassino de crianças, Finney Shaw começa a receber chamadas de vítimas anteriores do assassino. Elas estão determinadas a garantir que o que lhes aconteceu não aconteça com Finney.",
-       "backdrop": "/AfvIjhDu9p64jKcmohS4hsPG95Q.jpg",
-       "poster": "/aAdnNifQo2qxDYnuDD3blsxinH1.jpg",
+       "rating": "6,7",
+       "desc": "Os últimos dos garotos da Rua Elm agora estão num hospital psiquiátrico, onde Freddy assombra seus sonhos com horrores indescritíveis. Sua única esperança é a pesquisadora do sono e igualmente sobrevivente de Freddy, Nancy Thompson. É ela quem vai os ajudar a lutar contra o psicopata sobrenatural em seu próprio território infernal.",
+       "backdrop": "/euXJlfeYSyrdkOoFQ9gtUG8OOhH.jpg",
+       "poster": "/rl1Iuzu2Vntz86mTHJ5BF0SAty.jpg",
        "why": "Terror e thriller"
       },
       {
-       "id": "tt11245972",
-       "tmdb": 646385,
+       "id": "tt0094862",
+       "tmdb": 10585,
        "type": "movie",
        "group": "",
-       "title": "Pânico",
-       "original": "Scream",
-       "year": 2022,
-       "runtime": 114,
+       "title": "Brinquedo Assassino",
+       "original": "Child's Play",
+       "year": 1988,
+       "runtime": 87,
+       "genres": [
+        "Terror"
+       ],
+       "rating": "6,8",
+       "desc": "Após a babá do garotinho de seis anos, Andy Barclay, ser violentamente arremessada pela janela, ninguém acredita nele quando diz que \"Chucky\", o boneco que ganhou de aniversário, foi o culpado! Até que as coisas começam a dar errado... mortalmente errado. E quando uma série de terríveis assassinatos leva um detetive de volta ao mesmo brinquedo, ele descobre que o verdadeiro terror tinha apenas começado – o boneco perturbado planeja transferir seu espírito mau para um ser vivo – o pequeno Andy.",
+       "backdrop": "/edghRD7vw1XgWEpMLpGt1VSGB5w.jpg",
+       "poster": "/pdnXDnuAWIc9pwobTQ5XknlcbbS.jpg",
+       "why": "Terror"
+      },
+      {
+       "id": "tt9701940",
+       "tmdb": 591274,
+       "type": "movie",
+       "group": "",
+       "title": "Rua do Medo: 1978 - Parte 2",
+       "original": "Fear Street: 1978",
+       "year": 2021,
+       "runtime": 111,
+       "genres": [
+        "Terror",
+        "Mistério"
+       ],
+       "rating": "7,2",
+       "desc": "Na cidade amaldiçoada de Shadyside, uma onda de assassinatos aterroriza o Acampamento Nightwing, transformando as férias em uma luta pela sobrevivência.",
+       "backdrop": "/oMnJhVFr0xVfxy4HPBt1LDKoFgV.jpg",
+       "poster": "/uicSprflqrrhWykOuJjHQ9lSLJ1.jpg",
+       "why": "Terror e mistério"
+      },
+      {
+       "id": "tt6566576",
+       "tmdb": 591273,
+       "type": "movie",
+       "group": "",
+       "title": "Rua do Medo: 1994 - Parte 1",
+       "original": "Fear Street: 1994",
+       "year": 2021,
+       "runtime": 107,
        "genres": [
         "Terror",
         "Mistério"
        ],
        "rating": "6,7",
-       "desc": "Vinte e cinco anos após uma série de crimes brutais chocar a tranquila Woodsboro, um novo assassino se apropria da máscara de Ghostface e começa a perseguir um grupo de adolescentes para trazer à tona segredos do passado mortal da cidade.",
-       "backdrop": "/ifUfE79O1raUwbaQRIB7XnFz5ZC.jpg",
-       "poster": "/lvskZGlyH9LuGKO8OdBWQWTGlGx.jpg",
+       "desc": "Depois de uma série de assassinatos brutais, um grupo de adolescentes enfrenta uma força maligna que aterroriza a cidade há séculos. Bem-vindos a Shadyside.",
+       "backdrop": "/vu5Y8qFqlzcboDbbZIMTAgj0KLb.jpg",
+       "poster": "/kIABUqs2kfFBDa10l2tFxTIKZMH.jpg",
        "why": "Terror e mistério"
       },
       {
-       "id": "tt32612507",
-       "tmdb": 1304313,
+       "id": "tt0120082",
+       "tmdb": 4233,
        "type": "movie",
        "group": "",
-       "title": "Maldição da Múmia",
-       "original": "Lee Cronin's The Mummy",
-       "year": 2026,
-       "runtime": 133,
-       "genres": [
-        "Terror",
-        "Mistério"
-       ],
-       "rating": "7,8",
-       "desc": "A filha de um jornalista desaparece num deserto sem deixar rastros, deixando a família dilacerada e em luto. Até que, oito anos mais tarde, a jovem garota reaparece, deixando todos chocados. O problema é que esse encontro aparentemente feliz se transforma em um pesadelo de proporções gigantes.",
-       "backdrop": "/xugEpZk9YQ0DIz1aFvH5HGkqpZK.jpg",
-       "poster": "/fI6XBw8k5CWNwxLEYZwpjA89TPg.jpg",
-       "why": "Terror e mistério · nota 7,8 no TMDB"
-      },
-      {
-       "id": "tt0117571",
-       "tmdb": 4232,
-       "type": "movie",
-       "group": "",
-       "title": "Pânico",
-       "original": "Scream",
-       "year": 1996,
-       "runtime": 111,
-       "genres": [
-        "Crime",
-        "Terror"
-       ],
-       "rating": "7,4",
-       "desc": "Após uma série de mortes misteriosas, um grupo de amigos são ameaçados por um assassino. Em uma mistura de emoções fortes e muitos sustos, aqui a única coisa que se pode ter certeza é que todos são vítimas e todos são suspeitos.",
-       "backdrop": "/4w6nQYAY0eb7B0VVRDXilXcgAUV.jpg",
-       "poster": "/cJj2gYzkPFSqYGGOhfLgeANlXkB.jpg",
-       "why": "Crime e terror"
-      },
-      {
-       "id": "tt1262416",
-       "tmdb": 41446,
-       "type": "movie",
-       "group": "",
-       "title": "Pânico 4",
-       "original": "Scream 4",
-       "year": 2011,
-       "runtime": 111,
+       "title": "Pânico 2",
+       "original": "Scream 2",
+       "year": 1997,
+       "runtime": 120,
        "genres": [
         "Terror",
         "Mistério"
        ],
        "rating": "6,5",
-       "desc": "Faz muitos anos que o assassino Ghostface deixou um rastro mortal pela cidade de Woodsboro. A fim de superar o trauma desses terríveis acontecimentos, Sidney Prescott escreveu um livro de auto-ajuda. Ela retorna à Woodsboro para lançar seu livro e reencontra os velhos amigos Gale Weathers e o Xerife Dewey. No entanto, a chegada de Sidney também provoca o retorno de Ghostface, colocando Sidney e todos que ama em perigo.",
-       "backdrop": "/c5EmNhLQsTTKAyUHULnKYQjlloz.jpg",
-       "poster": "/nN1cs0SxMjJqwuRAdyuXrevLOGh.jpg",
+       "desc": "Dois anos após o massacre em Woodsboro, Sidney Prescott e Randy Meeks estão tentando refazer suas vidas em uma nova cidade. Estudando no colégio de Windsor, eles vão lidar com uma nova onda de assassinatos quando o terrível psicopata retorna para assombrá-los nas vésperas do lançamento do filme baseado nos seus crimes.",
+       "backdrop": "/lVmcX3hlJqsUGkEOEZkRFiOQdLv.jpg",
+       "poster": "/ylcoIk1WzHp6zCkDeLipFJ3ZJbd.jpg",
        "why": "Terror e mistério"
+      },
+      {
+       "id": "tt0047034",
+       "tmdb": 1678,
+       "type": "movie",
+       "group": "",
+       "title": "Godzilla",
+       "original": "ゴジラ",
+       "year": 1954,
+       "runtime": 98,
+       "genres": [
+        "Thriller",
+        "Terror"
+       ],
+       "rating": "7,6",
+       "desc": "O Japão entra em pânico após vários navios afundarem perto da Ilha de Odo. Uma expedição à ilha liderada pelo Dr. Kyohei Yamane logo descobre algo muito mais devastador do que se imaginava: um monstro de 50 metros de altura chamado Godzilla pelos nativos. Agora, o monstro inicia uma onda de destruição que ameaça destruir não apenas o Japão, mas também o resto do mundo.",
+       "backdrop": "/ub1sIbdSrokPZawY2ljExXZov2j.jpg",
+       "poster": "/t4GngFUz5i3NndhzLGKn5HakQeu.jpg",
+       "why": "Thriller e terror · nota 7,6 no TMDB"
+      },
+      {
+       "id": "tt6535880",
+       "tmdb": 517116,
+       "type": "movie",
+       "group": "",
+       "title": "A Casa do Terror",
+       "original": "Haunt",
+       "year": 2019,
+       "runtime": 92,
+       "genres": [
+        "Terror",
+        "Thriller"
+       ],
+       "rating": "6,7",
+       "desc": "No Halloween, um grupo de amigos encontra uma casa assombrada 'extrema' que promete alimentar-se dos seus medos mais sombrios. A noite torna-se mortal quando eles chegam à terrível conclusão de que alguns pesadelos são reais.",
+       "backdrop": "/dmXsktpfHgTNeLFeo5nVItiXuBr.jpg",
+       "poster": "/pRapSkoVtHeXDPfUP4883njzIJ3.jpg",
+       "why": "Terror e thriller"
+      },
+      {
+       "id": "tt0482606",
+       "tmdb": 10665,
+       "type": "movie",
+       "group": "",
+       "title": "Os Estranhos",
+       "original": "The Strangers",
+       "year": 2008,
+       "runtime": 88,
+       "genres": [
+        "Terror"
+       ],
+       "rating": "6,1",
+       "desc": "Kristen McKay e James Hoyt estão numa remota casa de veraneio, mas o seu descanso é interrompido quando três estranhos invadem o local, mostrando sentir prazer ao aterrorizá-los.",
+       "backdrop": "/y27M2hIwZRRvMAVEadFPP5hCPg1.jpg",
+       "poster": "/l2Z7iL5HIBJ0qeNldI59YmQRSEk.jpg",
+       "why": "Terror"
+      },
+      {
+       "id": "tt0056687",
+       "tmdb": 10242,
+       "type": "movie",
+       "group": "",
+       "title": "O Que Terá Acontecido a Baby Jane?",
+       "original": "What Ever Happened to Baby Jane?",
+       "year": 1962,
+       "runtime": 132,
+       "genres": [
+        "Terror",
+        "Thriller"
+       ],
+       "rating": "7,9",
+       "desc": "A história do diretor Robert Aldrich é um thriller sobre uma veterana atriz de teatro que conheceu a fama na infância e agora inicia um reinado psicótico de terror sobre sua irmã, ex-rainha do cinema nos anos 30 e hoje presa a uma cadeira de rodas.",
+       "backdrop": "/gkXL5ka6ciU4A4KYSvLIAXtvh7k.jpg",
+       "poster": "/5YOJEWsqeYz0EUcB7S1foR2UmVb.jpg",
+       "why": "Terror e thriller · nota 7,9 no TMDB"
       }
      ],
      "from": "2026-11-13",
@@ -6945,264 +6830,189 @@
      "kind": "doc",
      "items": [
       {
-       "id": "tt0844761",
-       "tmdb": 47658,
+       "id": "tt27902121",
+       "tmdb": 1128559,
        "type": "movie",
        "group": "",
-       "title": "This Filthy World",
-       "original": "This Filthy World",
-       "year": 2006,
-       "runtime": 86,
-       "genres": [
-        "Documentário",
-        "Comédia"
-       ],
-       "rating": "7,6",
-       "desc": "O monólogo de John Waters celebra a carreira cinematográfica e as obsessões do homem que William Burroughs uma vez chamou de \"O Papa do Trash.\" Waters fala de seus filmes, de suas influências artísticas e de seu fascínio pelo crime, pelo cinema exploitation e pelo mundo da arte contemporânea.",
-       "backdrop": "/k5bAZUer22aXtlZfhjpXNTuzAYB.jpg",
-       "poster": "/eQS4FYQ5ba5urrcLGUEyP7P6ljB.jpg",
-       "why": "Documentário e comédia"
-      },
-      {
-       "id": "tt21374850",
-       "tmdb": 1004663,
-       "type": "movie",
-       "group": "",
-       "title": "Toda a Beleza e Dor",
-       "original": "All the Beauty and the Bloodshed",
-       "year": 2022,
-       "runtime": 121,
+       "title": "Super/Man: A História de Christopher Reeve",
+       "original": "Super/Man: The Christopher Reeve Story",
+       "year": 2024,
+       "runtime": 106,
        "genres": [
         "Documentário"
        ],
-       "rating": "7,2",
-       "desc": "A renomada artista e fotógrafa Nan Goldin lidera uma luta contra a poderosa família Sackler, o império farmacêutico apontado como um dos grandes responsáveis pela crise de opioides nos Estados Unidos.",
-       "backdrop": "/anw7ONmtm1BrHd1Du0GQ5FoNd6r.jpg",
-       "poster": "/dkTCuckM2j2STF1ecuDhnz9UOz0.jpg",
+       "rating": "8,1",
+       "desc": "Um documentário comovente sobre a história notável de Christopher Reeve como pai, ativista pelos direitos das pessoas com deficiência e um dos atores mais icônicos a vestir uma capa.",
+       "backdrop": "/xD3ePiiueSrWp4aXtZNrWhzLrlh.jpg",
+       "poster": "/ab5X8sDqGD666YwSpTD35aNEjPk.jpg",
        "why": "Documentário"
       },
       {
-       "id": "tt39018643",
-       "tmdb": 1515899,
+       "id": "tt39314348",
+       "tmdb": 1623125,
        "type": "movie",
        "group": "",
-       "title": "Billie Eilish - Hit Me Hard and Soft: The Tour in 3D",
-       "original": "Billie Eilish - Hit Me Hard and Soft: The Tour (Live in 3D)",
+       "title": "A História de Um Gorila com David Attenborough",
+       "original": "A Gorilla Story: Told by David Attenborough",
        "year": 2026,
-       "runtime": 114,
-       "genres": [
-        "Música",
-        "Documentário"
-       ],
-       "rating": "8,5",
-       "desc": "Codirigido por Billie Eilish em parceria com o visionário cineasta James Cameron, o longa traz performances ao vivo em 3D de hits como “LUNCH”, “Birds of a Feather” e “CHIHIRO”, além de contar um pouco dos bastidores da turnê do álbum \"HIT ME HARD AND SOFT\".",
-       "backdrop": "/vTk6KQRLomlkMG5xqQIrzvyQB8z.jpg",
-       "poster": "/rGZyH9erzIVnk5R7NEF9V38nCQu.jpg",
-       "why": "Música e documentário"
-      },
-      {
-       "id": "tt5233558",
-       "tmdb": 448444,
-       "type": "movie",
-       "group": "",
-       "title": "A Morte e Vida de Marsha P. Johnson",
-       "original": "The Death and Life of Marsha P. Johnson",
-       "year": 2017,
-       "runtime": 105,
+       "runtime": 78,
        "genres": [
         "Documentário"
        ],
-       "rating": "7,1",
-       "desc": "Enquanto enfrenta uma onda de violência contra mulheres trans, a ativista Victoria Cruz investiga a morte de sua amiga Marsha P. Johnson, em 1992.",
-       "backdrop": "/fA16bfUd00jNbcdqheUTVnqcFBL.jpg",
-       "poster": "/cvhlOuaAMkQi7Kf78lU6QzcyVPn.jpg",
+       "rating": "8,0",
+       "desc": "Neste documentário intimista, David Attenborough revisita um dos momentos mais marcantes de sua vida: o primeiro encontro com um bebê gorila chamado Pablo, nas montanhas de Ruanda, há quase 50 anos. Mesclando imagens raras de arquivo com gravações atuais, o naturalista acompanha os descendentes de Pablo e revela comportamentos extraordinários dos gorilas que nunca haviam sido filmados antes. É uma história emocionante sobre legado, conexão, esperança e alegria.",
+       "backdrop": "/r80zWzxQn5pMAPgDHd4CiKIGOyU.jpg",
+       "poster": "/jdbhjmDymtYdcYfzsmBlQEsOExV.jpg",
        "why": "Documentário"
       },
       {
-       "id": "tt8727582",
-       "tmdb": 597594,
+       "id": "tt37674426",
+       "tmdb": 1517772,
        "type": "movie",
        "group": "",
-       "title": "Atrás da Estante",
-       "original": "Circus of Books",
-       "year": 2019,
-       "runtime": 86,
+       "title": "Número Desconhecido: Catfishing na Escola",
+       "original": "Unknown Number: The High School Catfish",
+       "year": 2025,
+       "runtime": 94,
        "genres": [
-        "Documentário",
-        "História"
+        "Documentário"
        ],
-       "rating": "6,8",
-       "desc": "Durante décadas, um casal judeu gerenciou a Circus of Books, uma livraria e sex shop gay de Los Angeles. Neste documentário, a filha do casal conta essa história.",
-       "backdrop": "/oLxuAGR58NMBYRiMtaXRnkWY4c2.jpg",
-       "poster": "/y19U39IccjFpn70UmYIET9B3dBV.jpg",
-       "why": "Documentário e história"
+       "rating": "6,7",
+       "desc": "Mensagens vulgares e provocadoras invadem o celular de uma adolescente e seu namorado. De onde elas vêm e por quê? Este documentário revela a verdade chocante.",
+       "backdrop": "/fPLUMQFdjHZWe38lgxPSwuBi062.jpg",
+       "poster": "/a2YS3nPOubQHuySb4nvz68XysIs.jpg",
+       "why": "Documentário"
       },
       {
-       "id": "tt0088178",
-       "tmdb": 24128,
+       "id": "tt0065687",
+       "tmdb": 31151,
        "type": "movie",
        "group": "",
-       "title": "Stop Making Sense",
-       "original": "Stop Making Sense",
-       "year": 1984,
-       "runtime": 88,
+       "title": "Elvis É Assim",
+       "original": "Elvis: That's the Way It Is",
+       "year": 1970,
+       "runtime": 95,
        "genres": [
         "Documentário",
         "Música"
        ],
-       "rating": "8,4",
-       "desc": "A banda Talking Heads apresenta suas músicas mais memoráveis em uma apresentação ao vivo filmada ao longo de três noites no Pantages Theater de Hollywood, em dezembro de 1983. Dirigido por Jonathan Demme (que faria mais tarde O Silêncio dos Inocentes e Filadélfia) a convite de David Byrne, o filme é um marco na história dos filmes de concerto musical. Stop Making Sense é estrelado pelos principais membros da banda, David Byrne, Tina Weymouth, Chris Frantz e Jerry Harrison, além de Bernie Worrell, Alex Weir, Steve Scales, Lynn Mabry e Edna Holt.",
-       "backdrop": "/kPDmoP4BCFaELJVBog4nIV4CPge.jpg",
-       "poster": "/rqpEYpyZFiMUiUx2R7Vg7bokHw0.jpg",
-       "why": "Documentário e música · nota 8,4 no TMDB"
+       "rating": "8,1",
+       "desc": "É noite de estréia. Elvis Presley vestindo sua radiante jaqueta nova, aguarda com ansiedade sua entrada no palco. Se as músicas não funcionarem, ironiza, a gente pode fazer um desfile de moda. As músicas funcionam demais. Nesta Edição Especial do lendário Show filmado no verão de 1970 em Las Vegas. Rick Schmidlin, montador e restaurador , conseguiu recuperar mais de 30 minutos das músicas originais do filme, que permaneciam guardado nos cofres do estúdio à espera de sua renovação. As cenas adicionais mostram entre outras, performances das músicas Get Back, One Night e Suspicius Mind, em diferentes versões ao show original.",
+       "backdrop": "/tXwXxjxuTZFy6PJqhSzwOI1Grzd.jpg",
+       "poster": "/8qwwp5fOPNXDfaqta5x34nDXEDI.jpg",
+       "why": "Documentário e música"
       },
       {
-       "id": "tt5278506",
-       "tmdb": 373072,
+       "id": "tt34966013",
+       "tmdb": 1400780,
        "type": "movie",
        "group": "",
-       "title": "Tickled",
-       "original": "Tickled",
-       "year": 2016,
-       "runtime": 91,
+       "title": "Embaixo da Luz de Neon",
+       "original": "Come See Me in the Good Light",
+       "year": 2025,
+       "runtime": 104,
        "genres": [
         "Documentário"
        ],
-       "rating": "7,2",
-       "desc": "O jornalista David Farrier se depara com uma misteriosa competição de cócegas online. À medida que se aprofunda, enfrenta uma forte resistência, mas isso não o impede de chegar ao fundo de uma história mais estranha que a ficção.",
-       "backdrop": "/1ZtTi3s6IYtYMpKJbbrCJKfnNib.jpg",
-       "poster": "/qxUbPwyhzNEyUZYOZm6t8yYSQf.jpg",
+       "rating": "7,1",
+       "desc": "Em uma história íntima e alegre de amor diante da perda, as poetas Andrea Gibson e Megan Falley encontram força, e hilaridade inesperada, naquele que pode ser o último ano juntas.",
+       "backdrop": "/x0FZZWBE7Sp5Vz5ncn4wb8JyG5c.jpg",
+       "poster": "/nAajAtaTY5UwM9QHqmkErC56Rjp.jpg",
        "why": "Documentário"
       },
       {
-       "id": "tt27041231",
-       "tmdb": 1096228,
+       "id": "tt26420234",
+       "tmdb": 1076708,
        "type": "movie",
        "group": "",
-       "title": "Musk",
-       "original": "Musk",
-       "year": 2026,
-       "runtime": 225,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "6,2",
-       "desc": "Um olhar incisivo por trás da lenda de Elon Musk, o \"inventor-empreendedor\" mais aclamado do mundo, que exerce enorme influência sobre o mundo em que todos vivemos.",
-       "backdrop": "/1CfHIKczBiAauSRBiNQ90bjLsCM.jpg",
-       "poster": "/kTOeFV92c3QHJ3bEkT660P7BcWN.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt1843961",
-       "tmdb": 63513,
-       "type": "movie",
-       "group": "",
-       "title": "Lady Gaga Presents: The Monster Ball Tour at Madison Square Garden",
-       "original": "Lady Gaga Presents: The Monster Ball Tour at Madison Square Garden",
-       "year": 2011,
-       "runtime": 117,
-       "genres": [
-        "Música",
-        "Documentário"
-       ],
-       "rating": "8,6",
-       "desc": "Lady Gaga Presents The Monster Ball Tour At Madison Square Garden é o primeiro DVD do maior fenômeno da música pop! Lady Gaga lança o DVD da turnê 'Monster Ball at Madison Square Garden', aclamado especial da HBO e vencedor do Emmy Award, com imagens inéditas e exclusivas. 'Born This Way', terceiro álbum de estúdio de Lady Gaga, bateu o recorde do iTunes pela subida mais rápida ao 1º lugar no dia do lançamento. Os singles do álbum incluindo 'Born This Way', 'Judas', 'The Edge Of Glory' e 'You and I' já venderam juntos mais de 7 milhões de cópias somente nos Estados Unidos. Em menos de três anos, Lady Gaga ganhou cinco Grammy Awards, entre doze indicações, dois recordes do Guiness World Records, e tem uma venda estimada de 23 milhões de álbuns e 64 milhões de singles em todo o mundo. Os maiores sucessos de Lady Gaga num registro em DVD imperdível!",
-       "backdrop": "/2ZkVR0Ph14XuOhG3waZqS437ZRE.jpg",
-       "poster": "/o4R7ZyMAatFpCJiT2ELSwfaaCoX.jpg",
-       "why": "Música e documentário"
-      },
-      {
-       "id": "tt0112651",
-       "tmdb": 32562,
-       "type": "movie",
-       "group": "",
-       "title": "O Outro Lado de Hollywood",
-       "original": "The Celluloid Closet",
-       "year": 1996,
-       "runtime": 102,
-       "genres": [
-        "Documentário",
-        "História"
-       ],
-       "rating": "7,3",
-       "desc": "",
-       "backdrop": "/a6Ha2K2VGQVDEPL76oN8qLVnqAH.jpg",
-       "poster": "/x0DSh3uMeQk6EG1DHjGJUywN7C0.jpg",
-       "why": "Documentário e história"
-      },
-      {
-       "id": "tt9882084",
-       "tmdb": 601169,
-       "type": "movie",
-       "group": "",
-       "title": "Em Busca da Felicidade",
-       "original": "Chasing Happiness",
-       "year": 2019,
-       "runtime": 96,
+       "title": "A Música de John Williams",
+       "original": "Music by John Williams",
+       "year": 2024,
+       "runtime": 106,
        "genres": [
         "Documentário",
         "Música"
        ],
        "rating": "8,0",
-       "desc": "Uma história de irmandade. Da origem humilde como filhos de um pastor em Nova Jersey à ascensão meteórica à fama, a ligação entre os irmãos Jonas era inabalável, até que uma separação surpreendente e dolorosa levou Joe, Kevin e Nick por caminhos diferentes. Com entrevistas pessoais, imagens inéditas e música exclusiva, o grupo Jonas Brothers é visto como nunca antes.",
-       "backdrop": "/1JLv7pGLxqqsshNuc2B3jASL3Xs.jpg",
-       "poster": "/5dChRIjAqiu649iBJZFcgP7Fiy6.jpg",
+       "desc": "Suas composições inesquecíveis são parte essencial de alguns dos mais adorados filmes da nossa época ao longo de uma carreira que se estende por décadas. Veja e ouça a história do maestro John Williams, com as percepções de cineastas, músicos e outros profissionais que ele inspirou, completados por uma rara visão dos bastidores da produção da história do cinema.",
+       "backdrop": "/7jzCLnt5IDGDHhNAKTfbq1In4dM.jpg",
+       "poster": "/doArRBds33usszfMm9vA0NF85KI.jpg",
        "why": "Documentário e música"
       },
       {
-       "id": "tt1883251",
-       "tmdb": 206953,
+       "id": "tt35628853",
+       "tmdb": 1426306,
        "type": "movie",
        "group": "",
-       "title": "Louis Theroux: America's Most Hated Family in Crisis",
-       "original": "Louis Theroux: America's Most Hated Family in Crisis",
-       "year": 2011,
-       "runtime": 60,
+       "title": "Titan: O Desastre da OceanGate",
+       "original": "Titan: The OceanGate Submersible Disaster",
+       "year": 2025,
+       "runtime": 110,
        "genres": [
         "Documentário",
-        "Cinema TV"
+        "Drama"
        ],
-       "rating": "7,2",
-       "desc": "",
-       "backdrop": "/yE6WGAjRd0G6fEcEp3nPQNTFGuw.jpg",
-       "poster": "/xwhHpR1gEc0tcHOPEBPIZrpgh4K.jpg",
-       "why": "Documentário e cinema tv"
+       "rating": "7,1",
+       "desc": "O submersível turístico Titan implodiu no fundo do oceano ao visitar os destroços do Titanic. Este documentário detalha como uma visão audaciosa terminou em tragédia.",
+       "backdrop": "/cBRDacpg1Q6ZOKSxrOhhgkKx9NI.jpg",
+       "poster": "/tcdz5yKjEvJQxJzjvbsphjNSNCe.jpg",
+       "why": "Documentário e drama"
       },
       {
-       "id": "tt0358456",
-       "tmdb": 30238,
+       "id": "tt34963732",
+       "tmdb": 1400382,
        "type": "movie",
        "group": "",
-       "title": "Terráqueos",
-       "original": "Earthlings",
-       "year": 2005,
-       "runtime": 95,
+       "title": "Predadores",
+       "original": "Predators",
+       "year": 2025,
+       "runtime": 97,
+       "genres": [
+        "Documentário",
+        "Crime"
+       ],
+       "rating": "6,7",
+       "desc": "Este documentário mergulha nos bastidores sombrios de 'To Catch a Predator', o controverso reality show dos anos 2000 apresentado por Chris Hansen. A obra examina como o programa misturou jornalismo com táticas policiais questionáveis em busca de audiência, resultando em consequências devastadoras, incluindo o suicídio de um suspeito que levou ao fim da atração. Mais do que uma retrospectiva, o filme revela como esse fenômeno cultural legitimou a justiça com as próprias mãos, inspirando uma nova e perigosa onda de grupos de vigilantes amadores que operam sem lei na era das redes sociais.",
+       "backdrop": "/ygy06SVakmwvtYMljQRA74S9P8T.jpg",
+       "poster": "/6lXVG656mtzrltBDJxOzlNelC2W.jpg",
+       "why": "Documentário e crime"
+      },
+      {
+       "id": "tt22010428",
+       "tmdb": 1022102,
+       "type": "movie",
+       "group": "",
+       "title": "BTS: Permission to Dance on Stage - Ao Vivo em Los Angeles",
+       "original": "BTS: PERMISSION TO DANCE 온 스테이지 – LA",
+       "year": 2022,
+       "runtime": 130,
+       "genres": [
+        "Música",
+        "Documentário"
+       ],
+       "rating": "8,8",
+       "desc": "O roxo toma conta da cidade de Los Angeles com o show \"Permission to Dance\" do BTS no Estádio SoFi pela primeira vez em dois anos. Em um estádio que irradia empolgação e alegria, apresentações esplêndidas de \"On\" a \"Permission to Dance\" glorificam o palco que agora ganha vida nas telas. Unam-se novamente pelo poder da música.",
+       "backdrop": "/4IMn2EqCBb4n4r6FODOP7fJQIdi.jpg",
+       "poster": "/7QKRPYPlCPoeKEIv4H6xe50xIUM.jpg",
+       "why": "Música e documentário"
+      },
+      {
+       "id": "tt0103767",
+       "tmdb": 14002,
+       "type": "movie",
+       "group": "",
+       "title": "Baraka",
+       "original": "Baraka",
+       "year": 1992,
+       "runtime": 96,
        "genres": [
         "Documentário"
        ],
-       "rating": "8,1",
-       "desc": "O filme mostra como funcionam as fazendas industriais e relata a dependência da humanidade sobre os animais para obter alimentação, vestuário e diversão, além do uso em experimentos científicos. Compara o especismo da espécie humana com outras relações de dominação, como o racismo e o sexismo. Faz estudo detalhado das lojas de animais, das fábricas de filhotes e dos abrigos para animais, assim como das fazendas industriais, do comércio de peles e de couro, das indústrias da diversão e esportes, e finalmente, do uso médico e científico. Utiliza-se de câmeras escondidas para detalhar as práticas diárias de algumas das maiores indústrias do mundo, todas visando o lucro com a exploração dos animais.",
-       "backdrop": "/nEo7B55t79RhcbOjLo6Zcbig4Ku.jpg",
-       "poster": "/fcRUYYyDWLJPlX7D6RPtQwdU7G2.jpg",
-       "why": "Documentário"
-      },
-      {
-       "id": "tt8637504",
-       "tmdb": 653610,
-       "type": "movie",
-       "group": "",
-       "title": "Revelação",
-       "original": "Disclosure",
-       "year": 2020,
-       "runtime": 108,
-       "genres": [
-        "Documentário"
-       ],
-       "rating": "7,8",
-       "desc": "Neste documentário, nomes influentes da arte e do pensamento transgêneros analisam o impacto de Hollywood na comunidade trans.",
-       "backdrop": "/eQNlRh69W9HVw46znLOhyMe7dsN.jpg",
-       "poster": "/t3Lp9ZCSKXfpfWAdZwAXsje2jRv.jpg",
-       "why": "Documentário"
+       "rating": "8,2",
+       "desc": "Filmado em 24 países, O filme mostra várias paisagens, igrejas, ruínas, cerimônias religiosas e cidades, numa busca para que cada quadro consiga capturar a grande pulsação da humanidade nas atividades diárias. O filme ficou pronto depois de 11 anos. Baraka é uma palavra Sufi que significa 'O fôlego da vida'.",
+       "backdrop": "/c0QYwNyeURswT7fxmR2mlfpdk0l.jpg",
+       "poster": "/ldEuJQ4z7zEvL7iXraESWBUfQcz.jpg",
+       "why": "Documentário · nota 8,2 no TMDB"
       },
       {
        "id": "tt1356790",
@@ -7221,6 +7031,81 @@
        "backdrop": "/g5iO5dCQPG9DOqgdnnl5KUcgOPs.jpg",
        "poster": "/dVu4I4UPVJOY8LuW6fPojgSQUpL.jpg",
        "why": "Documentário"
+      },
+      {
+       "id": "tt20256528",
+       "tmdb": 957258,
+       "type": "movie",
+       "group": "",
+       "title": "O Que é uma Mulher?",
+       "original": "What Is a Woman?",
+       "year": 2022,
+       "runtime": 95,
+       "genres": [
+        "Documentário"
+       ],
+       "rating": "6,9",
+       "desc": "É a pergunta que você não tem permissão para fazer. O documentário que eles não querem que você veja.",
+       "backdrop": "/rsEoYrFrt8CG7l9q9pls03CyIxS.jpg",
+       "poster": "/6e4AxyAHSSgnBH0ns35RdyzZG97.jpg",
+       "why": "Documentário"
+      },
+      {
+       "id": "tt9617456",
+       "tmdb": 576017,
+       "type": "movie",
+       "group": "",
+       "title": "Para Sama",
+       "original": "For Sama",
+       "year": 2019,
+       "runtime": 95,
+       "genres": [
+        "Documentário",
+        "Guerra"
+       ],
+       "rating": "8,2",
+       "desc": "A cineasta Waad al-Kateab filmou durante cinco anos sua vida na cidade de Aleppo tomada por rebeldes durante a rebelião síria.",
+       "backdrop": "/hiqB5fFZ230MeFAGLPahoy06UOE.jpg",
+       "poster": "/w8ZytqAN2B56ejEvIVjubVNL3oo.jpg",
+       "why": "Documentário e guerra"
+      },
+      {
+       "id": "tt5275892",
+       "tmdb": 377462,
+       "type": "movie",
+       "group": "",
+       "title": "O.J.: Made in America",
+       "original": "O.J.: Made in America",
+       "year": 2016,
+       "runtime": 467,
+       "genres": [
+        "Documentário",
+        "Crime"
+       ],
+       "rating": "8,4",
+       "desc": "",
+       "backdrop": "/a9jBEm8wb4XJIvAdFJlAVgVxbB5.jpg",
+       "poster": "/nFmg2G4IJ0x9mALXkYFN8Gw0Dw5.jpg",
+       "why": "Documentário e crime"
+      },
+      {
+       "id": "tt38984577",
+       "tmdb": 1584619,
+       "type": "movie",
+       "group": "",
+       "title": "Assassinato em Mônaco",
+       "original": "Murder in Monaco",
+       "year": 2025,
+       "runtime": 90,
+       "genres": [
+        "Crime",
+        "Documentário"
+       ],
+       "rating": "6,5",
+       "desc": "Mônaco, 1999. Um dos homens mais ricos do mundo morre em sua casa. Este documentário examina o misterioso assassinato do bilionário Edmond Safra.",
+       "backdrop": "/iSrSl6YQZ5Xbqup8vTxHbu88eOb.jpg",
+       "poster": "/9OV7yINJmiq7XDp0uxVb9jtV9tm.jpg",
+       "why": "Crime e documentário"
       }
      ]
     },
