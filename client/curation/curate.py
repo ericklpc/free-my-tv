@@ -590,7 +590,7 @@ def learn(dry=False):
             m['minutes'] += w / 60000.0
         curated = sum(m['minutes'] for m in per.values())
         # Comparable with the runs before the season and documentary rows, and everything any deck showed.
-        core = sum(m['minutes'] for k, m in per.items() if k not in ('row:season', 'row:doc', 'row:series'))
+        core = sum(m['minutes'] for k, m in per.items() if k not in ('row:season', 'row:doc', 'row:series', 'row:fresh', 'row:airing'))
         every = sum(delta.get(i, (0, 0))[0] for i in set(x['id'] for x in last['slots'])) / 60000.0
         line = {'date': datetime.date.today().isoformat(), 'since': last['date'], 'minutes_all': round(total),
                 'minutes_curated': round(curated), 'share_curated': round(curated / total, 3) if total else 0,
@@ -770,6 +770,70 @@ def season_row(season, taste, best, idf, seen, wish, taken, turn):
     return row
 
 
+# MARK: - What just arrived: the films and series everyone is on now
+
+def fresh_row(taste, best, idf, seen, wish, taken, turn):
+    """Films from the last five months that already have a copy in the debrid: that's the day a release really
+    arrives at home. His own history says it: what he plays most is what just came out, found outside the home.
+    Popularity leads here and his taste breaks the ties, the opposite of the picks."""
+    since = (datetime.date.today() - datetime.timedelta(days=150)).isoformat()
+    ids = []
+    for page in (1, 2, 3):
+        o = tmdb('/discover/movie', page=page, sort_by='popularity.desc',
+                 **{'primary_release_date.gte': since, 'primary_release_date.lte': datetime.date.today().isoformat(), 'vote_count.gte': 15})
+        ids += [m['id'] for m in (o or {}).get('results', [])]
+    ids = [i for i in dict.fromkeys(ids) if i not in seen and i not in taken]
+    docs = [d for d in build_info(ids).values() if (d.get('external_ids') or {}).get('imdb_id') and proper(d)
+            and re.search('[A-Za-z]', d.get('title') or '') and d['external_ids']['imdb_id'] not in SKIP]
+    docs.sort(key=lambda d: -(d.get('popularity') or 0))
+    place = dict((d['id'], i) for i, d in enumerate(docs))
+    docs.sort(key=lambda d: place[d['id']] / float(len(docs) or 1) - 0.25 * score(d, taste, wish, idf))
+    docs = docs[:45]
+    ok = parallel(lambda d: cached(d['external_ids']['imdb_id']), docs, workers=6)
+    good = [d for d, c in zip(docs, ok) if c]
+    print('curation: row "Acabou de chegar": %d of %d cached' % (len(good), len(docs)))
+    if len(good) < 8:
+        return None
+    said = {}
+    items = [entry(d, why(d, taste, best, idf, said)) for d in good[:15]]
+    taken.update(x['tmdb'] for x in items)
+    return {'title': 'Acabou de chegar', 'kind': 'fresh', 'items': items}
+
+
+def series_entry(d, imdb, line):
+    return {'id': imdb, 'tmdb': d['id'], 'type': 'series', 'group': '', 'title': d.get('name'),
+            'original': d.get('original_name'), 'year': int((d.get('first_air_date') or '0')[:4] or 0),
+            'runtime': (d.get('episode_run_time') or [0])[0] or 0, 'genres': [x['name'] for x in d.get('genres', [])][:2],
+            'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
+            'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '', 'why': line}
+
+
+def airing_row(skip):
+    """The series of the moment he hasn't started: this week's most watched, first episode in the debrid."""
+    if 'airing' not in SERIES:
+        have = set(it.get('_id') for it in RAW if it.get('type') == 'series')
+        ids = []
+        for page in (1, 2):
+            o = tmdb('/trending/tv/week', page=page, language='pt-BR')
+            ids += [m['id'] for m in (o or {}).get('results', [])]
+        docs = parallel(lambda i: tmdb('/tv/%d' % i, append_to_response='external_ids', language='pt-BR'), list(dict.fromkeys(ids)))
+        out = []
+        for d in docs:
+            imdb = ((d or {}).get('external_ids') or {}).get('imdb_id')
+            # No talk shows, news, reality or soaps: they trend every week and nobody binge-watches them from a debrid.
+            if not d or not imdb or imdb in have or imdb in SKIP or d.get('adult') or (d.get('vote_count') or 0) < 30 \
+                    or set(g['id'] for g in d.get('genres', [])) & {10763, 10764, 10766, 10767} or not re.search('[A-Za-z]', d.get('name') or ''):
+                continue
+            out.append((d, imdb))
+        ok = parallel(lambda x: cached(x[1], 'series'), out, workers=6)
+        SERIES['airing'] = [series_entry(d, imdb, '') for (d, imdb), c in zip(out, ok) if c]
+        print('curation: row "Séries do momento": %d of %d cached' % (len(SERIES['airing']), len(out)))
+    good = [x for x in SERIES['airing'] if x['id'] not in skip]
+    if len(good) < 8:
+        return None
+    return {'title': 'Séries do momento', 'kind': 'airing', 'items': good[:15]}
+
+
 # MARK: - Series: where the hours are
 
 SERIES = {}
@@ -824,13 +888,7 @@ def series_candidates():
     for (sc, d, imdb), c in zip(out, ok):
         if not c:
             continue
-        run = (d.get('episode_run_time') or [0])[0] or 0
-        good.append({'id': imdb, 'tmdb': d['id'], 'type': 'series', 'group': '', 'title': d.get('name'),
-                     'original': d.get('original_name'), 'year': int((d.get('first_air_date') or '0')[:4] or 0), 'runtime': run,
-                     'genres': [x['name'] for x in d.get('genres', [])][:2],
-                     'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
-                     'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
-                     'why': 'Porque você viu %s' % source[d['id']][1] if source.get(d['id'], (0, ''))[1] else ''})
+        good.append(series_entry(d, imdb, 'Porque você viu %s' % source[d['id']][1] if source.get(d['id'], (0, ''))[1] else ''))
     print('curation: row "Séries pra você": %d of %d cached, from %d series he watched' % (len(good), len(out), len(seeds)))
     return good
 
@@ -1029,6 +1087,11 @@ def pick(args):
     print('curation: %d films finished in the app without a rating count as liked, %d dropped early count against' % (
         sum(1 for v in implicit.values() if v[0] > 0), sum(1 for v in implicit.values() if v[0] < 0)))
     taste, best, mean = profile(rated, liked, info_all, implicit)
+    # What he saved in the app and hasn't started is a wish, like his Letterboxd watchlist.
+    saved = [it['_id'] for it in RAW if it.get('type') == 'movie' and (it.get('_id') or '').startswith('tt') and not it.get('temp')
+             and not it.get('removed') and not int((it.get('state') or {}).get('overallTimeWatched') or 0)]
+    wish = set(wish) | (set(i for i in parallel(tmdb_of, saved) if i) - seen)
+    print('curation: %d films saved in the app and not started join the watchlist' % len(saved))
     pool = candidate_ids(rated, info, wish) - seen - set(implicit)
     cand = build_info(pool)
     idf = rarity(list(cand.values()))
@@ -1086,7 +1149,12 @@ def pick(args):
         # The picks, then the season, the documentaries and the personal rows: each one with films the others don't have.
         extra = [season_row(x, taste, best, idf, seen, wish, used, turn + k) for x in days]
         extra.append(documentaries(rated, info, taste, best, idf, seen, wish, used, turn + k))
-        extra.append(series_row(turn + k))
+        if k == 0:                                          # what's new is the same on every deck: once is enough
+            extra.insert(0, fresh_row(taste, best, idf, seen, wish, used, turn))
+        mine = series_row(turn + k)
+        extra.append(mine)
+        if k == 0:
+            extra.append(airing_row(set(x['id'] for x in (mine or {}).get('items', []))))
         extra = [r for r in extra if r]
         dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'), titles, busy)
         short = dict((kind, n - sum(1 for r in dr if r['kind'] == kind)) for kind, n in (policy.get('quota') or {}).items())

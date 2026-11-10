@@ -348,8 +348,11 @@
     // A date's row (Halloween, Natal…) only on its days, right under the picks.
     var d0 = new Date(), today = d0.getFullYear() + '-' + ('0' + (d0.getMonth() + 1)).slice(-2) + '-' + ('0' + d0.getDate()).slice(-2);
     var rows = (w.rows || []).filter(function (r) { return r.items.length >= 8 && (!r.from || (r.from <= today && today <= r.until)); });
-    var season = rows.filter(function (r) { return r.kind === 'season'; }).map(function (r) { return {kind: 'season', title: r.title, items: r.items.map(item)}; });
-    var mine = rows.filter(function (r) { return r.kind !== 'season'; }).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
+    // What just arrived stays up there with the date's row: it's what gets played most.
+    var pinned = function (r) { return r.kind === 'season' || r.kind === 'fresh'; };
+    var season = rows.filter(pinned).sort(function (a, b) { return (a.kind === 'fresh' ? 0 : 1) - (b.kind === 'fresh' ? 0 : 1); })
+      .map(function (r) { return {kind: 'season', title: r.title, items: r.items.map(item)}; });
+    var mine = rows.filter(function (r) { return !pinned(r); }).map(function (r) { return {kind: 'mine', title: r.title, items: r.items.map(item)}; });
     if (!mine.length && !season.length) return;
     var rest = HOME.rows.filter(function (r) { return r.source; }), fixed = HOME.rows.filter(function (r) { return r.kind === 'continue' || r.kind === 'picks'; });
     var out = fixed.concat(season);
