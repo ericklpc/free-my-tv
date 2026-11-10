@@ -143,8 +143,8 @@
 
   var apps = [], shelf = [], others = [], inputs = [];
 
-  var PLAYER = 'io.sofa.player';   // Sofá Player (client/): where Stremio's place and titles go, when installed
-  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;          // on Fire TV, and on Samsung
+  // Sofá Player (client/): where Stremio's place and titles go, when installed (on Fire TV, and on Samsung).
+  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;
 
   function player() {
     for (var i = 0; i < apps.length; i++) if (IS_PLAYER.test(apps[i].id)) return apps[i];
@@ -408,30 +408,6 @@
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
       else away = true;
     });
-  }
-
-  var bgUrl = null, bgFront = 'bgA';
-
-  /** The first pick's photo as the background: drawn tiny and stretched, it's already as soft as a heavy blur. */
-  function backdrop(url) {
-    if (url === bgUrl) return;
-    bgUrl = url;
-    var next = bgFront === 'bgA' ? 'bgB' : 'bgA';
-    if (!url) {
-      setClass($('bgA'), 'on', false);
-      setClass($('bgB'), 'on', false);
-      return;
-    }
-    var img = new Image();
-    img.onload = function () {
-      if (bgUrl !== url) return;
-      var canvas = $(next), ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      setClass(canvas, 'on', true);
-      setClass($(bgFront), 'on', false);
-      bgFront = next;
-    };
-    img.src = url;
   }
 
   function renderClock() {
@@ -826,7 +802,6 @@
   }
 
   function move(dx, dy) {
-    var tiles = $('tiles').children;
     switch (st.zone) {
       case Z.SHELF:
         if (dx) st.shelf = Math.max(0, Math.min(shelf.length - 1, st.shelf + dx));

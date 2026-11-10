@@ -1158,7 +1158,7 @@
 
   // The addons name their catalogs in English: the common ones in Portuguese, the rest as they are.
   function catalogName(n, addon) {
-    var trakt = /trakt/i.test(addon), lb = /boxd/i.test(addon);
+    var lb = /boxd/i.test(addon);
     var m = /^(.*)'s Watchlist$/.exec(n);
     if (m) return lb ? 'Sua watchlist do Letterboxd' : 'Sua watchlist';
     var map = {'Recommended Movies': 'Filmes recomendados', 'Recommended TV': 'Séries recomendadas', 'Movie Watchlist': 'Filmes na watchlist',

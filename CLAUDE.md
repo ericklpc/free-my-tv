@@ -173,6 +173,26 @@ HDMI (Chromecast with Google TV, Google TV Streamer, onn 4K, NVIDIA Shield). Set
   `tools/webapp.py` is what both builds share. Preview: `python3 webos/build.py --preview` (or `tizen/build.py`), then
   open `out/webos/index.html` in a browser (a stand-in lists sample apps).
 
+## Sofá (this fork)
+
+This fork adds two apps on top of Free My TV; `main` stays the original, the work is on the `sofa` branch.
+
+- **Sofá**, the launcher: `web/` restyled as an Apple TV-like home with Stremio's Continue, Movies and Series
+  (`web/stremio.js`, `stremio_auth_key`). On Fire TV it is `firetv/` (`io.sofa.firetv`: a WebView, a bridge to the
+  TV's apps, and `HomeWatcher`, which opens Sofá when Amazon's home comes to the front); `./firetv/build.sh` →
+  `firetv/Sofa-FireTV.apk`. On Samsung, `python3 tizen/build.py --sign <profile>` → `Sofa-Launcher-tizen.wgt`.
+  `firetv/README.md` has the adb permissions and `firetv/debloat.sh`.
+- **Sofá Player**, a Stremio client: the web UI in `client/proto/` (same rules as `web/`) over a native Media3 player
+  on Fire TV (`firetv/player/`, `./firetv/build.sh --proto` → `io.sofa.player`) and over AVPlay on Samsung
+  (`python3 client/proto/build.py --tizen --sign <profile>`; keep the `.wgt`'s file name, Tizen takes the app id from
+  it). `client/curation/` makes the weekly picks. Setup is in `client/README.md`.
+- The built APKs and `.wgt`s carry the keys from `config.properties` (Stremio, AIOStreams, Trakt, TMDB): never commit,
+  attach or release them. This repository is public, so no personal details in it either (names, addresses, home IPs).
+- Trailers play through `client/proto/yt.html` served over https (the `yt-pages` branch, GitHub Pages): after changing
+  that file, copy it to `yt-pages` too. YouTube's own embedded player only: no extraction, no client impersonation.
+- Check a web change without a TV: `python3 tizen/build.py --preview` and `python3 client/proto/build.py`, then open
+  `out/tizen/index.html` and `out/proto/index.html` in a browser.
+
 ## Always
 
 - Never turn off an app that saved a Wi-Fi network: Android deletes its networks and Original can't bring them
