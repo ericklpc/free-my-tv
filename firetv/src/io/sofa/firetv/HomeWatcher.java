@@ -37,7 +37,11 @@ import android.widget.ImageView;
  */
 public class HomeWatcher extends Service {
     private static final String AMAZON_HOME = "com.amazon.tv.launcher";
+    private static final String PLAYER = "io.sofa.player";   // the Sofá Player: never pulled off it to open the launcher
     private static final long EVERY = 350, GUARD = 6000, COVER_MAX = 9000;
+    // While a title plays, Fire OS can flash Amazon's home to the front for an instant (switching streams, a trailer):
+    // that isn't a real exit, so an Amazon-home event right after the Player was in front is confirmed before acting.
+    private static final long CONFIRM = 1500;
 
     /** Set when you leave Sofá for Amazon's home on purpose; cleared when another app comes up. */
     static volatile boolean stayOnAmazon;
@@ -143,6 +147,7 @@ public class HomeWatcher extends Service {
             }
         } catch (Exception ignored) {}
         if (front == null) return;
+        String prev = lastFront;   // the app in front just before this event, to tell a blip from a real exit
         lastFront = front;
         Log.i("HomeWatcher", front + (stayOnAmazon ? " (stay)" : "") + (now - opened < GUARD ? " (guard)" : ""));
         if (front.equals(getPackageName())) {
@@ -154,7 +159,20 @@ public class HomeWatcher extends Service {
             return;
         }
         if (stayOnAmazon || now - opened < GUARD) return;
+        // Watching in the Sofá Player and Amazon's home flashed to the front: that's almost never a real exit, so
+        // confirm before pulling the launcher up over a playing title (a true Back/Home out of the Player still works).
+        if (PLAYER.equals(prev)) { confirm(); return; }
         open(now);
+    }
+
+    /** Open the launcher only if Amazon's home really stayed in front (the Player didn't come straight back). */
+    private void confirm() {
+        handler.postDelayed(new Runnable() { @Override public void run() {
+            long now = System.currentTimeMillis();
+            String front = latestFront(now - 10000, now + 1000);
+            Log.i("HomeWatcher", "confirm: " + front);
+            if (AMAZON_HOME.equals(front) && !stayOnAmazon && now - opened >= GUARD) open(now);
+        } }, CONFIRM);
     }
 
     private void open(long now) {

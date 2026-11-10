@@ -68,7 +68,7 @@
     ['youtube', /youtube/, /^youtube$/i, ['#1C1C1E', '#09090A']],
     ['prime', /^amazon$|^com\.amazon\.(avod|amazonvideo)/, /prime video/i, ['#2AA8FF', '#0A68D4']],   // not Amazon Music
     ['disney', /disney/, /disney/i, ['#173584', '#08143F']],
-    ['max', /hbo|wbd/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],
+    ['max', /(^|\.)(hbo|wbd)/, /^(hbo )?max$|hbo max/i, ['#5C30E8', '#221684']],   // not Samsung's "aov-dashboard"
     ['appletv', /appletv|apple\.tv/, /apple tv/i, ['#1C1C1E', '#000000']],
     ['hulu', /^hulu/, /hulu/i, ['#1CE783', '#0B8F4E']],
     ['paramount', /paramount|cbs/, /paramount/i, ['#0064FF', '#002A86']],
@@ -109,17 +109,58 @@
       var img = el('img', app.banner ? 'banner' : '', box);   // an Android TV banner fills the whole tile
       word.style.visibility = 'hidden';
       img.onerror = function () { img.parentNode.removeChild(img); word.style.visibility = ''; };
+      if (TV.name === 'tizen' && !app.banner) img.onload = function () { fill(img, box); };
       img.src = app.icon;
     }
   }
 
+  /**
+   * Samsung icons are small cards with their own background (Netflix's white, Disney+'s blue): when the icon's edge is
+   * one solid color, the tile takes that color and the icon grows to the tile's height, so the tile reads as the app's
+   * own card instead of a sticker on a slab.
+   */
+  function fill(img, box) {
+    try {
+      var c = document.createElement('canvas'), s = 24;
+      c.width = c.height = s;
+      var g = c.getContext('2d');
+      g.drawImage(img, 0, 0, s, s);
+      var d = g.getImageData(0, 0, s, s).data, r = 0, gr = 0, b = 0, a = 0, n = 0, spread = 0, first = null;
+      for (var i = 0; i < s; i++) {
+        var pts = [[i, 0], [i, s - 1], [0, i], [s - 1, i]];
+        for (var j = 0; j < 4; j++) {
+          var o = (pts[j][1] * s + pts[j][0]) * 4;
+          r += d[o]; gr += d[o + 1]; b += d[o + 2]; a += d[o + 3]; n++;
+          if (!first) first = [d[o], d[o + 1], d[o + 2]];
+          spread = Math.max(spread, Math.abs(d[o] - first[0]) + Math.abs(d[o + 1] - first[1]) + Math.abs(d[o + 2] - first[2]));
+        }
+      }
+      if (a / n < 230 || spread > 120) return;   // see-through or busy edges: the icon keeps its place on the gradient
+      box.style.background = 'rgb(' + Math.round(r / n) + ',' + Math.round(gr / n) + ',' + Math.round(b / n) + ')';
+      img.className = 'card';
+    } catch (e) {}
+  }
+
   var apps = [], shelf = [], others = [], inputs = [];
 
-  var PLAYER = 'io.sofa.player';   // Sofá Player (client/ on Fire TV): where Stremio's place and titles go, when installed
+  var PLAYER = 'io.sofa.player';   // Sofá Player (client/): where Stremio's place and titles go, when installed
+  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;          // on Fire TV, and on Samsung
 
   function player() {
-    for (var i = 0; i < apps.length; i++) if (apps[i].id === PLAYER) return apps[i];
+    for (var i = 0; i < apps.length; i++) if (IS_PLAYER.test(apps[i].id)) return apps[i];
     return null;
+  }
+
+  // Samsung: live TV right on the shelf, next to the first app, a press or two from start. (Art Mode stays on the power key.)
+  function glyph(paths) {
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" '
+      + 'fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>');
+  }
+
+  function tvTiles() {
+    if (TV.name !== 'tizen') return [];
+    return [{id: 'source:TV:1', title: tr('TV ao vivo', 'Live TV', 'TV en vivo'), color: '#E5484D',
+      icon: glyph('<rect x="5" y="10" width="38" height="26" rx="4"/><path d="M16 42h16M19 4l5 6 5-6"/>')}];
   }
 
   /** Stremio's tile opens Sofá Player instead, when it's there. */
@@ -138,15 +179,21 @@
       }
     } else {
       for (var s = 0; s < SHELF.length && out.length < MAX_SHELF; s++) {
+        // Samsung lists several apps under one name (YouTube's real app next to the platform's icon-less "Youtube"
+        // player, Prime Video next to its stand-in): the one with its own icon, from its maker, wins.
+        var best = null, bestScore = -1;
         for (var a = 0; a < apps.length; a++) {
-          if ((SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) && out.indexOf(swapStremio(apps[a])) < 0) {
-            out.push(swapStremio(apps[a]));
-            break;
-          }
+          var c = swapStremio(apps[a]);
+          if (!(SHELF[s][1].test(apps[a].id) || SHELF[s][2].test(apps[a].title)) || out.indexOf(c) >= 0) continue;
+          var score = (apps[a].icon ? 2 : 0) + (/^com\.samsung\.|dummy|test/i.test(apps[a].id) ? 0 : 1);
+          if (score > bestScore) { best = c; bestScore = score; }
         }
+        if (best) out.push(best);
       }
       if (!out.length) out = apps.slice(0, MAX_SHELF);
     }
+    var extra = tvTiles();
+    if (extra.length) out = out.slice(0, 1).concat(extra, out.slice(1)).slice(0, MAX_SHELF);
     shelf = out;
     others = apps.filter(function (x) { return shelf.indexOf(x) < 0; });
   }
@@ -357,7 +404,7 @@
     openedAt = Date.now();
     var app = stremioApp();
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
-    TV.launch(app.id, {uri: Stremio.link(p, app.id === PLAYER ? 'sofa://' : null)}, function (ok) {
+    TV.launch(app.id, {uri: Stremio.link(p, IS_PLAYER.test(app.id) ? 'sofa://' : null)}, function (ok) {
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
       else away = true;
     });
@@ -875,10 +922,24 @@
   // away: something was opened from here (an app, an input). On some Samsungs the page still counts as on screen
   // under an input, so no screensaver until a key is pressed here again.
   var away = false;
-  var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, SAVER_AFTER = 5 * 60000;
+  var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, awake = true;
+  var SAVER_AFTER = 5 * 60000, SLEEP_AFTER = 45 * 60000;   // the screensaver after 5 idle min; then let the panel sleep
+
+  /** What the screensaver shows: first what he's watching and his lists (their art), then the picks. */
+  function saverPhotos() {
+    var out = [], seen = {};
+    function add(bg, title) { if (bg && !seen[bg]) { seen[bg] = 1; out.push({bg: bg, title: title || ''}); } }
+    ['continue', 'movie', 'series'].forEach(function (kind) {
+      Stremio.list(kind).forEach(function (p) { add(Stremio.background(p), p.title); });
+    });
+    Data.showcase().forEach(function (p) {
+      if (p.backdrop && Data.appFor(p.app)) add(Data.image(p.backdrop, 'original'), p.title);
+    });
+    return out;
+  }
 
   function showSaver() {
-    var photos = Data.showcase().filter(function (p) { return p.backdrop && Data.appFor(p.app); });
+    var photos = saverPhotos();
     saverOn = true;
     var s = $('saver');
     s.innerHTML = '';
@@ -894,7 +955,7 @@
       var p = photos.length ? photos[saverIndex++ % photos.length] : null;
       var back = front === a ? b : a;
       if (p) {
-        back.style.backgroundImage = 'url(' + Data.image(p.backdrop, 'original') + ')';
+        back.style.backgroundImage = 'url(' + p.bg + ')';
         back.style.webkitTransform = back.style.transform = 'scale(1.0)';
         clock.lastChild.textContent = p.title;
         setTimeout(function () {
@@ -929,6 +990,7 @@
 
   function poke() {
     idleAt = Date.now(); away = false;
+    if (!awake) { TV.keepAwake(true); awake = true; }   // woke the panel: keep it on again
     if (saverOn) { hideSaver(); return true; }
     return false;
   }
@@ -1067,6 +1129,8 @@
     Stremio.refresh();
     if (!saverOn && !away && !document.hidden && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
+    // After a long idle, stop holding the panel on so Fire OS can sleep the screen; a press wakes and resumes.
+    if (saverOn && awake && Date.now() - idleAt > SLEEP_AFTER) { TV.keepAwake(false); awake = false; }
   }, 30000);
 
   // For the browser preview and tests.

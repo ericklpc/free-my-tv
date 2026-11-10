@@ -55,6 +55,7 @@ def read_config(path):
         'currency': values.get('currency', 'USD') or 'USD',
         'temperature': values.get('temperature', 'auto') or 'auto',
         'showCrypto': values.get('show_crypto', 'true').lower() != 'false',
+        'debugLog': values.get('debug_log', ''),   # optional: a computer on the network that collects the TV's logs
     }
 
 

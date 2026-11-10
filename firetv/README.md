@@ -33,4 +33,14 @@ Sofá's icon), let Sofá draw over other apps:
 
 Then open Sofá once (it also starts by itself when the TV restarts). To undo either: the same line with `ignore`.
 
+## The screensaver
+
+Sofá keeps the screen on while it's in front (`FLAG_KEEP_SCREEN_ON`), so Fire OS's own screensaver never covers it.
+Instead, after five idle minutes the page shows its own screensaver: a slow slideshow of what you're watching and your
+lists (their art), then the picks, with a clock over them. Any key wakes it. After a long idle (~45 min) Sofá stops
+holding the screen on, so Fire OS can sleep the panel; a press wakes the TV and Sofá comes back.
+
+Fire OS's screensaver is now hidden behind Sofá, so turning it off is optional. To turn it off anyway:
+Settings → Display & Sounds → Screen Saver → Start Time → **Never** (no adb needed).
+
 Debugging the page: `chrome://inspect` on the computer, with the Fire TV connected over adb.
