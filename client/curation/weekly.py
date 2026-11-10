@@ -22,6 +22,7 @@ SOFA_LETTERBOXD (the Letterboxd export folder, required), SOFA_PUBLISH, SOFA_TV.
 Logs to the scheduler's log (~/Library/Logs/sofa-curation.log on a Mac, client/curation/out/weekly.log on Windows).
 """
 import datetime
+import hashlib
 import json
 import os
 import shutil
@@ -70,9 +71,11 @@ def stamp(name, value=None):
 
 
 def week():
+    """This run's date and a short fingerprint of its picks: a second run on the same day publishes again."""
     try:
-        with open(PICKS, encoding='utf-8') as f:
-            return json.load(f).get('week', '')
+        with open(PICKS, 'rb') as f:
+            body = f.read()
+        return '%s:%s' % (json.loads(body.decode('utf-8')).get('week', ''), hashlib.sha1(body).hexdigest()[:8])
     except (OSError, ValueError):
         return ''
 
