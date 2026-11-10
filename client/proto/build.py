@@ -35,7 +35,8 @@ def build_label():
 
 
 def build(out_dir):
-    path = os.path.join(ROOT, 'config.properties')
+    # SOFA_CONFIG: another profile's settings (its Stremio account, picks_url, profile_name), for its own build.
+    path = os.path.expanduser(os.environ.get('SOFA_CONFIG') or os.path.join(ROOT, 'config.properties'))
     cfg = webapp.read_config(path) if os.path.exists(path) else {}
     key = cfg.get('tmdbKey', '')
     # aiostreams_url (your AIOStreams manifest link) turns on the real streams in the Fire TV app.
@@ -51,7 +52,7 @@ def build(out_dir):
     aio = extra['aiostreams_url']
     # This week's picks from client/curation/curate.py, when it has run.
     picks = None
-    pj = os.path.join(ROOT, 'client', 'curation', 'out', 'picks.json')
+    pj = os.path.join(os.path.expanduser(os.environ.get('SOFA_OUT') or os.path.join(ROOT, 'client', 'curation', 'out')), 'picks.json')
     if os.path.exists(pj):
         with open(pj, encoding='utf-8') as f:
             picks = json.load(f)

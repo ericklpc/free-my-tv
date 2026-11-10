@@ -18,7 +18,9 @@ the moment it's back:
     python3 client/curation/weekly.py --status   what was done and what is pending (changes nothing)
 
 Settings, from the environment or from client/curation/weekly.env (KEY=value lines; not in git):
-SOFA_LETTERBOXD (the Letterboxd export folder, required), SOFA_PUBLISH, SOFA_TV. Python 3 standard library only.
+SOFA_LETTERBOXD (the Letterboxd export folder, required), SOFA_PUBLISH, SOFA_TV; for another profile also SOFA_OUT (its
+state folder), SOFA_CONFIG (its config.properties), SOFA_PICKS_NAME (picks-<name>.json) and SOFA_TRAKT_TOKEN. SOFA_ENV
+points to another weekly.env (one per profile). Python 3 standard library only.
 Logs to the scheduler's log (~/Library/Logs/sofa-curation.log on a Mac, client/curation/out/weekly.log on Windows).
 """
 import datetime
@@ -32,24 +34,24 @@ import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-OUT = os.path.join(HERE, 'out')
-PICKS = os.path.join(OUT, 'picks.json')
-LOCK = os.path.join(OUT, '.running')
 
 
-def settings():
-    s = {}
-    path = os.path.join(HERE, 'weekly.env')
+def load_env(path):
+    """weekly.env's KEY=value lines, under what the environment already says (the scheduler can override a line)."""
     if os.path.exists(path):
         for line in open(path, encoding='utf-8'):
             line = line.strip()
             if line and not line.startswith('#') and '=' in line:
                 k, v = line.split('=', 1)
-                s[k.strip()] = v.strip().strip('"')
-    for k in ('SOFA_LETTERBOXD', 'SOFA_PUBLISH', 'SOFA_TV'):
-        if os.environ.get(k):
-            s[k] = os.environ[k]
-    return s
+                os.environ.setdefault(k.strip(), v.strip().strip('"'))
+
+
+load_env(os.environ.get('SOFA_ENV') or os.path.join(HERE, 'weekly.env'))
+OUT = os.path.abspath(os.path.expanduser(os.environ.get('SOFA_OUT') or os.path.join(HERE, 'out')))
+PICKS = os.path.join(OUT, 'picks.json')
+# The published file's name: picks.json for the house, picks-<profile>.json for another profile.
+NAME = os.environ.get('SOFA_PICKS_NAME') or 'picks.json'
+LOCK = os.path.join(OUT, '.running')
 
 
 def slot(now=None):
@@ -94,14 +96,14 @@ def run(cmd, cwd=ROOT, quiet=False):
 
 def publish(branch, wk):
     """picks.json onto the branch GitHub Pages serves, through a worktree of its own (the checkout here isn't touched)."""
-    pages = os.path.join(OUT, 'pages')
+    pages = os.path.join(HERE, 'out', 'pages')            # shared by every profile: one checkout of the branch
     if not os.path.isdir(pages):
         if run(['git', 'fetch', '-q', 'origin', branch]) or run(['git', 'worktree', 'add', '-q', '--detach', pages, 'origin/' + branch]):
             return False
     if run(['git', 'fetch', '-q', 'origin', branch], cwd=pages) or run(['git', 'checkout', '-q', '--detach', 'origin/' + branch], cwd=pages):
         return False
-    shutil.copy(PICKS, os.path.join(pages, 'picks.json'))
-    run(['git', 'add', 'picks.json'], cwd=pages)
+    shutil.copy(PICKS, os.path.join(pages, NAME))
+    run(['git', 'add', NAME], cwd=pages)
     if run(['git', 'diff', '--cached', '--quiet'], cwd=pages):
         if run(['git', '-c', 'user.name=Sofá', '-c', 'user.email=sofa@localhost', 'commit', '-q', '-m', 'Curadoria de ' + wk], cwd=pages):
             return False
@@ -145,7 +147,7 @@ def main():
     except (AttributeError, ValueError):
         pass
     arg = sys.argv[1] if len(sys.argv) > 1 else ''
-    s = settings()
+    s = os.environ
     os.makedirs(OUT, exist_ok=True)
     today = slot()
     if arg == '--status':

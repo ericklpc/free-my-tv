@@ -40,9 +40,10 @@ from concurrent.futures import ThreadPoolExecutor
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
-OUT = os.path.join(HERE, 'out')
-CACHE = os.path.join(OUT, 'cache')
-TRAKT_TOKEN = os.path.expanduser('~/.sofa-trakt.json')
+# A profile (someone else in the family, or a run in GitHub Actions) brings its own settings, state and Trakt login.
+OUT = os.path.abspath(os.path.expanduser(os.environ.get('SOFA_OUT') or os.path.join(HERE, 'out')))
+CACHE = os.path.abspath(os.path.expanduser(os.environ.get('SOFA_CACHE') or os.path.join(OUT, 'cache')))
+TRAKT_TOKEN = os.path.expanduser(os.environ.get('SOFA_TRAKT_TOKEN') or '~/.sofa-trakt.json')
 TMDB = 'https://api.themoviedb.org/3'
 THIS_YEAR = datetime.date.today().year
 GENRES_PT = {}
@@ -50,7 +51,7 @@ GENRES_PT = {}
 
 def config():
     values = {}
-    path = os.path.join(ROOT, 'config.properties')
+    path = os.path.expanduser(os.environ.get('SOFA_CONFIG') or os.path.join(ROOT, 'config.properties'))
     if os.path.exists(path):
         for line in open(path, encoding='utf-8'):
             line = line.strip()
@@ -291,7 +292,8 @@ def tmdb_of(imdb, kind='movie'):
 
 def profile(rated, liked, info, implicit=None):
     """implicit: {tmdb id: (signal, weight)} from behavior(), for films in info he watched without rating."""
-    mean = sum(r for _, r, _, _ in rated) / len(rated)
+    # Someone without a Letterboxd starts from what they watch in the app (implicit) and what's new.
+    mean = sum(r for _, r, _, _ in rated) / len(rated) if rated else 3.5
     weight, count, best = {}, {}, {}
     for tid, rating, name, year in rated:
         d = info.get(tid)
@@ -1124,7 +1126,7 @@ def pick(args):
             for d, good in zip(batch, ok):
                 g, main = group(d), main_reason(d, taste, best, idf)
                 # Variety: at most two picks for the same reason (the same director, the same theme).
-                if good and len(groups[g]) < quota[g] and reason_count.get(main, 0) < 2:
+                if good and len(groups[g]) < quota[g] and (main is None or reason_count.get(main, 0) < 2):
                     groups[g].append(d)
                     reason_count[main] = reason_count.get(main, 0) + 1
         st['queue'] = later + st['queue']                   # what a full group passed over, for the next deck
