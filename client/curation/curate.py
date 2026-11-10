@@ -770,6 +770,10 @@ def season_row(season, taste, best, idf, seen, wish, taken, turn):
     return row
 
 
+# News, reality, soaps and talk shows: they fill TMDB's TV charts and recommendations, and aren't what he binges.
+UNSCRIPTED = {10763, 10764, 10766, 10767}
+
+
 # MARK: - What just arrived: the films and series everyone is on now
 
 def fresh_row(taste, best, idf, seen, wish, taken, turn):
@@ -822,7 +826,7 @@ def airing_row(skip):
             imdb = ((d or {}).get('external_ids') or {}).get('imdb_id')
             # No talk shows, news, reality or soaps: they trend every week and nobody binge-watches them from a debrid.
             if not d or not imdb or imdb in have or imdb in SKIP or d.get('adult') or (d.get('vote_count') or 0) < 30 \
-                    or set(g['id'] for g in d.get('genres', [])) & {10763, 10764, 10766, 10767} or not re.search('[A-Za-z]', d.get('name') or ''):
+                    or set(g['id'] for g in d.get('genres', [])) & UNSCRIPTED or not re.search('[A-Za-z]', d.get('name') or ''):
                 continue
             out.append((d, imdb))
         ok = parallel(lambda x: cached(x[1], 'series'), out, workers=6)
@@ -854,13 +858,13 @@ def series_candidates():
     shows = [it for it in RAW if it.get('type') == 'series' and (it.get('_id') or '').startswith('tt')]
     have = set(it['_id'] for it in shows)
     seeds = sorted(shows, key=lambda it: -int((it.get('state') or {}).get('overallTimeWatched') or 0))
-    seeds = [it for it in seeds if int((it.get('state') or {}).get('overallTimeWatched') or 0) >= 2 * 3600000][:12]
+    seeds = [it for it in seeds if int((it.get('state') or {}).get('overallTimeWatched') or 0) >= 2 * 3600000][:16]
     if not seeds:
         return []
     votes, source = {}, {}
     for it, tv in zip(seeds, parallel(lambda it: tmdb_of(it['_id'], 'tv'), seeds)):
         d = tmdb('/tv/%d' % tv, append_to_response='recommendations,similar', language='pt-BR') if tv else None
-        if not d:
+        if not d or set(g['id'] for g in d.get('genres', [])) & UNSCRIPTED:
             continue
         hours = int(it['state']['overallTimeWatched']) / 3600000.0
         w = math.log(1 + hours, 2)                          # 3 h → 2, 30 h → 5: a binge counts more, not ten times more
@@ -876,6 +880,9 @@ def series_candidates():
     for i, d in zip(top, docs):
         imdb = ((d or {}).get('external_ids') or {}).get('imdb_id')
         if not d or not imdb or imdb in have or imdb in SKIP or d.get('adult') or (d.get('vote_count') or 0) < 50:
+            continue
+        # TMDB recommends reality and talk shows off one another (Dating Naked from The Circle): only fiction and docs.
+        if set(g['id'] for g in d.get('genres', [])) & UNSCRIPTED:
             continue
         if not re.search('[A-Za-z]', d.get('name') or ''):
             continue
