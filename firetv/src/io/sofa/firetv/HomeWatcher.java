@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Gravity;
@@ -72,7 +73,9 @@ public class HomeWatcher extends Service {
         usage = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
         checked = System.currentTimeMillis();
         lastFront = latestFront(checked - 24 * 3600 * 1000L, checked);
-        registerReceiver(wake, new IntentFilter(Intent.ACTION_SCREEN_ON));
+        IntentFilter screen = new IntentFilter(Intent.ACTION_SCREEN_ON);
+        screen.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(wake, screen);
         handler.post(tick);
     }
 
@@ -82,6 +85,10 @@ public class HomeWatcher extends Service {
      */
     private final BroadcastReceiver wake = new BroadcastReceiver() {
         @Override public void onReceive(Context c, Intent i) {
+            // Screen off: nothing can come to the front, so the looking stops until it's on again.
+            handler.removeCallbacks(tick);
+            if (Intent.ACTION_SCREEN_OFF.equals(i.getAction())) return;
+            handler.post(tick);
             stayOnAmazon = false;
             handler.postDelayed(new Runnable() { @Override public void run() {
                 long now = System.currentTimeMillis();
@@ -117,6 +124,11 @@ public class HomeWatcher extends Service {
             n = new Notification.Builder(this).setPriority(Notification.PRIORITY_MIN);
         }
         startForeground(1, n.setSmallIcon(R.drawable.icon).setContentTitle("Sofá").build());
+        // Every quarter of an hour this runs again (the alarm below): if a screen-on was missed, the looking resumes.
+        if (((PowerManager) getSystemService(POWER_SERVICE)).isInteractive()) {
+            handler.removeCallbacks(tick);
+            handler.post(tick);
+        }
         // And if it's killed anyway, back within a quarter of an hour.
         AlarmManager alarms = (AlarmManager) getSystemService(ALARM_SERVICE);
         alarms.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime() + AlarmManager.INTERVAL_FIFTEEN_MINUTES,

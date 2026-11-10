@@ -277,6 +277,37 @@
 
   var H = {zone: 'hero', page: 0, btn: 0, row: 0, idx: [], rows: [], heroTimer: 0, artLayer: 0};
   var HOME = SAMPLE.home;
+  // The week's picks over the network (picks_url): every TV gets the new run the day it's made, without a new
+  // install. The picks that came inside the app are the floor; a newer run kept from last time wins; a newer one
+  // found now is kept and shown when nobody is in the middle of something (at the start, or back on the home).
+  (function () {
+    var kept = null;
+    try { kept = JSON.parse(localStorage.getItem('sofa.picks') || 'null'); } catch (e) {}
+    if (kept && kept.week && kept.picks && kept.picks.length && (!CFG.picks || kept.week > CFG.picks.week)) CFG.picks = kept;
+    if (!CFG.picksUrl) return;
+    var fresh = '', touched = false;
+    document.addEventListener('keydown', function () { touched = true; }, true);
+    function showIt() {
+      if (!fresh || (touched && (state.screen !== 'home' || S.open || sheet.open))) return;
+      fresh = '';
+      location.reload();
+    }
+    function check() {
+      // One address an hour, so a cache between the TV and the page never holds an old run for long.
+      get(CFG.picksUrl + (CFG.picksUrl.indexOf('?') < 0 ? '?' : '&') + 'h=' + Math.floor(now() / 3600000), function (o) {
+        if (!o || !o.week || !o.picks || !o.picks.length || (CFG.picks && o.week <= CFG.picks.week)) return;
+        try { localStorage.setItem('sofa.picks', JSON.stringify(o)); } catch (e) { return; }   // not kept: a reload would loop
+        console.log('[picks] curadoria nova, de ' + o.week);
+        fresh = o.week;
+        if (!touched) showIt();
+      }, 15000);
+    }
+    check();
+    setInterval(check, 3 * 3600000);
+    // Fire OS keeps the app alive for days: coming back to it is the moment to look again.
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { touched = touched && state.screen !== 'home'; showIt(); check(); } });
+  })();
+
   // The week's picks (client/curation): they replace the sample ones, with their own why lines.
   // A run of the curation leaves several decks (same algorithm, other seeds, nothing repeated): the button at the
   // end of the home moves to the next one. Which one is on is kept per run.
@@ -307,7 +338,7 @@
     });
     row.subtitle = '';
     function item(p) {
-      if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: 'movie', title: p.title, year: p.year, genres: p.genres || [],
+      if (!TITLES[p.id]) TITLES[p.id] = {id: p.id, tmdb: p.tmdb, type: p.type === 'series' ? 'series' : 'movie', title: p.title, year: p.year, genres: p.genres || [],
         rating: p.rating || '', runtime: p.runtime || 0, cert: '', colors: colorsFor(p.id), desc: p.desc || '',
         art: {backdrop: p.backdrop ? IMG + 'w1280' + p.backdrop : '', poster: p.poster ? IMG + 'w342' + p.poster : ''}};
       return {id: p.id, why: p.why};
@@ -1415,6 +1446,9 @@
     ];
     var names = ADDONS.length ? ADDONS : ['MyTrakt Sync', 'Stremboxd', 'Cinemeta', 'OpenSubtitles v3', 'AIOStreams'];
     for (var i = 0; i < names.length; i++) items.push(ro(names[i], 'instalado'));
+    items.push({head: 'Sobre'});
+    items.push(ro('Versão', CFG.build || 'sem número'));
+    items.push(ro('Curadoria', CFG.picks && CFG.picks.week ? 'de ' + CFG.picks.week.split('-').reverse().join('/') + (CFG.picksUrl ? ' · atualiza sozinha' : '') : 'ainda não rodou'));
     items.push({head: 'Protótipo'});
     items.push({a: 'Métricas na tela', val: hudOn ? 'ligadas' : 'desligadas', act: function () { hudOn = !hudOn; try { localStorage.setItem('sofa.proto.hud', hudOn ? '1' : '0'); } catch (e) {} hud(); openSettings(true); }});
     items.push({a: 'Zerar o log de uso', val: M.log.length + ' registros', act: function () { M.log = []; M.last = null; saveLog(); hud(); openSettings(true); }});

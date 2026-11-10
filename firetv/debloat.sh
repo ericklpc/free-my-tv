@@ -118,14 +118,13 @@ for pkg in $(list "$TIER"); do
   case " $WIFI " in *" $pkg "*) echo "  skip $pkg (saved a Wi-Fi network)"; continue ;; esac
   if echo "$DISABLED" | grep -qx "$pkg"; then echo "  ok   $pkg (already off)"; continue; fi
   if [ "$MODE" != --apply ]; then echo "  would turn off [$tier] $pkg"; n=$((n+1)); continue; fi
-  # disable-user keeps the app (Fire OS 6 refuses it for some); uninstall --user 0 keeps the APK in /system
+  # Only disable-user, never uninstall: the app stays whole and --restore is one line. Fire OS 6 refuses it for a
+  # few apps; those stay on.
   out="$(tv pm disable-user --user 0 "$pkg")"
   if echo "$out" | grep -q 'disabled-user'; then
     echo "disabled $pkg" >> "$LOG"; echo "  off  $pkg"; n=$((n+1))
   else
-    out="$(tv pm uninstall -k --user 0 "$pkg")"
-    if [ "$out" = Success ]; then echo "removed $pkg" >> "$LOG"; echo "  off  $pkg (removed for this user)"; n=$((n+1))
-    else echo "  FAIL $pkg: $out (Fire OS won't let it go; it stays on)"; fi
+    echo "  FAIL $pkg: $out (Fire OS won't let it go; it stays on)"
   fi
 done
 

@@ -14,7 +14,12 @@ finds cached in TorBox, playable on the Fire TV (same rules as ranking.js), make
 classics and ten in between, each with a line on why. Below them: a documentary row, a row for the season when a date
 matters (Halloween, Christmas…), and the personal rows.
 
-Writes client/curation/out/picks.json (the Sofá Player's "Pra você" row reads it at build time) and, after
+What he does counts as much as what he rates: films finished in the app without a rating teach the taste as quiet
+likes, films dropped early count against, recent ratings weigh more than old ones, and a row of series comes from
+the ones he gave the most hours to (a series he takes to is ten films of screen time).
+
+Writes client/curation/out/picks.json (the Sofá Player carries it from the build, and looks for a newer one at
+picks_url, where weekly.sh publishes it) and, after
 --trakt-login, the Trakt list "Sofá · Curadoria da semana". Needs tmdb_key and aiostreams_url in config.properties.
 Python 3 standard library only. Keeps TMDB answers in client/curation/out/cache/ for a week.
 """
@@ -191,6 +196,7 @@ def load_history(folder):
     def tid(r):
         return ids.get((r['Name'], r.get('Year')))
     rated = [(tid(r), float(r['Rating']), r['Name'], r.get('Year')) for r in ratings if r.get('Rating') and tid(r)]
+    WHEN.update((tid(r), r.get('Date') or '') for r in ratings if r.get('Rating') and tid(r))
     liked = set(tid(r) for r in likes if tid(r))
     seen = set(tid(r) for r in watched + ratings if tid(r))
     wish = set(tid(r) for r in watchlist if tid(r)) - seen
@@ -207,6 +213,7 @@ def load_history(folder):
             seen.add(t); wish.discard(t)
             if rating is None:
                 continue
+            WHEN[t] = datetime.date.today().isoformat()     # the feed is the last ~50 entries: recent
             if t in have:
                 rated[have[t]] = (t, rating, name, year)
             else:
@@ -237,19 +244,72 @@ def letterboxd_feed(user):
 
 # MARK: - Taste and candidates
 
-def profile(rated, liked, info):
+WHEN = {}                                                   # tmdb id -> the day he rated it (YYYY-MM-DD), when known
+
+
+def recency(day, today=None):
+    """How much a rating counts by its age: all of it in the last year, then fading to half (half-life 3 years).
+    What he loved in 2019 still says who he is; what he loved last month says what he'll press play on tonight."""
+    try:
+        age = ((today or datetime.date.today()) - datetime.date.fromisoformat(day[:10])).days / 365.0
+    except (ValueError, TypeError):
+        return 0.75                                         # no date: between the two
+    return 1.0 if age <= 1 else 0.5 + 0.5 * 0.5 ** ((age - 1) / 3.0)
+
+
+def behavior(items, rated_ids, today=None):
+    """What he did in the app with films he never rated: {imdb id: (signal, weight)}. A film he finished is a film he
+    chose and stayed with (a quiet 4★); one he left in the first third and didn't come back to in two weeks is a
+    pass. Stars say what he admires, minutes say what holds him: screen time comes from the second."""
+    today = today or datetime.date.today()
+    out = {}
+    for it in items or []:
+        i, s = it.get('_id') or '', it.get('state') or {}
+        if it.get('type') != 'movie' or not i.startswith('tt') or i in rated_ids:
+            continue
+        watched, dur = int(s.get('overallTimeWatched') or 0), int(s.get('duration') or 0)
+        done = int(s.get('timesWatched') or 0) + int(s.get('flaggedWatched') or 0)
+        last = (s.get('lastWatched') or it.get('_mtime') or '')
+        w = recency(last if isinstance(last, str) else '', today)
+        if done or (dur and watched >= 0.85 * dur):
+            out[i] = (0.75, w)
+        elif dur and 600000 <= watched < 0.35 * dur:
+            try:
+                idle = (today - datetime.date.fromisoformat(last[:10])).days
+            except (ValueError, TypeError):
+                idle = 0
+            if idle >= 14:
+                out[i] = (-1.0, 0.5 * w)
+    return out
+
+
+def tmdb_of(imdb, kind='movie'):
+    o = tmdb('/find/%s' % imdb, external_source='imdb_id') or {}
+    res = o.get('movie_results' if kind == 'movie' else 'tv_results') or []
+    return res[0]['id'] if res else None
+
+
+def profile(rated, liked, info, implicit=None):
+    """implicit: {tmdb id: (signal, weight)} from behavior(), for films in info he watched without rating."""
     mean = sum(r for _, r, _, _ in rated) / len(rated)
     weight, count, best = {}, {}, {}
     for tid, rating, name, year in rated:
         d = info.get(tid)
         if not d:
             continue
-        w = (rating - mean) + (0.5 if tid in liked else 0)
+        w = ((rating - mean) + (0.5 if tid in liked else 0)) * recency(WHEN.get(tid))
         for f in set(features(d)):
             weight[f] = weight.get(f, 0) + w
             count[f] = count.get(f, 0) + 1
             if rating >= 4 and (f not in best or rating > best[f][1]):
                 best[f] = (name, rating)
+    for tid, (signal, w) in (implicit or {}).items():
+        d = info.get(tid)
+        if not d:
+            continue
+        for f in set(features(d)):                          # no entry in best: the why lines quote only his stars
+            weight[f] = weight.get(f, 0) + signal * w
+            count[f] = count.get(f, 0) + abs(w)
     taste = {f: KIND_W.get(f[0], 1) * weight[f] / math.sqrt(count[f] + 1) for f in weight}
     return taste, best, mean
 
@@ -309,19 +369,20 @@ CACHED = {}
 DOWN = {'fails': 0}                                         # AIOStreams not answering: stop asking after a few misses
 
 
-def cached(imdb):
+def cached(imdb, kind='movie'):
     if imdb in CACHED:
         return CACHED[imdb]
-    CACHED[imdb] = ok = cached_now(imdb)
+    CACHED[imdb] = ok = cached_now(imdb, kind)
     return ok
 
 
-def cached_now(imdb):
+def cached_now(imdb, kind='movie'):
     base = re.sub(r'/(manifest\.json|configure)$', '', CFG.get('aiostreams_url', '').strip().rstrip('/'))
     if not base or not imdb or DOWN['fails'] >= 12:
         return False
     # A short wait and one retry: on 31/10 a stuck server held the whole run (four tries of a minute, per film).
-    status, o = http('%s/stream/movie/%s.json' % (base, imdb), timeout=25, tries=2)
+    # A series counts when its first episode is there: that's the one he'd press play on.
+    status, o = http('%s/stream/%s/%s.json' % (base, kind, imdb if kind == 'movie' else imdb + ':1:1'), timeout=25, tries=2)
     if status == 0:
         DOWN['fails'] += 1
         if DOWN['fails'] == 12:
@@ -435,6 +496,7 @@ ROWS_TOTAL = 10
 
 
 LIB = []
+RAW = []                                                    # the library's items as Stremio keeps them
 
 
 def library():
@@ -454,6 +516,7 @@ def library_now():
         print('curation: Stremio library unavailable (%s)' % st, file=sys.stderr)
         return None
     out = {}
+    RAW[:] = [it for it in items if not it.get('removed') or it.get('temp')]
     for it in items:
         s = it.get('state') or {}
         out[it.get('_id')] = (int(s.get('overallTimeWatched') or 0), int(s.get('timesWatched') or 0) + int(s.get('flaggedWatched') or 0))
@@ -527,7 +590,7 @@ def learn(dry=False):
             m['minutes'] += w / 60000.0
         curated = sum(m['minutes'] for m in per.values())
         # Comparable with the runs before the season and documentary rows, and everything any deck showed.
-        core = sum(m['minutes'] for k, m in per.items() if k not in ('row:season', 'row:doc'))
+        core = sum(m['minutes'] for k, m in per.items() if k not in ('row:season', 'row:doc', 'row:series'))
         every = sum(delta.get(i, (0, 0))[0] for i in set(x['id'] for x in last['slots'])) / 60000.0
         line = {'date': datetime.date.today().isoformat(), 'since': last['date'], 'minutes_all': round(total),
                 'minutes_curated': round(curated), 'share_curated': round(curated / total, 3) if total else 0,
@@ -705,6 +768,71 @@ def season_row(season, taste, best, idf, seen, wish, taken, turn):
     if row:
         row['from'], row['until'] = season['start'].isoformat(), season['until'].isoformat()
     return row
+
+
+# MARK: - Series: where the hours are
+
+SERIES = {}
+
+
+def series_row(turn):
+    """Series he hasn't started, recommended from the ones he gave the most hours to in the app. A film is two hours of
+    screen time; a series he takes to is twenty. One list per run, a moving window of it per deck."""
+    if 'good' not in SERIES:
+        SERIES['good'] = series_candidates()
+    good = SERIES['good']
+    if len(good) < 8:
+        return None
+    return {'title': 'Séries pra você', 'kind': 'series', 'items': rotate(good, turn)}
+
+
+def series_candidates():
+    shows = [it for it in RAW if it.get('type') == 'series' and (it.get('_id') or '').startswith('tt')]
+    have = set(it['_id'] for it in shows)
+    seeds = sorted(shows, key=lambda it: -int((it.get('state') or {}).get('overallTimeWatched') or 0))
+    seeds = [it for it in seeds if int((it.get('state') or {}).get('overallTimeWatched') or 0) >= 2 * 3600000][:12]
+    if not seeds:
+        return []
+    votes, source = {}, {}
+    for it, tv in zip(seeds, parallel(lambda it: tmdb_of(it['_id'], 'tv'), seeds)):
+        d = tmdb('/tv/%d' % tv, append_to_response='recommendations,similar', language='pt-BR') if tv else None
+        if not d:
+            continue
+        hours = int(it['state']['overallTimeWatched']) / 3600000.0
+        w = math.log(1 + hours, 2)                          # 3 h → 2, 30 h → 5: a binge counts more, not ten times more
+        for key, share in (('recommendations', 1.0), ('similar', 0.5)):
+            for m in (d.get(key) or {}).get('results', [])[:20]:
+                votes[m['id']] = votes.get(m['id'], 0) + w * share
+                if m['id'] not in source or source[m['id']][0] < w * share:
+                    source[m['id']] = (w * share, d.get('name') or it.get('name') or '')
+    top = sorted(votes, key=lambda i: -votes[i])[:60]
+    docs = parallel(lambda i: tmdb('/tv/%d' % i, append_to_response='external_ids', language='pt-BR'), top)
+    best_vote = max(votes.values()) if votes else 1
+    out = []
+    for i, d in zip(top, docs):
+        imdb = ((d or {}).get('external_ids') or {}).get('imdb_id')
+        if not d or not imdb or imdb in have or imdb in SKIP or d.get('adult') or (d.get('vote_count') or 0) < 50:
+            continue
+        if not re.search('[A-Za-z]', d.get('name') or ''):
+            continue
+        quality = ((d.get('vote_average') or 6) - 7.0) * min(1.0, math.log10((d.get('vote_count') or 0) + 1) / 3)
+        out.append((votes[i] / best_vote + 0.35 * quality, d, imdb))
+    out.sort(key=lambda x: -x[0])
+    out = out[:36]
+    ok = parallel(lambda x: cached(x[2], 'series'), out, workers=6)
+    good = []
+    for (sc, d, imdb), c in zip(out, ok):
+        if not c:
+            continue
+        run = (d.get('episode_run_time') or [0])[0] or 0
+        good.append({'id': imdb, 'tmdb': d['id'], 'type': 'series', 'group': '', 'title': d.get('name'),
+                     'original': d.get('original_name'), 'year': int((d.get('first_air_date') or '0')[:4] or 0), 'runtime': run,
+                     'genres': [x['name'] for x in d.get('genres', [])][:2],
+                     'rating': ('%.1f' % (d.get('vote_average') or 0)).replace('.', ','), 'desc': d.get('overview') or '',
+                     'backdrop': d.get('backdrop_path') or '', 'poster': d.get('poster_path') or '',
+                     'why': 'Porque você viu %s' % source[d['id']][1] if source.get(d['id'], (0, ''))[1] else ''})
+    print('curation: row "Séries pra você": %d of %d cached, from %d series he watched' % (len(good), len(out), len(seeds)))
+    return good
 
 
 # MARK: - The run
@@ -891,8 +1019,17 @@ def pick(args):
     dry = getattr(args, 'dry', False)
     rated, liked, seen, wish = load_history(args.letterboxd)
     info = build_info(set(t for t, _, _, _ in rated))
-    taste, best, mean = profile(rated, liked, info)
-    pool = candidate_ids(rated, info, wish) - seen
+    # What he watched in the app without rating it teaches the taste too (and never comes back as a pick).
+    library()
+    rated_imdb = set((d.get('external_ids') or {}).get('imdb_id') for d in info.values())
+    acts = behavior(RAW, rated_imdb)
+    ids = dict(zip(acts, parallel(tmdb_of, list(acts))))
+    implicit = dict((ids[i], acts[i]) for i in acts if ids[i] and ids[i] not in info)
+    info_all = dict(build_info(set(implicit)), **info)
+    print('curation: %d films finished in the app without a rating count as liked, %d dropped early count against' % (
+        sum(1 for v in implicit.values() if v[0] > 0), sum(1 for v in implicit.values() if v[0] < 0)))
+    taste, best, mean = profile(rated, liked, info_all, implicit)
+    pool = candidate_ids(rated, info, wish) - seen - set(implicit)
     cand = build_info(pool)
     idf = rarity(list(cand.values()))
     ranked = sorted((d for d in cand.values() if not d.get('adult') and (d.get('runtime') or 90) >= 60),
@@ -949,6 +1086,7 @@ def pick(args):
         # The picks, then the season, the documentaries and the personal rows: each one with films the others don't have.
         extra = [season_row(x, taste, best, idf, seen, wish, used, turn + k) for x in days]
         extra.append(documentaries(rated, info, taste, best, idf, seen, wish, used, turn + k))
+        extra.append(series_row(turn + k))
         extra = [r for r in extra if r]
         dr = personal_rows(rated, info, taste, best, idf, seen, wish, week + 7919 * k, set(used), policy.get('quota'), titles, busy)
         short = dict((kind, n - sum(1 for r in dr if r['kind'] == kind)) for kind, n in (policy.get('quota') or {}).items())
@@ -957,7 +1095,7 @@ def pick(args):
         titles.update(r['title'] for r in dr)
         dr = extra + dr
         for r in dr:
-            used.update(x['tmdb'] for x in r['items'])
+            used.update(x['tmdb'] for x in r['items'] if x.get('type') != 'series')   # TMDB numbers films and series apart
         decks.append({'picks': dp, 'rows': dr})
         if k == 0:
             groups = groups_k

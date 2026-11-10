@@ -29,6 +29,8 @@ for a in "$@"; do if [ "$a" = "--proto" ]; then PROTO=1; else ARGS+=("$a"); fi; 
 set -- ${ARGS[@]+"${ARGS[@]}"}
 
 rm -rf out && mkdir -p out/assets out/classes out/gen
+# The commit in the version name, so `adb shell dumpsys package <app> | grep versionName` says what is installed.
+VERSION="1.0-$(git rev-parse --short HEAD 2>/dev/null || echo local)$(git diff --quiet HEAD 2>/dev/null || echo +)"
 MANIFEST=AndroidManifest.xml
 APK=Sofa-FireTV.apk
 if [ $PROTO = 1 ]; then
@@ -58,7 +60,7 @@ fi
 
 "$BT/aapt2" compile --dir res -o out/res.zip
 "$BT/aapt2" link -o out/base.apk -I "$AJ" --manifest "$MANIFEST" --java out/gen --custom-package io.sofa.firetv out/res.zip \
-  --min-sdk-version 22 --target-sdk-version 28 -A out/assets -0 ttf
+  --min-sdk-version 22 --target-sdk-version 28 --version-name "$VERSION" --replace-version -A out/assets -0 ttf
 # The player prototype also gets the native player (player/: Media3 and its ffmpeg audio decoder, from deps.py).
 CP="$AJ"; SRC="src out/gen"; JARS=""
 if [ $PROTO = 1 ]; then
@@ -82,4 +84,4 @@ if [ ! -f sofa.keystore ]; then
     -storepass sofa-tv -keypass sofa-tv -dname "CN=Sofa" >/dev/null 2>&1
 fi
 "$BT/apksigner" sign --ks sofa.keystore --ks-pass pass:sofa-tv --key-pass pass:sofa-tv --out "$APK" out/aligned.apk
-echo "Built firetv/$APK ($(du -h "$APK" | cut -f1)). Install: adb connect <IP>:5555 && adb install -r firetv/$APK"
+echo "Built firetv/$APK $VERSION ($(du -h "$APK" | cut -f1)). Install: adb connect <IP>:5555 && adb install -r firetv/$APK"
