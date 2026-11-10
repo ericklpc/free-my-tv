@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Every hour and at login: weekly.sh decides what is due (a run on Monday and Thursday from 8:00, the publishing and
+<!-- Every hour and at login: weekly.py (through weekly.sh) decides what is due (a run on Monday and Thursday from 8:00, the publishing and
      the Fire TV install that are still pending), so a Mac that slept through the day catches up when it wakes.
-     Install: copy to ~/Library/LaunchAgents with HOME_DIR, TV_IP and LETTERBOXD_DIR replaced (weekly.sh stops without
-     SOFA_TV and SOFA_LETTERBOXD; SOFA_PUBLISH is the branch GitHub Pages serves, or empty), then
+     Install: copy to ~/Library/LaunchAgents with HOME_DIR, TV_IP and LETTERBOXD_DIR replaced (it stops without
+     SOFA_LETTERBOXD; SOFA_TV is optional, for the install on the Fire TV; SOFA_PUBLISH is the branch GitHub Pages serves, or empty), then
      `launchctl load ~/Library/LaunchAgents/sofa.curation.plist`. Remove: `launchctl unload` it and delete it. -->
 <plist version="1.0">
 <dict>

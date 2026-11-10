@@ -8,10 +8,13 @@
 3. Trailers: publique `client/proto/yt.html` em https (GitHub Pages de um fork seu) e ponha a URL em `trailer_page`.
 4. Fire TV: `cd firetv && ./build.sh --proto`, depois `adb install -r Sofa-Player.apk`.
    Samsung: `python3 client/proto/build.py --tizen --sign <seu perfil>` e `tizen install` / `tz install`.
-5. Curadoria (opcional): `SOFA_LETTERBOXD=<sua exportação do Letterboxd> SOFA_TV=<ip:5555> client/curation/weekly.sh`.
-   Com `SOFA_PUBLISH=<branch do GitHub Pages>` ela publica o `picks.json`, e com `picks_url` no `config.properties`
-   toda TV busca a lista nova sozinha, sem reinstalar. O `sofa.curation.plist` roda isso de hora em hora no Mac: a
-   rodada sai segunda e quinta a partir das 8h, e o que ficou pendente (Mac dormindo, TV tocando) sai na hora seguinte.
+5. Curadoria (opcional), no computador que fica mais tempo ligado (Mac, Linux ou Windows; só precisa de Python 3 e
+   git): `SOFA_LETTERBOXD=<sua exportação do Letterboxd> SOFA_PUBLISH=<branch do GitHub Pages> python3 client/curation/weekly.py`
+   (ou essas linhas em `client/curation/weekly.env`). Ela publica o `picks.json`, e com `picks_url` no
+   `config.properties` toda TV busca a lista nova sozinha, sem reinstalar. Agendada de hora em hora
+   (`sofa.curation.plist` no Mac, `windows-task.ps1` no Windows), a rodada sai segunda e quinta a partir das 8h, e o
+   que ficou pendente (computador desligado, sem rede) sai na hora seguinte. `SOFA_TV=<ip:5555>` também instala o
+   app novo no Fire TV quando nada estiver tocando (precisa das ferramentas de Android).
 
 A client for Stremio content, in the Apple TV app's language: the Sofá web UI (`web/`'s rules: ES5, no
 CSS variables, only transform and opacity animate) on top of a native Media3 player on the Fire TV.
