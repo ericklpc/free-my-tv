@@ -143,8 +143,8 @@
 
   var apps = [], shelf = [], others = [], inputs = [];
 
-  var PLAYER = 'io.sofa.player';   // Sofá Player (client/): where Stremio's place and titles go, when installed
-  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;          // on Fire TV, and on Samsung
+  // Sofá Player (client/): where Stremio's place and titles go, when installed (on Fire TV, and on Samsung).
+  var IS_PLAYER = /^(io\.sofa\.player|SofaPlayer\.)/;
 
   function player() {
     for (var i = 0; i < apps.length; i++) if (IS_PLAYER.test(apps[i].id)) return apps[i];
@@ -406,31 +406,8 @@
     if (!app) { toast(tr('Instale o Stremio para assistir ', 'Install Stremio to watch ', 'Instala Stremio para ver ') + p.title); return; }
     TV.launch(app.id, {uri: Stremio.link(p, IS_PLAYER.test(app.id) ? 'sofa://' : null)}, function (ok) {
       if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + p.title);
+      else away = true;
     });
-  }
-
-  var bgUrl = null, bgFront = 'bgA';
-
-  /** The first pick's photo as the background: drawn tiny and stretched, it's already as soft as a heavy blur. */
-  function backdrop(url) {
-    if (url === bgUrl) return;
-    bgUrl = url;
-    var next = bgFront === 'bgA' ? 'bgB' : 'bgA';
-    if (!url) {
-      setClass($('bgA'), 'on', false);
-      setClass($('bgB'), 'on', false);
-      return;
-    }
-    var img = new Image();
-    img.onload = function () {
-      if (bgUrl !== url) return;
-      var canvas = $(next), ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      setClass(canvas, 'on', true);
-      setClass($(bgFront), 'on', false);
-      bgFront = next;
-    };
-    img.src = url;
   }
 
   function renderClock() {
@@ -771,6 +748,7 @@
     return function () {
       TV.launch(id, null, function (ok) {
         if (!ok) toast(tr('Não deu para abrir ', "Couldn't open ", 'No se pudo abrir ') + (name || id));
+        else away = true;
       });
     };
   }
@@ -824,7 +802,6 @@
   }
 
   function move(dx, dy) {
-    var tiles = $('tiles').children;
     switch (st.zone) {
       case Z.SHELF:
         if (dx) st.shelf = Math.max(0, Math.min(shelf.length - 1, st.shelf + dx));
@@ -917,6 +894,9 @@
     setClass(body, 'night', Data.isNight(Date.now()));
   }
 
+  // away: something was opened from here (an app, an input). On some Samsungs the page still counts as on screen
+  // under an input, so no screensaver until a key is pressed here again.
+  var away = false;
   var saverOn = false, idleAt = Date.now(), saverIndex = 0, saverTimer = 0, awake = true;
   var SAVER_AFTER = 5 * 60000, SLEEP_AFTER = 45 * 60000;   // the screensaver after 5 idle min; then let the panel sleep
 
@@ -984,7 +964,7 @@
   }
 
   function poke() {
-    idleAt = Date.now();
+    idleAt = Date.now(); away = false;
     if (!awake) { TV.keepAwake(true); awake = true; }   // woke the panel: keep it on again
     if (saverOn) { hideSaver(); return true; }
     return false;
@@ -1122,7 +1102,7 @@
     checkNight();
     Data.refresh();
     Stremio.refresh();
-    if (!saverOn && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
+    if (!saverOn && !away && !document.hidden && !sheetOpen() && Date.now() - idleAt > SAVER_AFTER) showSaver();
     if (saverOn) tickSaverClock($('saver').querySelector('.clock'));
     // After a long idle, stop holding the panel on so Fire OS can sleep the screen; a press wakes and resumes.
     if (saverOn && awake && Date.now() - idleAt > SLEEP_AFTER) { TV.keepAwake(false); awake = false; }

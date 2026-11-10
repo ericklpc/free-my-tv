@@ -1,3 +1,8 @@
+> **Este fork é o Sofá.** Em cima do Free My TV ele tem dois apps: o **Sofá**, uma home no estilo Apple TV com o
+> que você está vendo no Stremio ([Fire TV](firetv/README.md), Samsung e LG), e o **Sofá Player**, um cliente do
+> Stremio com player próprio e curadoria semanal ([como montar o seu](client/README.md)). O trabalho fica no branch
+> `sofa`; o `main` é o Free My TV original, descrito abaixo.
+
 <div align="center">
 
 <img src="docs/assets/icon-512.png" width="96" alt="">

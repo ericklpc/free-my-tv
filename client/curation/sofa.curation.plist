@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Every hour and at login: weekly.py (through weekly.sh) decides what is due (a run on Monday and Thursday from 8:00, the publishing and
+     the Fire TV install that are still pending), so a Mac that slept through the day catches up when it wakes.
+     Install: copy to ~/Library/LaunchAgents with HOME_DIR, TV_IP and LETTERBOXD_DIR replaced (it stops without
+     SOFA_LETTERBOXD; SOFA_TV is optional, for the install on the Fire TV; SOFA_PUBLISH is the branch GitHub Pages serves, or empty), then
+     `launchctl load ~/Library/LaunchAgents/sofa.curation.plist`. Remove: `launchctl unload` it and delete it. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>sofa.curation</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/bash</string><string>HOME_DIR/sofa-player/client/curation/weekly.sh</string></array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>SOFA_TV</key><string>TV_IP:5555</string>
+    <key>SOFA_LETTERBOXD</key><string>LETTERBOXD_DIR</string>
+    <key>SOFA_PUBLISH</key><string>yt-pages</string>
+  </dict>
+  <key>RunAtLoad</key><true/>
+  <key>StartInterval</key><integer>3600</integer>
+  <key>StartCalendarInterval</key>
+  <array>
+    <dict><key>Weekday</key><integer>1</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+    <dict><key>Weekday</key><integer>4</integer><key>Hour</key><integer>8</integer><key>Minute</key><integer>0</integer></dict>
+  </array>
+  <key>StandardOutPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
+  <key>StandardErrorPath</key><string>HOME_DIR/Library/Logs/sofa-curation.log</string>
+</dict>
+</plist>

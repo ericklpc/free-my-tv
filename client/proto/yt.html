@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Sofá trailer</title>
+<style>html, body, #v { margin: 0; width: 100%; height: 100%; background: #000; overflow: hidden; }</style>
+</head>
+<body>
+<div id="v"></div>
+<script>
+// The Sofá Player's trailers. The app's page is a local file, which YouTube's embed refuses (error 153: no referrer),
+// so the app frames this page, served over https, and drives YouTube's player through it with postMessage.
+// ?v=VIDEO_ID. In: {cmd: 'play' | 'pause' | 'seek', t}. Out: {sofaYt: true, type: 'ready' | 'state' | 'time' | 'error', ...}.
+(function () {
+  var m = /[?&]v=([\w-]{6,20})/.exec(location.search), key = m && m[1], yt = null, playing = false, muted = false, held = false, cc = '', fresh = true, at0 = 0;
+  function send(o) { o.sofaYt = true; try { parent.postMessage(JSON.stringify(o), '*'); } catch (e) {} }
+  if (!key) { send({type: 'error', code: 'NO_ID'}); return; }
+  window.onYouTubeIframeAPIReady = function () {
+    yt = new YT.Player('v', {videoId: key, width: '100%', height: '100%',
+      playerVars: {autoplay: 1, controls: 0, disablekb: 1, fs: 0, rel: 0, iv_load_policy: 3, modestbranding: 1, playsinline: 1, hl: 'pt', cc_load_policy: 0, origin: location.origin},
+      events: {
+        onReady: function () {
+          send({type: 'ready', dur: yt.getDuration()});
+          try { yt.unloadModule('captions'); yt.setPlaybackQuality('hd1080'); } catch (e) {}
+          yt.playVideo();
+          // A browser that holds autoplay with sound: start it muted, then try the sound back once it plays.
+          setTimeout(function () { if (!playing) { muted = true; yt.mute(); yt.playVideo(); } }, 3000);
+        },
+        onStateChange: function (e) {
+          if (e.data === 1) {
+            if (!cc) try { yt.unloadModule('captions'); } catch (x) {}   // YouTube turns them on by itself
+            else if (fresh) try { yt.loadModule('captions'); yt.setOption('captions', 'track', {languageCode: cc}); } catch (x) {}
+            if (fresh) send({type: 'levels', q: yt.getPlaybackQuality(), all: yt.getAvailableQualityLevels()});
+            fresh = false;
+            playing = true;
+            if (muted) { muted = false; yt.unMute(); setTimeout(function () { if (yt.getPlayerState() !== 1) { yt.mute(); yt.playVideo(); } }, 600); }
+          }
+          send({type: 'state', data: e.data});
+        },
+        onError: function (e) { send({type: 'error', code: e.data}); }
+      }});
+    setInterval(function () {
+      try { send({type: 'time', pos: yt.getCurrentTime(), dur: yt.getDuration(), q: yt.getPlaybackQuality()}); } catch (e) {}
+    }, 250);
+    setTimeout(function () { try { send({type: 'levels', q: yt.getPlaybackQuality(), all: yt.getAvailableQualityLevels(), w: innerWidth, h: innerHeight, dpr: devicePixelRatio}); } catch (e) {} }, 20000);
+  };
+  window.addEventListener('message', function (e) {
+    var o = null;
+    try { o = typeof e.data === 'string' ? JSON.parse(e.data) : e.data; } catch (x) {}
+    if (!o || !o.cmd || !yt) return;
+    try {
+      // Back from a pause: load it again where it was, as at the start. A plain play leaves YouTube's pause icon on
+      // the picture and turns its subtitles back on.
+      if (o.cmd === 'play') {
+        if (held) { held = false; fresh = true; yt.loadVideoById({videoId: key, startSeconds: at0}); }
+        else yt.playVideo();
+      }
+      else if (o.cmd === 'pause') { held = true; yt.pauseVideo(); at0 = yt.getCurrentTime(); }
+      else if (o.cmd === 'seek') { at0 = o.t; yt.seekTo(o.t, true); }
+      else if (o.cmd === 'cc') {
+        cc = o.lang || '';
+        if (!o.lang) yt.unloadModule('captions');
+        else { yt.loadModule('captions'); yt.setOption('captions', 'track', {languageCode: o.lang}); }
+      }
+    } catch (x) {}
+  });
+  var js = document.createElement('script');
+  js.src = 'https://www.youtube.com/iframe_api';
+  js.onerror = function () { send({type: 'error', code: 'API'}); };
+  document.head.appendChild(js);
+})();
+</script>
+</body>
+</html>

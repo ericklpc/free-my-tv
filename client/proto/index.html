@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<link rel="preconnect" href="https://www.youtube-nocookie.com"><link rel="preconnect" href="https://www.youtube.com">
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920, height=1080">
+<title>Sofá Player</title>
+<link rel="stylesheet" href="proto.css">
+</head>
+<body>
+<div id="stage">
+
+  <div id="home" class="screen">
+    <div id="page">
+      <div id="hero">
+        <div class="art a"></div><div class="art b"></div>
+        <div class="shade"></div>
+        <div class="info">
+          <div class="kicker"></div>
+          <div class="logo"><img alt=""><span class="name"></span></div>
+          <div class="meta"></div>
+          <div class="why"></div>
+          <div class="buttons"></div>
+          <div class="dots"></div>
+        </div>
+      </div>
+      <div id="rows"></div>
+    </div>
+  </div>
+
+  <div id="detail" class="screen hidden">
+    <div class="art"></div>
+    <div class="shade"></div>
+    <div id="dpage">
+      <div class="top">
+        <div class="logo"><img alt=""><span class="name"></span></div>
+        <div class="meta"></div>
+        <div class="badges"></div>
+        <div class="buttons"></div>
+        <div class="pick"></div>
+        <div class="desc"></div>
+        <div class="credits"></div>
+      </div>
+      <div id="drows"></div>
+    </div>
+  </div>
+
+  <div id="player" class="screen hidden">
+    <div class="frame"></div>
+    <div class="subs"></div>
+    <div class="spinner"><i></i></div>
+    <div class="osd">
+      <div class="title"><div class="kicker"></div><div class="name"></div></div>
+      <div class="controls">
+        <div class="pills"></div>
+        <div class="bar"><div class="fill"></div><div class="head"></div></div>
+        <div class="times"><span class="at"></span><span class="left"></span></div>
+      </div>
+    </div>
+    <div class="skip"></div>
+    <div class="next"><div class="thumb"></div><div class="text"><div class="small">Próximo episódio</div><div class="ep"></div><div class="count"></div></div></div>
+    <div class="tabs"><div class="heads"></div><div class="body"></div></div>
+  </div>
+
+  <div id="side" class="hidden"><div class="panel"></div></div>
+  <div id="trailer"></div>
+  <div id="sheet" class="hidden"><div class="box"><h3></h3><div class="list"></div></div></div>
+  <div id="toast"></div>
+  <div id="hud"></div>
+</div>
+<script src="config.js"></script>
+<script src="sample.js"></script>
+<script src="ranking.js"></script>
+<script src="proto.js"></script>
+</body>
+</html>
