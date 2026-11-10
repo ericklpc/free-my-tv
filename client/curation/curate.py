@@ -1025,7 +1025,7 @@ def pick(args):
     acts = behavior(RAW, rated_imdb)
     ids = dict(zip(acts, parallel(tmdb_of, list(acts))))
     implicit = dict((ids[i], acts[i]) for i in acts if ids[i] and ids[i] not in info)
-    info_all = dict(build_info(set(implicit)), **info)
+    info_all = {**build_info(set(implicit)), **info}
     print('curation: %d films finished in the app without a rating count as liked, %d dropped early count against' % (
         sum(1 for v in implicit.values() if v[0] > 0), sum(1 for v in implicit.values() if v[0] < 0)))
     taste, best, mean = profile(rated, liked, info_all, implicit)
